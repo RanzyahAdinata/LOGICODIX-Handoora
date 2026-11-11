@@ -24,7 +24,7 @@ const MascotGroup = () => {
           scale: 1.025,
           transition: { duration: 0.3 },
         }}
-        className="w-[280px] sm:w-[350px] md:w-[374px] flex justify-center items-center"
+        className="w-[320px] sm:w-[400px] md:w-[440px] flex justify-center items-center"
       >
         <img
           src="/assets/mascot-group.png"
