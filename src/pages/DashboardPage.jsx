@@ -581,7 +581,7 @@ const DashboardPage = () => {
               <img
                 src="/assets/logo-full.png"
                 alt="Handoora"
-                className="h-8 w-auto object-contain group-hover:scale-103 transition-transform"
+                className="h-6 w-auto object-contain group-hover:scale-103 transition-transform"
               />
             </div>
 
@@ -644,7 +644,7 @@ const DashboardPage = () => {
           {/* Mobile Top Header */}
           <div className="lg:hidden flex items-center justify-between px-4 py-3 bg-[#0F172A] border-b border-slate-800">
             <div className="flex items-center">
-              <img src="/assets/logo-full.png" alt="Handoora" className="h-6 w-auto object-contain" />
+              <img src="/assets/logo-full.png" alt="Handoora" className="h-5 w-auto object-contain" />
             </div>
             <div className="flex items-center gap-3 text-xs font-extrabold">
               <span className="flex items-center gap-1 text-amber-400">🔥 {progress.streak}</span>

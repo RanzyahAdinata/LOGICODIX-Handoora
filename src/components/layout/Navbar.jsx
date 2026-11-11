@@ -6,7 +6,7 @@ const HandooraLogo = () => (
     <motion.img
       src="/assets/logo-full.png"
       alt="Handoora"
-      className="h-7 sm:h-9 md:h-[40px] w-auto object-contain select-none"
+      className="h-5 sm:h-6 md:h-[26px] w-auto object-contain select-none"
       whileHover={{ scale: 1.03 }}
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 400, damping: 18 }}
