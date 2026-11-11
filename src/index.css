@@ -1,0 +1,88 @@
+@import "tailwindcss";
+
+/* ============================================ */
+/* Handoora Custom Theme (Exact UI Colors)      */
+/* ============================================ */
+@theme {
+  --color-handoora-red: #EB2B36;
+  --color-handoora-red-border: #DD212D;
+  --color-handoora-red-lip: #B20010;
+  --color-handoora-red-dark: #C81E28;
+  --color-handoora-brand: #B80012;
+  --color-handoora-pink-btn: #FFF1F2;
+  --color-handoora-pink-lip: #FFE4E6;
+  --color-handoora-pink-hover: #FFE4E6;
+  --color-handoora-heading: #666666;
+  --color-handoora-input-bg: #F7F7F7;
+  --color-handoora-input-border: #E9E9E9;
+  --color-handoora-placeholder: #A3A3A3;
+  --color-handoora-gray: #9CA3AF;
+
+  --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #ffffff;
+    color: #4B5563;
+    overflow-x: hidden;
+  }
+}
+
+/* 3D Gamified Button Styles (Duolingo-inspired) */
+.btn-3d-primary {
+  background-color: #EB2B36;
+  border: 2px solid #DD212D;
+  border-bottom-width: 5px;
+  border-bottom-color: #B20010;
+  color: #ffffff;
+  transition: transform 0.1s ease, border-bottom-width 0.1s ease, background-color 0.15s ease, filter 0.15s ease;
+}
+
+.btn-3d-primary:hover:not(:disabled) {
+  background-color: #F23540;
+  filter: brightness(1.03);
+}
+
+.btn-3d-primary:active:not(:disabled) {
+  border-bottom-width: 2px;
+  transform: translateY(3px);
+}
+
+.btn-3d-secondary {
+  background-color: #FFF1F2;
+  border: 2px solid #FFE4E6;
+  border-bottom-width: 5px;
+  border-bottom-color: #FFE4E6;
+  color: #B80012;
+  transition: transform 0.1s ease, border-bottom-width 0.1s ease, background-color 0.15s ease;
+}
+
+.btn-3d-secondary:hover:not(:disabled) {
+  background-color: #FFE8EA;
+  border-color: #FECDD3;
+  border-bottom-color: #FDA4AF;
+}
+
+.btn-3d-secondary:active:not(:disabled) {
+  border-bottom-width: 2px;
+  transform: translateY(3px);
+}
+
+/* Remove number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}
