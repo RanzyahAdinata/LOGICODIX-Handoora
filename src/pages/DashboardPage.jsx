@@ -533,132 +533,205 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 // SCENERY FULL-SCREEN DUA MODE (LANGIT CERAH & LANGIT SENJA)
 // ============================================================
 // ============================================================
-// ELEMEN DEKORASI KONSTRUKSI ANIMATIF ISOMETRIK PADA PULAU COMING SOON
-// Menyatu alami dengan grafis pulau (scaffolding kayu bambu, crane/katrol
-// mini berputar pelan, kerucut pembatas, & debu/bintang pengerjaan)
+// KARAKTER PEKERJA KONSTRUKSI ANIMATIF (HELM KUNING & ROMPI ORANYE)
+// Bergaya kartun imut, proporsional, dan bergerak aktif
+// ============================================================
+// 1. Pekerja Martil / Mengetuk Kayu (Hammering Worker)
+const ConstructionWorkerHammering = ({ x, y, flip = false }) => (
+  <div
+    style={{ left: x, top: y }}
+    className={`absolute -translate-x-1/2 -translate-y-full w-9 sm:w-11 h-12 sm:h-14 pointer-events-none z-20 ${
+      flip ? '-scale-x-100' : ''
+    }`}
+  >
+    <svg viewBox="0 0 50 65" className="w-full h-full overflow-visible drop-shadow-sm">
+      {/* Bayangan Kaki */}
+      <ellipse cx="25" cy="62" rx="12" ry="3.5" fill="#000000" fillOpacity="0.22" />
+
+      {/* Sepatu & Celana Biru Konstruksi */}
+      <rect x="18" y="47" width="5.5" height="13" rx="2" fill="#2563EB" />
+      <rect x="26.5" y="47" width="5.5" height="13" rx="2" fill="#1D4ED8" />
+      <ellipse cx="19.5" cy="60" rx="3.5" ry="2" fill="#334155" />
+      <ellipse cx="28" cy="60" rx="3.5" ry="2" fill="#1E293B" />
+
+      {/* Badan & Rompi Oranye Keselamatan Kerja */}
+      <rect x="16" y="30" width="18" height="19" rx="4" fill="#EA580C" />
+      {/* Strip Reflektif Neon */}
+      <rect x="18" y="34" width="14" height="2.5" fill="#FEF08A" />
+      <rect x="18" y="40" width="14" height="2.5" fill="#FEF08A" />
+
+      {/* Kepala & Wajah Ramah */}
+      <circle cx="25" cy="22" r="7.5" fill="#FED7AA" />
+      <circle cx="27" cy="22" r="1.2" fill="#1E293B" />
+      <path d="M 25 25 Q 27 27 28 25" stroke="#9A3412" strokeWidth="1" fill="none" />
+
+      {/* Helm Proyek Kuning (Safety Hard Hat) */}
+      <path d="M 17 19 Q 25 10 33 19 Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.2" />
+      <rect x="15" y="18" width="20" height="3" rx="1.5" fill="#EAB308" />
+
+      {/* Lengan Mengayun Martil Halus */}
+      <motion.g
+        animate={{ rotate: [0, -32, 18, 0] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ originX: '20px', originY: '33px' }}
+      >
+        <line x1="20" y1="33" x2="10" y2="39" stroke="#EA580C" strokeWidth="4" strokeLinecap="round" />
+        <circle cx="9" cy="39" r="2.5" fill="#FED7AA" />
+        {/* Tangkai Martil & Kepala Martil */}
+        <line x1="8" y1="42" x2="12" y2="28" stroke="#78350F" strokeWidth="2.2" strokeLinecap="round" />
+        <rect x="8" y="27" width="8" height="4.5" rx="1" fill="#64748B" />
+      </motion.g>
+
+      {/* Percikan Partikel Ketukan */}
+      <motion.circle
+        cx="14"
+        cy="28"
+        r="1.8"
+        fill="#FDE047"
+        animate={{ scale: [0, 1.4, 0], opacity: [0, 1, 0], y: [0, -4] }}
+        transition={{ duration: 1.1, repeat: Infinity, ease: 'easeOut', delay: 0.2 }}
+      />
+    </svg>
+  </div>
+)
+
+// 2. Pekerja Arsitek / Pengawas Membawa Peta Blueprint Gulung
+const ConstructionWorkerBlueprint = ({ x, y, flip = false }) => (
+  <div
+    style={{ left: x, top: y }}
+    className={`absolute -translate-x-1/2 -translate-y-full w-9 sm:w-11 h-12 sm:h-14 pointer-events-none z-20 ${
+      flip ? '-scale-x-100' : ''
+    }`}
+  >
+    <svg viewBox="0 0 50 65" className="w-full h-full overflow-visible drop-shadow-sm">
+      <ellipse cx="25" cy="62" rx="12" ry="3.5" fill="#000000" fillOpacity="0.22" />
+
+      {/* Celana & Sepatu */}
+      <rect x="18" y="47" width="5.5" height="13" rx="2" fill="#334155" />
+      <rect x="26.5" y="47" width="5.5" height="13" rx="2" fill="#1E293B" />
+      <ellipse cx="19.5" cy="60" rx="3.5" ry="2" fill="#0F172A" />
+      <ellipse cx="28" cy="60" rx="3.5" ry="2" fill="#0F172A" />
+
+      {/* Kemeja & Rompi Hijau Pengawas */}
+      <rect x="16" y="30" width="18" height="19" rx="4" fill="#059669" />
+      <rect x="18" y="35" width="14" height="2.5" fill="#A7F3D0" />
+
+      {/* Kepala & Kacamata Pelindung */}
+      <circle cx="25" cy="22" r="7.5" fill="#FED7AA" />
+      <rect x="23" y="20.5" width="6" height="3" rx="1.2" fill="#38BDF8" opacity="0.85" />
+
+      {/* Helm Putih Insinyur/Pengawas */}
+      <path d="M 17 19 Q 25 10 33 19 Z" fill="#F8FAFC" stroke="#CBD5E1" strokeWidth="1.2" />
+      <rect x="15" y="18" width="20" height="3" rx="1.5" fill="#E2E8F0" />
+
+      {/* Lengan Membuka/Membaca Peta Blueprint (Kertas Gulung Biru) */}
+      <motion.g
+        animate={{ rotate: [-2, 4, -2], y: [0, -1, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <line x1="16" y1="36" x2="22" y2="42" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
+        <line x1="33" y1="36" x2="28" y2="42" stroke="#047857" strokeWidth="3.5" strokeLinecap="round" />
+        {/* Lembar Peta Blueprint */}
+        <polygon points="18,36 34,35 33,48 17,49" fill="#0284C7" stroke="#38BDF8" strokeWidth="0.8" />
+        <line x1="20" y1="40" x2="31" y2="39" stroke="#E0F2FE" strokeWidth="1" />
+        <line x1="20" y1="44" x2="28" y2="43" stroke="#E0F2FE" strokeWidth="1" />
+      </motion.g>
+    </svg>
+  </div>
+)
+
+// 3. Pekerja Mendorong Gerobak Sorong Material (Wheelbarrow Worker)
+const ConstructionWorkerWheelbarrow = ({ x, y, flip = false }) => (
+  <div
+    style={{ left: x, top: y }}
+    className={`absolute -translate-x-1/2 -translate-y-full w-14 sm:w-16 h-12 sm:h-14 pointer-events-none z-20 ${
+      flip ? '-scale-x-100' : ''
+    }`}
+  >
+    <svg viewBox="0 0 75 65" className="w-full h-full overflow-visible drop-shadow-sm">
+      <ellipse cx="38" cy="62" rx="22" ry="4" fill="#000000" fillOpacity="0.22" />
+
+      {/* Roda Gerobak */}
+      <circle cx="16" cy="56" r="6" fill="#334155" stroke="#64748B" strokeWidth="1.5" />
+      <circle cx="16" cy="56" r="2" fill="#E2E8F0" />
+      {/* Bak Gerobak Sorong Oranye Berisi Pasir/Batu */}
+      <polygon points="11,46 36,44 32,54 18,55" fill="#EA580C" stroke="#C2410C" strokeWidth="1.2" />
+      {/* Tumpukan Pasir/Batu */}
+      <path d="M 14 45 Q 24 37 34 44 Z" fill="#D97706" />
+      {/* Kaki Penyangga & Pegangan Gerobak */}
+      <line x1="29" y1="52" x2="29" y2="60" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+      <line x1="20" y1="48" x2="48" y2="41" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" />
+
+      {/* Pekerja Sedang Mendorong di Belakang Gerobak */}
+      {/* Kaki Melangkah */}
+      <line x1="52" y1="46" x2="48" y2="60" stroke="#2563EB" strokeWidth="4.5" strokeLinecap="round" />
+      <line x1="56" y1="46" x2="62" y2="60" stroke="#1D4ED8" strokeWidth="4.5" strokeLinecap="round" />
+
+      {/* Badan Condong ke Depan */}
+      <motion.g
+        animate={{ y: [0, -1.5, 0] }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut' }}
+      >
+        <polygon points="46,30 58,29 55,47 46,47" fill="#EA580C" />
+        <line x1="47" y1="36" x2="57" y2="35" stroke="#FEF08A" strokeWidth="2" />
+        {/* Kepala & Helm */}
+        <circle cx="53" cy="22" r="6.5" fill="#FED7AA" />
+        <path d="M 46 20 Q 53 12 60 20 Z" fill="#FACC15" stroke="#CA8A04" strokeWidth="1.2" />
+        <rect x="45" y="19" width="16" height="2.5" rx="1.2" fill="#EAB308" />
+        {/* Tangan Memegang Handle */}
+        <line x1="50" y1="34" x2="46" y2="41" stroke="#EA580C" strokeWidth="3.5" strokeLinecap="round" />
+      </motion.g>
+    </svg>
+  </div>
+)
+
+// ============================================================
+// ELEMEN DEKORASI KONSTRUKSI TIAP PULAU BERBEDA SECARA TEMATIK
 // ============================================================
 const ConstructionSceneryOnIsland = ({ unitId, isBright }) => {
-  // Posisi proporsional sesuai bentuk kontur masing-masing pulau
-  const configs = {
-    3: { cranePos: { left: '72%', top: '24%' }, conePos: { left: '38%', top: '72%' }, scaffoldPos: { left: '20%', top: '35%' } },
-    4: { cranePos: { left: '26%', top: '22%' }, conePos: { left: '62%', top: '68%' }, scaffoldPos: { left: '68%', top: '28%' } },
-    5: { cranePos: { left: '74%', top: '20%' }, conePos: { left: '28%', top: '66%' }, scaffoldPos: { left: '22%', top: '32%' } },
-    6: { cranePos: { left: '32%', top: '18%' }, conePos: { left: '68%', top: '64%' }, scaffoldPos: { left: '66%', top: '26%' } },
+  // PULAU 3: Konstruksi Penggalian & Pemasangan Pipa/Batu Pondasi
+  if (unitId === 3) {
+    return (
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
+        {/* Pekerja Martil Memperbaiki Pondasi Kincir */}
+        <ConstructionWorkerHammering x="62%" y="42%" flip={true} />
+        {/* Kerucut Pengaman Rapi di Pinggir Jalan */}
+        <div style={{ left: '76%', top: '48%' }} className="absolute -translate-x-1/2 -translate-y-full w-5 h-6">
+          <svg viewBox="0 0 28 32" className="w-full h-full drop-shadow-xs">
+            <ellipse cx="14" cy="28" rx="11" ry="3.5" fill="#000000" fillOpacity="0.22" />
+            <polygon points="14,4 6,27 22,27" fill="#EA580C" />
+            <polygon points="14,13 9,21 19,21" fill="#FFFFFF" />
+          </svg>
+        </div>
+        {/* Tumpukan Balok Kayu Material */}
+        <div style={{ left: '32%', top: '56%' }} className="absolute -translate-x-1/2 -translate-y-full w-8 h-5">
+          <svg viewBox="0 0 36 22" className="w-full h-full drop-shadow-xs">
+            <ellipse cx="18" cy="19" rx="14" ry="3" fill="#000000" fillOpacity="0.2" />
+            <rect x="4" y="11" width="28" height="6" rx="1.5" fill="#B45309" stroke="#78350F" strokeWidth="0.8" />
+            <rect x="7" y="5" width="22" height="6" rx="1.5" fill="#D97706" stroke="#92400E" strokeWidth="0.8" />
+          </svg>
+        </div>
+      </div>
+    )
   }
 
-  const cfg = configs[unitId] || configs[3]
-
-  return (
-    <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
-      {/* 1. Mini Tower Crane / Katrol Kayu Animatif dengan Tali Pengangkut Berayun */}
-      <div
-        style={{ left: cfg.cranePos.left, top: cfg.cranePos.top }}
-        className="absolute -translate-x-1/2 -translate-y-full w-12 sm:w-16 h-14 sm:h-20"
-      >
-        <svg viewBox="0 0 80 100" className="w-full h-full overflow-visible drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
-          {/* Bayangan Dasar di Tanah */}
-          <ellipse cx="40" cy="96" rx="14" ry="4" fill="#000000" fillOpacity="0.2" />
-
-          {/* Tiang Vertikal Truss Menara Crane */}
-          <line x1="36" y1="94" x2="36" y2="28" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" />
-          <line x1="44" y1="94" x2="44" y2="28" stroke="#F59E0B" strokeWidth="2.4" strokeLinecap="round" />
-          {/* Silang Penguat (Truss Lattice) */}
-          <line x1="36" y1="82" x2="44" y2="72" stroke="#B45309" strokeWidth="1.5" />
-          <line x1="36" y1="72" x2="44" y2="82" stroke="#B45309" strokeWidth="1.5" />
-          <line x1="36" y1="62" x2="44" y2="52" stroke="#B45309" strokeWidth="1.5" />
-          <line x1="36" y1="52" x2="44" y2="62" stroke="#B45309" strokeWidth="1.5" />
-          <line x1="36" y1="42" x2="44" y2="32" stroke="#B45309" strokeWidth="1.5" />
-          <line x1="36" y1="32" x2="44" y2="42" stroke="#B45309" strokeWidth="1.5" />
-
-          {/* Lengan Horizontal Crane (Jib) yang Menoleh Halus */}
-          <motion.g
-            animate={{ rotate: [-6, 12, -6] }}
-            transition={{ duration: 7.5, repeat: Infinity, ease: 'easeInOut' }}
-            style={{ originX: '40px', originY: '26px' }}
-          >
-            {/* Lengan Utama */}
-            <polygon points="12,25 74,25 70,28 14,28" fill="#F59E0B" stroke="#B45309" strokeWidth="1.2" />
-            <line x1="40" y1="12" x2="70" y2="25" stroke="#D97706" strokeWidth="1.4" />
-            <line x1="40" y1="12" x2="16" y2="25" stroke="#D97706" strokeWidth="1.4" />
-            {/* Tiang Puncak & Beban Penyeimbang */}
-            <polygon points="38,25 42,25 40,11" fill="#D97706" />
-            <rect x="14" y="21" width="8" height="7" rx="1.5" fill="#78350F" />
-
-            {/* Kabel Katrol & Beban Kayu yang Naik Turun Berayun Halus */}
-            <motion.g
-              animate={{ y: [0, 8, 2, 8, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              <line x1="62" y1="26" x2="62" y2="50" stroke="#475569" strokeWidth="1.2" strokeDasharray="3 2" />
-              {/* Balok Material Terangkat */}
-              <rect x="56" y="50" width="12" height="7" rx="1" fill="#EA580C" stroke="#C2410C" strokeWidth="1" />
-              <line x1="56" y1="53.5" x2="68" y2="53.5" stroke="#FED7AA" strokeWidth="1" />
-            </motion.g>
-          </motion.g>
-        </svg>
-      </div>
-
-      {/* 2. Kerangka Scaffolding Bambu / Kayu dengan Terpal Pelindung */}
-      <div
-        style={{ left: cfg.scaffoldPos.left, top: cfg.scaffoldPos.top }}
-        className="absolute -translate-x-1/2 -translate-y-1/2 w-11 sm:w-14 h-11 sm:h-14"
-      >
-        <svg viewBox="0 0 60 60" className="w-full h-full overflow-visible drop-shadow-xs">
-          {/* Bayangan */}
-          <ellipse cx="30" cy="54" rx="18" ry="4" fill="#000000" fillOpacity="0.18" />
-          {/* Tiang Scaffolding */}
-          <rect x="14" y="16" width="3.5" height="38" rx="1" fill="#B45309" />
-          <rect x="42" y="16" width="3.5" height="38" rx="1" fill="#B45309" />
-          <line x1="14" y1="26" x2="45" y2="26" stroke="#D97706" strokeWidth="2.5" />
-          <line x1="14" y1="40" x2="45" y2="40" stroke="#D97706" strokeWidth="2.5" />
-          <line x1="16" y1="26" x2="43" y2="40" stroke="#92400E" strokeWidth="1.5" />
-          <line x1="16" y1="40" x2="43" y2="26" stroke="#92400E" strokeWidth="1.5" />
-
-          {/* Terpal Strip Kuning-Garis Konstruksi */}
-          <motion.path
-            d="M 17 26 Q 30 29 43 26 L 43 38 Q 30 41 17 38 Z"
-            fill="#FEF08A"
-            stroke="#EAB308"
-            strokeWidth="1.2"
-            animate={{ scaleY: [1, 1.05, 0.98, 1] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
-          />
-          <line x1="23" y1="27" x2="23" y2="38" stroke="#CA8A04" strokeWidth="1.2" />
-          <line x1="30" y1="28" x2="30" y2="39" stroke="#CA8A04" strokeWidth="1.2" />
-          <line x1="37" y1="27" x2="37" y2="38" stroke="#CA8A04" strokeWidth="1.2" />
-        </svg>
-      </div>
-
-      {/* 3. Kerucut Pembatas Proyek Konstruksi (Safety Traffic Cones) Isometrik */}
-      <div
-        style={{ left: cfg.conePos.left, top: cfg.conePos.top }}
-        className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5"
-      >
-        <motion.div
-          animate={{ y: [0, -2, 0] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-5 h-6 sm:w-6 sm:h-7"
-        >
-          <svg viewBox="0 0 32 38" className="w-full h-full drop-shadow-xs">
-            {/* Dasar Kerucut Oranye */}
-            <ellipse cx="16" cy="33" rx="13" ry="4" fill="#000000" fillOpacity="0.22" />
-            <polygon points="16,4 7,32 25,32" fill="#EA580C" stroke="#C2410C" strokeWidth="1" />
-            {/* Garis Reflektif Putih */}
-            <polygon points="16,14 11,23 21,23" fill="#FFFFFF" opacity="0.95" />
-            <polygon points="16,4 14,9 18,9" fill="#EA580C" />
-          </svg>
-        </motion.div>
-
+  // PULAU 4: Konstruksi Taman & Penghijauan (Pekerja Gerobak & Pembatas)
+  if (unitId === 4) {
+    return (
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
+        {/* Pekerja Mengangkut Material dengan Gerobak Sorong */}
+        <ConstructionWorkerWheelbarrow x="38%" y="40%" flip={false} />
         {/* Papan Palang Garis Konstruksi Oranye-Kuning */}
         <motion.div
           animate={{ rotate: [-1.5, 1.5, -1.5] }}
-          transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
-          className="w-8 sm:w-10 h-5 sm:h-6"
+          transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+          style={{ left: '68%', top: '46%' }}
+          className="absolute -translate-x-1/2 -translate-y-full w-9 sm:w-11 h-6"
         >
           <svg viewBox="0 0 44 26" className="w-full h-full drop-shadow-xs">
-            <line x1="8" y1="24" x2="8" y2="4" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
-            <line x1="36" y1="24" x2="36" y2="4" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
-            {/* Barricade Board dengan strip diagonal */}
+            <ellipse cx="22" cy="24" rx="18" ry="2.5" fill="#000000" fillOpacity="0.18" />
+            <line x1="8" y1="23" x2="8" y2="4" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" />
+            <line x1="36" y1="23" x2="36" y2="4" stroke="#475569" strokeWidth="2.2" strokeLinecap="round" />
             <rect x="4" y="6" width="36" height="10" rx="1.5" fill="#F59E0B" stroke="#B45309" strokeWidth="1" />
             <line x1="10" y1="6" x2="16" y2="16" stroke="#FFFFFF" strokeWidth="2.2" />
             <line x1="20" y1="6" x2="26" y2="16" stroke="#FFFFFF" strokeWidth="2.2" />
@@ -666,34 +739,58 @@ const ConstructionSceneryOnIsland = ({ unitId, isBright }) => {
           </svg>
         </motion.div>
       </div>
+    )
+  }
 
-      {/* 4. Efek Percikan Konstruksi / Sparkle Halus (Pengerjaan Proyek Ramah Lingkungan) */}
-      {[
-        { x: '45%', y: '30%', delay: 0 },
-        { x: '70%', y: '42%', delay: 1.4 },
-        { x: '30%', y: '48%', delay: 2.8 },
-      ].map((sp, i) => (
-        <motion.div
-          key={`spark-${i}`}
-          style={{ left: sp.x, top: sp.y }}
-          animate={{
-            scale: [0, 1.2, 0],
-            opacity: [0, 0.85, 0],
-            rotate: [0, 90],
-          }}
-          transition={{
-            duration: 2.4,
-            repeat: Infinity,
-            delay: sp.delay,
-            ease: 'easeInOut',
-          }}
-          className="absolute w-2 h-2 text-amber-400 pointer-events-none"
-        >
-          <svg viewBox="0 0 16 16" fill="currentColor">
-            <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" />
+  // PULAU 5: Konstruksi Bangunan Gedung & Pemantauan (Insinyur Peta & Scaffolding Kecil)
+  if (unitId === 5) {
+    return (
+      <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
+        {/* Arsitek Pengawas Membaca Blueprint */}
+        <ConstructionWorkerBlueprint x="44%" y="42%" flip={false} />
+        {/* Kerangka Scaffolding Rapi di Sisi Lereng Rumput */}
+        <div style={{ left: '72%', top: '38%' }} className="absolute -translate-x-1/2 -translate-y-full w-9 sm:w-11 h-12">
+          <svg viewBox="0 0 45 55" className="w-full h-full drop-shadow-xs">
+            <ellipse cx="22" cy="52" rx="16" ry="3" fill="#000000" fillOpacity="0.18" />
+            <rect x="8" y="10" width="3" height="42" rx="1" fill="#B45309" />
+            <rect x="34" y="10" width="3" height="42" rx="1" fill="#B45309" />
+            <line x1="8" y1="22" x2="37" y2="22" stroke="#D97706" strokeWidth="2" />
+            <line x1="8" y1="36" x2="37" y2="36" stroke="#D97706" strokeWidth="2" />
+            <line x1="10" y1="22" x2="35" y2="36" stroke="#92400E" strokeWidth="1.2" />
+            <line x1="10" y1="36" x2="35" y2="22" stroke="#92400E" strokeWidth="1.2" />
           </svg>
-        </motion.div>
-      ))}
+        </div>
+      </div>
+    )
+  }
+
+  // PULAU 6: Puncak Nusantara - Derek Katrol Angkat Batu & Pekerja Martil
+  return (
+    <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
+      {/* Derek Katrol Kayu Tradisional yang Menancap Kokoh di Atas Tanah Puncak */}
+      <div style={{ left: '38%', top: '32%' }} className="absolute -translate-x-1/2 -translate-y-full w-12 sm:w-14 h-16 sm:h-20">
+        <svg viewBox="0 0 65 90" className="w-full h-full drop-shadow-sm">
+          <ellipse cx="32" cy="86" rx="16" ry="3.5" fill="#000000" fillOpacity="0.22" />
+          {/* Tripod Tiang Kayu */}
+          <line x1="14" y1="84" x2="32" y2="18" stroke="#92400E" strokeWidth="3" strokeLinecap="round" />
+          <line x1="50" y1="84" x2="32" y2="18" stroke="#78350F" strokeWidth="3" strokeLinecap="round" />
+          <line x1="32" y1="85" x2="32" y2="18" stroke="#B45309" strokeWidth="2.5" />
+          {/* Roda Katrol Logam Berputar */}
+          <circle cx="32" cy="22" r="5" fill="#64748B" stroke="#334155" strokeWidth="1.5" />
+          {/* Tali & Beban Peti Kayu Terangkat Naik-Turun */}
+          <motion.g
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <line x1="32" y1="26" x2="32" y2="52" stroke="#475569" strokeWidth="1.2" strokeDasharray="3 2" />
+            <rect x="25" y="52" width="14" height="12" rx="1.5" fill="#D97706" stroke="#92400E" strokeWidth="1" />
+            <line x1="25" y1="58" x2="39" y2="58" stroke="#78350F" strokeWidth="0.8" />
+          </motion.g>
+        </svg>
+      </div>
+
+      {/* Pekerja Martil Mengetuk di Dekat Derek */}
+      <ConstructionWorkerHammering x="66%" y="42%" flip={false} />
     </div>
   )
 }
