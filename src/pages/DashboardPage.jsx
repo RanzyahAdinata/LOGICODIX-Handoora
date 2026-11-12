@@ -2672,10 +2672,10 @@ const DashboardPage = () => {
 
               {/* ========================================================== */}
               {/* FLOATING BOTTOM CONTROLS: Navigasi Level, Mode Langit & Zoom */}
-              {/* Desain Modern, Bersih & Profesional Sesuai Standar EdTech  */}
+              {/* Diposisikan Center / Tengah Sempurna & Rapi Sesuai Permintaan */}
               {/* ========================================================== */}
-              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-5 left-0 right-0 z-40 px-4 sm:px-8 flex flex-wrap items-center justify-between gap-3">
-                {/* Segmen Kiri: Quick Jump Peta Level (Pill Modern) */}
+              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-5 left-0 right-0 z-40 px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3">
+                {/* Segmen Quick Jump Peta Level (Pill Modern di Tengah) */}
                 <div className="pointer-events-auto flex items-center bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl p-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                   <span className="hidden sm:inline-block px-3 py-1 text-[11px] font-black uppercase tracking-wider text-gray-500 border-r border-gray-200 mr-1.5">
                     Level
@@ -2718,13 +2718,13 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* Segmen Kanan: Segmented Switch Mode Langit + Zoom Controls */}
-                <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
-                  {/* Segmented Control Mode Langit Bersih Tanpa Emoticon Besar */}
+                {/* Segmen Pelengkap: Segmented Switch Mode Langit + Zoom Controls */}
+                <div className="pointer-events-auto flex items-center gap-2">
+                  {/* Segmented Control Mode Langit Bersih */}
                   <div className="bg-white/95 backdrop-blur-md border border-gray-200/90 p-1 rounded-2xl flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                     <button
                       onClick={() => setSkyMode('bright')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'bright'
                           ? 'bg-[#0A84EC] text-white shadow-xs'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
@@ -2735,7 +2735,7 @@ const DashboardPage = () => {
                     </button>
                     <button
                       onClick={() => setSkyMode('sunset')}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'sunset'
                           ? 'bg-[#E15814] text-white shadow-xs'
                           : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
