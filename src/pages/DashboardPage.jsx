@@ -1495,6 +1495,28 @@ const DashboardPage = () => {
   // Status sticker untuk LEADERBOARD
   const [userLeaderboardStatus, setUserLeaderboardStatus] = useState('🔥')
 
+  // Real-time Leaderboard dari Supabase Profiles
+  const [supabaseLeaderboard, setSupabaseLeaderboard] = useState([])
+  const [isLoadingLeaderboard, setIsLoadingLeaderboard] = useState(false)
+
+  const fetchRealLeaderboard = useCallback(async () => {
+    setIsLoadingLeaderboard(true)
+    try {
+      const data = await progressService.getLeaderboard(10)
+      setSupabaseLeaderboard(data || [])
+    } catch (e) {
+      console.warn('Gagal memuat leaderboard:', e)
+    } finally {
+      setIsLoadingLeaderboard(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (activeMenu === 'leaderboard') {
+      fetchRealLeaderboard()
+    }
+  }, [activeMenu, fetchRealLeaderboard])
+
   // Form Ubah Password di menu PROFIL
   const [passwordForm, setPasswordForm] = useState({
     newPassword: '',
@@ -1678,6 +1700,15 @@ const DashboardPage = () => {
   }
 
   const startQuiz = (unit) => {
+    // Selama masa pengembangan, Level 3-6 dibuat Coming Soon
+    if (unit.id >= 3) {
+      toast('🚧 Level ini sedang dalam tahap pengembangan (Coming Soon)! Nantikan update terbarunya.', {
+        icon: '✨',
+        duration: 3500,
+      })
+      return
+    }
+
     const isUnlocked = progress.unlockedIslands.includes(unit.id) || unit.id === 1
     if (!isUnlocked) {
       toast.error(
@@ -2081,6 +2112,34 @@ const DashboardPage = () => {
                           draggable={false}
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
+
+                        {/* BADGE ANIMATIF COMING SOON UNTUK PULAU LEVEL 3 - 6 */}
+                        {unit.id >= 3 && (
+                          <div
+                            style={{
+                              left: `${box.left + box.width * 0.5}%`,
+                              top: `${box.top + box.height * 0.28}%`,
+                            }}
+                            className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+                          >
+                            <motion.div
+                              animate={{
+                                y: [0, -5, 0],
+                                scale: [1, 1.04, 1],
+                              }}
+                              transition={{
+                                duration: 3,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                                delay: (unit.id - 3) * 0.4,
+                              }}
+                              className="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/75 backdrop-blur-md border-2 border-amber-300 text-amber-300 text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+                            >
+                              <span className="animate-spin text-xs">⏳</span>
+                              <span>COMING SOON</span>
+                            </motion.div>
+                          </div>
+                        )}
                       </div>
                     )
                   })}
@@ -2185,7 +2244,12 @@ const DashboardPage = () => {
                                   {unit.title}
                                 </p>
 
-                                {isUnlocked ? (
+                                {unit.id >= 3 ? (
+                                  <div className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 text-amber-800 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm">
+                                    <span className="animate-spin text-sm">⏳</span>
+                                    <span>COMING SOON</span>
+                                  </div>
+                                ) : isUnlocked ? (
                                   <motion.button
                                     whileHover={{ scale: 1.03 }}
                                     whileTap={{ scale: 0.96 }}
@@ -2604,7 +2668,7 @@ const DashboardPage = () => {
                           setSelectedDictModuleId(mod.id)
                           setDictionarySearch('')
                         }}
-                        className={`px-4 py-2.5 rounded-2xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer border-2 ${
+                        className={`px-4 py-2.5 rounded-2xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer border-2 relative ${
                           isSelected
                             ? 'bg-[#E02424] text-white border-[#E02424] shadow-md shadow-red-200'
                             : 'bg-white/90 text-gray-600 border-[#EAEAEA] hover:border-gray-300'
@@ -2612,10 +2676,42 @@ const DashboardPage = () => {
                       >
                         <span>{mod.icon}</span>
                         <span>{mod.badge}</span>
+                        {mod.isComingSoon && (
+                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-400 text-amber-950 ml-1">
+                            Soon
+                          </span>
+                        )}
                       </button>
                     )
                   })}
                 </div>
+
+                {/* Banner Coming Soon Khusus Modul 3 - 6 */}
+                {!dictionarySearch && selectedDictModuleId >= 3 && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.96 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="w-full bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-3xl p-6 sm:p-8 text-center shadow-sm relative overflow-hidden"
+                  >
+                    <div className="w-16 h-16 rounded-3xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
+                      <motion.span
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                      >
+                        ⏳
+                      </motion.span>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-amber-200 text-amber-900 font-black text-xs uppercase tracking-wider">
+                      Dalam Masa Pengembangan
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-amber-950 mt-2">
+                      Kamus Modul {selectedDictModuleId} Segera Hadir!
+                    </h3>
+                    <p className="text-xs sm:text-sm font-bold text-amber-800/90 max-w-lg mx-auto mt-1">
+                      Koleksi isyarat BISINDO untuk modul ini sedang disiapkan tim pengembang dengan video dan visual gerak interaktif. Kamu tetap dapat melihat daftar materi di bawah ini sebagai referensi awal.
+                    </p>
+                  </motion.div>
+                )}
 
                 {/* Grid Kartu Isyarat Tangan HD */}
                 {(() => {
@@ -2748,33 +2844,62 @@ const DashboardPage = () => {
                   {/* Daftar Top 10 Pengguna */}
                   <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-3 sm:p-5 shadow-sm divide-y divide-gray-100">
                     {(() => {
-                      // Data komunitas realistis digabung dengan data aktual user yang sedang login
-                      const currentUserXp = progress.xp || 240
-                      const rawLeaderboard = [
-                        { id: 'u1', name: 'Khai đỗ đình', xp: 228, level: 3, avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60', status: '💯' },
-                        { id: 'u2', name: 'Ishu', xp: 210, level: 3, avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=60', status: '💪' },
-                        { id: 'u3', name: 'Bekhzod Nurmatov', xp: 138, level: 2, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60', status: '🦜' },
-                        { id: 'u4', name: 'Aleksey', xp: 129, level: 2, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60', status: '⚡' },
-                        { id: 'u5', name: 'Asmi Dhage', xp: 70, level: 1, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60', status: '🌸' },
-                        { id: 'u6', name: 'Phương Phạm', xp: 63, level: 1, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60', status: '👀' },
-                        { id: 'u7', name: 'Lecea', xp: 60, level: 1, avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=60', status: '✨' },
-                        { id: 'u8', name: 'Kristian Panjaitan', xp: 58, level: 1, avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&auto=format&fit=crop&q=60', status: '🍿' },
-                        { id: 'u9', name: 'Solah', xp: 50, level: 1, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60', status: '🐣' },
-                        { id: 'u10', name: 'Jonathanlimrs', xp: 46, level: 1, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60', status: '🚀' },
-                      ]
-
-                      // Masukkan user saat ini
-                      const meEntry = {
-                        id: 'me',
-                        name: `${user?.nama || 'Kamu'} (Saya)`,
-                        xp: currentUserXp,
-                        level: currentActiveUnitId,
-                        avatar: currentAvatar,
-                        status: userLeaderboardStatus,
-                        isMe: true,
+                      if (isLoadingLeaderboard) {
+                        return (
+                          <div className="py-12 text-center text-gray-400 font-bold text-xs flex flex-col items-center gap-2">
+                            <span className="animate-spin text-2xl">⏳</span>
+                            <span>Memuat peringkat aktual dari database Supabase...</span>
+                          </div>
+                        )
                       }
 
-                      const sortedList = [...rawLeaderboard, meEntry]
+                      // Susun list dari data Supabase profiles apa adanya
+                      const userMap = new Map()
+
+                      // Masukkan data pengguna dari database Supabase
+                      if (Array.isArray(supabaseLeaderboard) && supabaseLeaderboard.length > 0) {
+                        supabaseLeaderboard.forEach((p) => {
+                          userMap.set(p.id, {
+                            id: p.id,
+                            name: p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora'),
+                            xp: Number(p.xp) || 0,
+                            level: Number(p.current_unit) || 1,
+                            avatar: p.avatar_url || '/assets/avatar-orangutan.png',
+                            status: p.id === user?.id ? userLeaderboardStatus : '✨',
+                            isMe: p.id === user?.id,
+                          })
+                        })
+                      }
+
+                      // Jika user yang sedang login belum tersimpan di state Supabase profiles,
+                      // masukkan data profil lokal user agar tetap tampil akurat apa adanya
+                      if (user?.id) {
+                        const existing = userMap.get(user.id)
+                        const currentXp = Number(progress.xp) || (existing?.xp ?? 0)
+                        userMap.set(user.id, {
+                          id: user.id,
+                          name: `${user.nama || 'Sobat Handoora'} (Kamu)`,
+                          xp: currentXp,
+                          level: currentActiveUnitId,
+                          avatar: currentAvatar,
+                          status: userLeaderboardStatus,
+                          isMe: true,
+                        })
+                      } else if (userMap.size === 0) {
+                        // Jika mode tamu / belum login sama sekali dan database kosong
+                        userMap.set('guest', {
+                          id: 'guest',
+                          name: 'Kamu (Tamu Belajar)',
+                          xp: Number(progress.xp) || 0,
+                          level: currentActiveUnitId,
+                          avatar: currentAvatar,
+                          status: userLeaderboardStatus,
+                          isMe: true,
+                        })
+                      }
+
+                      // Urutkan murni berdasarkan XP terbanyak (Descending)
+                      const sortedList = Array.from(userMap.values())
                         .sort((a, b) => b.xp - a.xp)
                         .slice(0, 10)
 

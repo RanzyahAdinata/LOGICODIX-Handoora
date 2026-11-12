@@ -477,4 +477,27 @@ export const progressService = {
 
     return progress
   },
+
+  // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles
+  async getLeaderboard(limit = 10) {
+    if (!supabase || !isSupabaseConfigured) {
+      return []
+    }
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
+        .order('xp', { ascending: false })
+        .limit(limit)
+
+      if (error) {
+        console.warn('Gagal memuat data leaderboard Supabase:', error)
+        return []
+      }
+      return data || []
+    } catch (err) {
+      console.warn('Error fetching leaderboard:', err)
+      return []
+    }
+  },
 }

@@ -68,6 +68,7 @@ export const DICTIONARY_MODULES = [
     subtitle: 'Mengenal bilangan angka dan panggilan anggota keluarga tercinta',
     icon: '👨‍👩‍👧',
     badge: 'Level 3',
+    isComingSoon: true,
     entries: [
       { letter: '1', word: 'Satu (1)', signImg: '/assets/signs/D.png', desc: 'Jari telunjuk tegak satu menghadap ke depan secara tegas.', category: 'Angka' },
       { letter: '2', word: 'Dua (2)', signImg: '/assets/signs/V.png', desc: 'Jari telunjuk dan jari tengah diacungkan tegak terbuka.', category: 'Angka' },
@@ -85,6 +86,7 @@ export const DICTIONARY_MODULES = [
     subtitle: 'Mengekspresikan ragam suasana hati, rasa bahagia, sedih, dan semangat',
     icon: '😊',
     badge: 'Level 4',
+    isComingSoon: true,
     entries: [
       { letter: 'Senang', word: 'Senang / Bahagia', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan mengusap dada ke atas secara bergantian dengan senyum ceria.', category: 'Emosi Positif' },
       { letter: 'Sedih', word: 'Sedih / Kecewa', signImg: '/assets/signs/Y.png', desc: 'Tangan turun perlahan di depan wajah disertai ekspresi raut wajah murung.', category: 'Emosi Negatif' },
@@ -100,6 +102,7 @@ export const DICTIONARY_MODULES = [
     subtitle: 'Kosakata aktivitas belajar, lingkungan sekolah, buku, dan membaca',
     icon: '🏫',
     badge: 'Level 5',
+    isComingSoon: true,
     entries: [
       { letter: 'Belajar', word: 'Belajar / Menuntut Ilmu', signImg: '/assets/signs/B.png', desc: 'Ujung jari mengambil ilmu dari telapak tangan kiri lalu ditempelkan ke kening pikiran.', category: 'Pendidikan' },
       { letter: 'Buku', word: 'Buku Bacaan', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan dirapatkan lalu dibuka menyerupai lembaran buku yang sedang dibaca.', category: 'Alat Belajar' },
@@ -115,6 +118,7 @@ export const DICTIONARY_MODULES = [
     subtitle: 'Simbol kasih sayang ILY, inklusivitas, dan identitas budaya Teman Tuli',
     icon: '🤟',
     badge: 'Level 6',
+    isComingSoon: true,
     entries: [
       { letter: 'ILY', word: 'I Love You (ILY)', signImg: '/assets/signs/Y.png', desc: 'Ibu jari, telunjuk, dan kelingking terbuka bersamaan membentuk simbol universal cinta kasih (I-L-Y).', category: 'Budaya Tuli' },
       { letter: 'Tuli', word: 'Teman Tuli / Tuli', signImg: '/assets/signs/D.png', desc: 'Jari telunjuk menyentuh lembut telinga lalu menyentuh mulut melambangkan identitas budaya bahasa visual.', category: 'Budaya Tuli' },

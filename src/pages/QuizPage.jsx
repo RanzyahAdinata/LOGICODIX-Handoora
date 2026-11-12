@@ -392,7 +392,11 @@ export default function QuizPage() {
     const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
     localStorage.removeItem(savedProgressKey)
 
-    const earnedXp = currentStage.xpReward || 20
+    // Setiap kali user menyelesaikan tahapan atau menyelesaikan ulang level ini,
+    // berikan reward XP (stage.xpReward = 20 XP; jika menuntaskan Tahap 3, dapat bonus level completion +30 XP)
+    const baseStageXp = currentStage?.xpReward || 20
+    const levelBonusXp = currentStageId === 3 ? 30 : 0
+    const earnedXp = baseStageXp + levelBonusXp
     const accuracy =
       totalOriginal > 0 ? Math.round((totalOriginal / (totalOriginal + wrongCount)) * 100) : 100
 
@@ -404,39 +408,46 @@ export default function QuizPage() {
       totalQuestions: totalOriginal,
     })
 
-    if (user?.id) {
-      try {
-        const currentProgress = await progressService.getProgress(user.id)
-        const newXp = (currentProgress?.xp || 0) + earnedXp
+    const userId = user?.id || 'guest'
+    try {
+      const currentProgress = progressService.getProgress(userId)
+      const newXp = (Number(currentProgress?.xp) || 0) + earnedXp
 
-        // Simpan stage completion
-        const stageKey = `handoora_stage_done_${user.id}_L${levelId}_S${currentStageId}`
-        localStorage.setItem(stageKey, 'true')
+      // Simpan stage completion flag
+      const stageKey = `handoora_stage_done_${userId}_L${levelId}_S${currentStageId}`
+      localStorage.setItem(stageKey, 'true')
 
-        // Jika ini Tahap 3 (tahap akhir level), buka level berikutnya di peta pulau
-        let unlocked = currentProgress?.unlockedIslands || [1]
-        let completed = currentProgress?.completedIslands || []
+      // Jika ini Tahap 3 (tahap akhir level), unlock level berikutnya jika belum
+      let unlocked = Array.isArray(currentProgress?.unlockedIslands)
+        ? [...currentProgress.unlockedIslands]
+        : [1]
+      let completed = Array.isArray(currentProgress?.completedIslands)
+        ? [...currentProgress.completedIslands]
+        : []
 
-        if (currentStageId === 3) {
-          if (!completed.includes(levelId)) completed = [...completed, levelId]
-          const nextLevel = levelId + 1
-          if (nextLevel <= 6 && !unlocked.includes(nextLevel)) {
-            unlocked = [...unlocked, nextLevel]
-          }
+      if (currentStageId === 3) {
+        if (!completed.includes(levelId)) completed.push(levelId)
+        const nextLevel = levelId + 1
+        if (nextLevel <= 6 && !unlocked.includes(nextLevel)) {
+          unlocked.push(nextLevel)
         }
-
-        const updatedProgress = {
-          ...currentProgress,
-          xp: newXp,
-          streak: Math.max(1, currentProgress?.streak || 1),
-          unlockedIslands: unlocked,
-          completedIslands: completed,
-        }
-
-        await progressService.saveProgressToSupabase(user.id, updatedProgress)
-      } catch (err) {
-        console.warn('Gagal menyimpan progres kuis otomatis:', err)
       }
+
+      const updatedProgress = {
+        ...currentProgress,
+        xp: newXp,
+        streak: Math.max(1, currentProgress?.streak || 1),
+        unlockedIslands: unlocked,
+        completedIslands: completed,
+      }
+
+      // Simpan ke local cache & Supabase
+      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(updatedProgress))
+      if (user?.id) {
+        await progressService.saveProgressToSupabase(user.id, updatedProgress)
+      }
+    } catch (err) {
+      console.warn('Gagal menyimpan progres kuis otomatis:', err)
     }
   }
 
