@@ -532,6 +532,69 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 // ============================================================
 // SCENERY FULL-SCREEN DUA MODE (LANGIT CERAH & LANGIT SENJA)
 // ============================================================
+// ============================================================
+// KOMPONEN AWAN KECIL-KECIL MENGELILINGI PULAU COMING SOON (LEVEL 3-6)
+// Desain selaras dengan awan latar scenery: bentuk kurva bundar organik,
+// layer bertumpuk (cloudBack & cloudFront), dan animasi mengambang lembut.
+// ============================================================
+const ComingSoonFloatingClouds = ({ skyMode }) => {
+  const isBright = skyMode === 'bright'
+  const backFill = isBright ? '#BAE6FD' : '#FED7AA'
+  const frontFill = isBright ? '#FFFFFF' : '#FFEDD5'
+
+  // Posisi kumpulan 5 awan kecil di sekitar pulau
+  const cloudClusters = [
+    { left: '-6%', top: '16%', w: 64, h: 36, delay: 0, duration: 4.6, dx: 7, dy: -4 },
+    { left: '74%', top: '-8%', w: 78, h: 42, delay: 0.8, duration: 5.2, dx: -6, dy: 3 },
+    { left: '80%', top: '56%', w: 66, h: 38, delay: 1.4, duration: 4.8, dx: 6, dy: -3 },
+    { left: '-2%', top: '72%', w: 72, h: 40, delay: 0.5, duration: 5.6, dx: -5, dy: 4 },
+    { left: '42%', top: '88%', w: 60, h: 34, delay: 1.1, duration: 4.4, dx: 5, dy: -2 },
+  ]
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-15 overflow-visible">
+      {cloudClusters.map((c, i) => (
+        <motion.div
+          key={`cluster-cloud-${i}`}
+          style={{
+            position: 'absolute',
+            left: c.left,
+            top: c.top,
+            width: `${c.w}px`,
+            height: `${c.h}px`,
+          }}
+          animate={{
+            x: [0, c.dx, 0],
+            y: [0, c.dy, 0],
+          }}
+          transition={{
+            duration: c.duration,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: c.delay,
+          }}
+          className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.08)]"
+        >
+          <svg viewBox="0 0 100 56" className="w-full h-full overflow-visible">
+            {/* Layer Awan Belakang */}
+            <path
+              d="M12 44 Q4 44 4 36 Q4 26 16 26 Q20 12 34 12 Q42 12 48 18 Q54 6 70 6 Q86 6 90 22 Q98 24 98 34 Q98 44 88 44 Z"
+              fill={backFill}
+              opacity="0.85"
+            />
+            {/* Layer Awan Depan */}
+            <path
+              d="M16 46 Q10 46 10 39 Q10 30 20 30 Q24 18 36 18 Q43 18 48 24 Q54 14 68 14 Q82 14 86 28 Q94 30 94 38 Q94 46 84 46 Z"
+              fill={frontFill}
+              opacity="0.95"
+            />
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
 const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) => (
   <motion.div
     className={`pointer-events-none select-none ${className}`}
@@ -2110,7 +2173,7 @@ const DashboardPage = () => {
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
-                        {/* EFEK KABUT AWAN TIPIS HALUS & NATURAL UNTUK PULAU LEVEL 3 - 6 */}
+                        {/* KUMPULAN AWAN KECIL-KECIL ORGANIK MENGERUBUNGI PULAU COMING SOON (LEVEL 3 - 6) */}
                         {unit.id >= 3 && (
                           <div
                             style={{
@@ -2119,28 +2182,9 @@ const DashboardPage = () => {
                               width: `${box.width}%`,
                               height: `${box.height}%`,
                             }}
-                            className="absolute pointer-events-none z-15 flex items-center justify-center overflow-visible"
+                            className="absolute pointer-events-none z-15 overflow-visible"
                           >
-                            {/* Kabut awan tipis transparan di permukaan pulau */}
-                            <motion.div
-                              animate={{
-                                opacity: [0.35, 0.52, 0.35],
-                                scale: [0.98, 1.03, 0.98],
-                              }}
-                              transition={{
-                                duration: 4.8,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                                delay: (unit.id - 3) * 0.4,
-                              }}
-                              className="absolute inset-0 bg-white/45 backdrop-blur-[1px] rounded-full filter"
-                            />
-                            {/* Awan kecil lembut di tepi atas pulau */}
-                            <motion.div
-                              animate={{ x: [-6, 6, -6], y: [-2, 2, -2] }}
-                              transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
-                              className="absolute -top-2 w-24 h-7 bg-white/60 rounded-full blur-[1px]"
-                            />
+                            <ComingSoonFloatingClouds skyMode={skyMode} />
                           </div>
                         )}
                       </div>
