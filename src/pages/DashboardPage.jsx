@@ -23,15 +23,23 @@ const ISLAND_UNITS = [
     subtitle: 'Fondasi ejaan jari dua tangan & isyarat huruf dasar',
     xpReward: 25,
     gemReward: 15,
-    nodePos: { x: 26.0, y: 83.2 },
-    mascotPos: { x: 15.2, y: 81.2 },
-    layerBox: {
-      src: '/assets/island-layer-1.png',
-      left: 0.692,
-      top: 73.614,
-      width: 42.491,
-      height: 24.752,
-      centerY: 85.99,
+    dayNodePos: { x: 19.26, y: 76.62 },
+    sunsetNodePos: { x: 27.34, y: 80.62 },
+    dayMascotPos: { x: 31.2, y: 77.4 },
+    sunsetMascotPos: { x: 17.8, y: 80.2 },
+    dayLayerBox: {
+      src: '/assets/island-day-1.png',
+      left: 3.4,
+      top: 66.23,
+      width: 46.38,
+      height: 26.31,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-1.png',
+      left: 5.64,
+      top: 70.23,
+      width: 48.4,
+      height: 27.85,
     },
     guide: [
       {
@@ -89,15 +97,23 @@ const ISLAND_UNITS = [
     subtitle: 'Menyapa teman baru dan memperkenalkan nama dengan sopan',
     xpReward: 30,
     gemReward: 20,
-    nodePos: { x: 66.5, y: 70.5 },
-    mascotPos: { x: 83.5, y: 68.2 },
-    layerBox: {
-      src: '/assets/island-layer-2.png',
-      left: 39.931,
-      top: 63.267,
-      width: 56.263,
-      height: 20.644,
-      centerY: 73.59,
+    dayNodePos: { x: 75.21, y: 64.46 },
+    sunsetNodePos: { x: 72.77, y: 65.46 },
+    dayMascotPos: { x: 62.5, y: 64.8 },
+    sunsetMascotPos: { x: 62.2, y: 65.6 },
+    dayLayerBox: {
+      src: '/assets/island-day-2.png',
+      left: 46.49,
+      top: 57.08,
+      width: 48.19,
+      height: 21.54,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-2.png',
+      left: 44.36,
+      top: 56.62,
+      width: 50.53,
+      height: 25.23,
     },
     guide: [
       {
@@ -148,20 +164,28 @@ const ISLAND_UNITS = [
     id: 3,
     section: 'BAGIAN 1, LEVEL 3',
     unitLabel: 'Level 3',
-    islandName: 'Pulau Pohon Rindang',
+    islandName: 'Pulau Kincir Angin',
     title: 'Angka, Waktu & Anggota Keluarga',
     subtitle: 'Menghitung angka dasar serta mengenal isyarat keluarga',
     xpReward: 35,
     gemReward: 25,
-    nodePos: { x: 31.0, y: 56.2 },
-    mascotPos: { x: 19.5, y: 54.0 },
-    layerBox: {
-      src: '/assets/island-layer-3.png',
-      left: 14.118,
-      top: 38.663,
-      width: 44.36,
-      height: 28.614,
-      centerY: 52.97,
+    dayNodePos: { x: 25.64, y: 49.54 },
+    sunsetNodePos: { x: 25.0, y: 49.62 },
+    dayMascotPos: { x: 18.8, y: 50.4 },
+    sunsetMascotPos: { x: 16.5, y: 49.4 },
+    dayLayerBox: {
+      src: '/assets/island-day-3.png',
+      left: 16.28,
+      top: 40.38,
+      width: 38.09,
+      height: 22.23,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-3.png',
+      left: 3.94,
+      top: 40.0,
+      width: 51.6,
+      height: 25.85,
     },
     guide: [
       {
@@ -206,20 +230,28 @@ const ISLAND_UNITS = [
     id: 4,
     section: 'BAGIAN 1, LEVEL 4',
     unitLabel: 'Level 4',
-    islandName: 'Pulau Kincir Angin',
+    islandName: 'Pulau Pohon Rindang',
     title: 'Ekspresi Wajah & Perasaan Harian',
     subtitle: 'Memadukan mimik wajah (non-manual) dengan gerakan tangan',
     xpReward: 40,
     gemReward: 30,
-    nodePos: { x: 73.5, y: 43.5 },
-    mascotPos: { x: 61.2, y: 41.5 },
-    layerBox: {
-      src: '/assets/island-layer-4.png',
-      left: 44.983,
-      top: 36.139,
-      width: 54.464,
-      height: 20.891,
-      centerY: 46.58,
+    dayNodePos: { x: 79.68, y: 38.08 },
+    sunsetNodePos: { x: 75.53, y: 37.31 },
+    dayMascotPos: { x: 67.2, y: 38.6 },
+    sunsetMascotPos: { x: 63.8, y: 37.8 },
+    dayLayerBox: {
+      src: '/assets/island-day-4.png',
+      left: 50.74,
+      top: 28.0,
+      width: 46.91,
+      height: 24.77,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-4.png',
+      left: 50.43,
+      top: 30.38,
+      width: 44.57,
+      height: 21.54,
     },
     guide: [
       {
@@ -258,20 +290,28 @@ const ISLAND_UNITS = [
     id: 5,
     section: 'BAGIAN 2, LEVEL 5',
     unitLabel: 'Level 5',
-    islandName: 'Pulau Kristal Sakura',
+    islandName: 'Pulau Bukit Cemara',
     title: 'Aktivitas Sekolah, Kampus & Pekerjaan',
     subtitle: 'Kosakata lingkungan pendidikan, diskusi, dan kolaborasi inklusif',
     xpReward: 45,
     gemReward: 35,
-    nodePos: { x: 31.5, y: 21.8 },
-    mascotPos: { x: 20.2, y: 19.8 },
-    layerBox: {
-      src: '/assets/island-layer-5.png',
-      left: 18.27,
-      top: 14.851,
-      width: 46.782,
-      height: 22.97,
-      centerY: 26.34,
+    dayNodePos: { x: 34.26, y: 24.54 },
+    sunsetNodePos: { x: 33.19, y: 24.31 },
+    dayMascotPos: { x: 24.2, y: 24.8 },
+    sunsetMascotPos: { x: 23.2, y: 24.6 },
+    dayLayerBox: {
+      src: '/assets/island-day-5.png',
+      left: 17.02,
+      top: 14.85,
+      width: 43.09,
+      height: 22.46,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-5.png',
+      left: 14.79,
+      top: 12.92,
+      width: 45.0,
+      height: 22.46,
     },
     guide: [
       {
@@ -310,20 +350,28 @@ const ISLAND_UNITS = [
     id: 6,
     section: 'BAGIAN 2, LEVEL 6',
     unitLabel: 'Level 6',
-    islandName: 'Pulau Istana Bintang',
+    islandName: 'Pulau Puncak Nusantara',
     title: 'Percakapan Lancar & Budaya Tuli Indonesia',
     subtitle: 'Etika komunikasi publik, cerita berurutan, dan ekspresi mahir',
     xpReward: 60,
     gemReward: 50,
-    nodePos: { x: 73.5, y: 8.8 },
-    mascotPos: { x: 61.2, y: 7.0 },
-    layerBox: {
-      src: '/assets/island-layer-6.png',
-      left: 50.381,
-      top: 1.485,
-      width: 49.066,
-      height: 20.891,
-      centerY: 11.93,
+    dayNodePos: { x: 81.28, y: 13.46 },
+    sunsetNodePos: { x: 77.45, y: 11.92 },
+    dayMascotPos: { x: 69.2, y: 14.0 },
+    sunsetMascotPos: { x: 66.2, y: 12.4 },
+    dayLayerBox: {
+      src: '/assets/island-day-6.png',
+      left: 57.34,
+      top: 2.54,
+      width: 41.06,
+      height: 24.85,
+    },
+    sunsetLayerBox: {
+      src: '/assets/island-autumn-6.png',
+      left: 57.02,
+      top: 5.77,
+      width: 41.17,
+      height: 20.38,
     },
     guide: [
       {
@@ -353,25 +401,6 @@ const ISLAND_UNITS = [
       },
     ],
   },
-]
-
-const STEPPING_STONES = [
-  { fromUnit: 1, toUnit: 2, x: 44.5, y: 80.2 },
-  { fromUnit: 1, toUnit: 2, x: 50.2, y: 78.2 },
-  { fromUnit: 1, toUnit: 2, x: 56.2, y: 76.0 },
-  { fromUnit: 2, toUnit: 3, x: 61.4, y: 66.3 },
-  { fromUnit: 2, toUnit: 3, x: 54.0, y: 64.3 },
-  { fromUnit: 2, toUnit: 3, x: 48.5, y: 62.2 },
-  { fromUnit: 2, toUnit: 3, x: 42.6, y: 59.8 },
-  { fromUnit: 3, toUnit: 4, x: 49.2, y: 52.3 },
-  { fromUnit: 3, toUnit: 4, x: 54.8, y: 50.1 },
-  { fromUnit: 3, toUnit: 4, x: 60.6, y: 47.9 },
-  { fromUnit: 4, toUnit: 5, x: 60.5, y: 36.0 },
-  { fromUnit: 4, toUnit: 5, x: 54.5, y: 31.8 },
-  { fromUnit: 4, toUnit: 5, x: 49.5, y: 29.5 },
-  { fromUnit: 5, toUnit: 6, x: 49.0, y: 17.2 },
-  { fromUnit: 5, toUnit: 6, x: 54.6, y: 15.1 },
-  { fromUnit: 5, toUnit: 6, x: 60.5, y: 12.6 },
 ]
 
 const DAYS_STREAK = ['S', 'S', 'R', 'K', 'J', 'S', 'M']
@@ -765,139 +794,639 @@ const FullScreenSkyScenery = ({ skyMode }) => {
 }
 
 // ============================================================
-// ORNAMEN SPESIFIK TIAP PULAU (DI-RENDER MENGIKUTI BLUR PULAU)
+// ORNAMEN & ANIMASI MIKRO TIAP PULAU (KUPU-KUPU, DAUN JATUH,
+// ALIRAN AIR + IKAN MELOMPAT DI SUNGAI, & KINCIR ANGIN PULAU 3)
 // ============================================================
-const IslandOrnamentForUnit = ({ unitId }) => {
+const AnimatedButterfly = ({
+  left,
+  top,
+  colorPrimary = '#F472B6',
+  colorSecondary = '#FDE047',
+  delay = 0,
+  duration = 5.2,
+  dx = 14,
+  dy = -10,
+}) => (
+  <motion.div
+    style={{ left, top }}
+    animate={{
+      x: [0, dx, -dx * 0.45, dx * 0.6, 0],
+      y: [0, dy, dy * 0.4, dy * 1.1, 0],
+      rotate: [-10, 12, -6, 10, -10],
+    }}
+    transition={{ duration, repeat: Infinity, delay, ease: 'easeInOut' }}
+    className="absolute w-4 h-4 sm:w-5 sm:h-5 pointer-events-none z-20"
+  >
+    <motion.svg
+      viewBox="0 0 32 32"
+      className="w-full h-full overflow-visible drop-shadow-[0_2px_3px_rgba(0,0,0,0.22)]"
+      animate={{ scaleX: [1, 0.28, 1, 0.32, 1] }}
+      transition={{ duration: 0.55, repeat: Infinity, ease: 'easeInOut', delay }}
+    >
+      <path
+        d="M15 16 C8 5, 1 8, 4 16 C1 22, 8 26, 15 18 Z"
+        fill={colorPrimary}
+        stroke="#FFFFFF"
+        strokeWidth="1"
+      />
+      <path
+        d="M17 16 C24 5, 31 8, 28 16 C31 22, 24 26, 17 18 Z"
+        fill={colorPrimary}
+        stroke="#FFFFFF"
+        strokeWidth="1"
+      />
+      <circle cx="9" cy="13" r="2.2" fill={colorSecondary} />
+      <circle cx="23" cy="13" r="2.2" fill={colorSecondary} />
+      <rect x="15" y="10" width="2" height="12" rx="1" fill="#44403C" />
+    </motion.svg>
+  </motion.div>
+)
+
+const FallingLeavesGroup = ({ leaves, isBright }) => {
+  const leafColor = isBright ? '#84CC16' : '#FB7185'
+  const leafStroke = isBright ? '#4D7C0F' : '#BE123C'
+  return (
+    <>
+      {leaves.map((leaf, idx) => (
+        <motion.div
+          key={`leaf-${idx}`}
+          style={{ left: leaf.x, top: leaf.y }}
+          animate={{
+            y: [0, 18, 36, 52],
+            x: [0, -9, 7, -4],
+            rotate: [0, 48, -32, 65],
+            opacity: [0, 0.95, 0.9, 0],
+          }}
+          transition={{
+            duration: leaf.duration || 4.8,
+            repeat: Infinity,
+            delay: leaf.delay || idx * 1.3,
+            ease: 'easeInOut',
+          }}
+          className="absolute w-2.5 h-2.5 sm:w-3.5 sm:h-3.5 pointer-events-none z-20"
+        >
+          <svg viewBox="0 0 20 20" className="w-full h-full drop-shadow-2xs">
+            <path
+              d="M17 3 C10 3, 4 7, 3 16 C11 15, 16 10, 17 3 Z"
+              fill={idx % 2 === 0 ? leafColor : isBright ? '#A3E635' : '#F59E0B'}
+              stroke={leafStroke}
+              strokeWidth="1.2"
+            />
+            <path d="M3 16 Q10 10 16 4" stroke={leafStroke} strokeWidth="1" fill="none" />
+          </svg>
+        </motion.div>
+      ))}
+    </>
+  )
+}
+
+const RiverStreamWithJumpingFish = ({ left, top, isBright }) => (
+  <div
+    style={{ left, top }}
+    className="absolute -translate-x-1/2 -translate-y-1/2 w-28 sm:w-36 h-20 sm:h-24 pointer-events-none z-15"
+  >
+    {/* Animasi Garis Aliran Air Sungai Mengalir & Riak Air */}
+    <svg viewBox="0 0 150 110" className="w-full h-full overflow-visible">
+      <motion.path
+        d="M 28 24 Q 58 46, 86 64 T 124 88"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeDasharray="12 18"
+        animate={{ strokeDashoffset: [60, 0] }}
+        transition={{ duration: 2.1, repeat: Infinity, ease: 'linear' }}
+        opacity="0.88"
+      />
+      <motion.path
+        d="M 18 36 Q 48 56, 78 74 T 112 94"
+        fill="none"
+        stroke={isBright ? '#E0F2FE' : '#FFFFFF'}
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeDasharray="9 16"
+        animate={{ strokeDashoffset: [50, 0] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: 'linear', delay: 0.5 }}
+        opacity="0.8"
+      />
+      <motion.path
+        d="M 42 18 Q 70 38, 98 56 T 134 78"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeDasharray="8 16"
+        animate={{ strokeDashoffset: [48, 0] }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: 'linear', delay: 0.9 }}
+        opacity="0.75"
+      />
+
+      {/* Riak Air Tempat Ikan Melompat & Mendarat */}
+      <motion.ellipse
+        cx="46"
+        cy="44"
+        rx="8"
+        ry="3.8"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="1.8"
+        animate={{ scale: [0.4, 1.45, 1.8], opacity: [0, 0.9, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut', delay: 0.1 }}
+      />
+      <motion.ellipse
+        cx="96"
+        cy="72"
+        rx="9"
+        ry="4.2"
+        fill="none"
+        stroke="#FFFFFF"
+        strokeWidth="1.8"
+        animate={{ scale: [0.4, 1.5, 1.9], opacity: [0, 0.95, 0] }}
+        transition={{ duration: 2.8, repeat: Infinity, ease: 'easeOut', delay: 1.35 }}
+      />
+    </svg>
+
+    {/* Ikan Kecil Melompat Melengkung di Atas Aliran Sungai */}
+    <motion.div
+      animate={{
+        x: [-18, 2, 22],
+        y: [6, -18, 20],
+        rotate: [-35, 12, 58],
+        opacity: [0, 1, 1, 0],
+        scale: [0.65, 1.05, 0.75],
+      }}
+      transition={{
+        duration: 2.8,
+        repeat: Infinity,
+        ease: 'easeInOut',
+        times: [0, 0.45, 0.85, 1],
+      }}
+      className="absolute left-[31%] top-[34%] w-6 h-4 sm:w-7 sm:h-5"
+    >
+      <svg viewBox="0 0 36 22" className="w-full h-full drop-shadow-[0_3px_4px_rgba(0,0,0,0.22)]">
+        <path
+          d="M8 11 L1 4 L3 11 L1 18 Z"
+          fill="#F97316"
+          stroke="#FFFFFF"
+          strokeWidth="1"
+        />
+        <path
+          d="M7 11 C11 4, 24 4, 32 11 C24 18, 11 18, 7 11 Z"
+          fill="#FB923C"
+          stroke="#FFFFFF"
+          strokeWidth="1.2"
+        />
+        <path d="M16 6 Q19 2 22 6" fill="#FDE047" />
+        <circle cx="26.5" cy="9.5" r="1.6" fill="#1E293B" />
+        <circle cx="27" cy="9" r="0.6" fill="#FFFFFF" />
+      </svg>
+    </motion.div>
+  </div>
+)
+
+// Kincir Angin di Pulau ke-3: Dibuat menyentuh tanah rumput Pulau 3 dengan bayangan & rumput dasar yang menyatu
+const GroundedWindmillOnIsland3 = ({ isBright }) => {
+  const groundX = isBright ? '41.2%' : '33.8%'
+  const groundY = isBright ? '51.2%' : '51.0%'
+  const turfColor = isBright ? '#637431' : '#B20010'
+  const turfHighlight = isBright ? '#95AE47' : '#EF6C74'
+
+  return (
+    <div
+      style={{ left: groundX, top: groundY }}
+      className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-[74px] h-20 sm:h-[104px] flex flex-col items-center pointer-events-none z-20"
+    >
+      {/* Menara Kincir Angin yang Menyentuh Tanah Pulau ke-3 */}
+      <svg viewBox="0 0 110 145" className="w-full h-full overflow-visible">
+        {/* Bayangan Elips Menyatu di Atas Tanah Pulau 3 */}
+        <ellipse cx="55" cy="138" rx="28" ry="8" fill={turfColor} fillOpacity="0.65" />
+        <ellipse cx="55" cy="137" rx="22" ry="5.5" fill="#000000" fillOpacity="0.22" />
+
+        {/* Pondasi Batu Bawah yang Menapak Tanah */}
+        <path
+          d="M33 136 L77 136 L73 118 L37 118 Z"
+          fill="#8C7A6B"
+          stroke="#5C4D42"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
+        />
+        <path d="M33 136 Q55 141 77 136" stroke="#4A3B31" strokeWidth="3" fill="none" />
+
+        {/* Badan Menara Kayu/Bata Kincir */}
+        <polygon
+          points="37,120 73,120 64,54 46,54"
+          fill="#F5EBE1"
+          stroke="#6E473B"
+          strokeWidth="2.8"
+          strokeLinejoin="round"
+        />
+        {/* Sisi Bayangan Menara untuk Efek 3D Isometrik */}
+        <polygon points="56,120 73,120 64,54 55,54" fill="#E3D2C2" />
+
+        {/* Sabuk Kayu Horizontal */}
+        <line x1="41" y1="88" x2="69" y2="88" stroke="#7C4D3A" strokeWidth="3" />
+
+        {/* Pintu Kayu Lengkung di Dasar Menara */}
+        <path
+          d="M48 136 L48 112 A7 7 0 0 1 62 112 L62 136 Z"
+          fill="#6E3B2B"
+          stroke="#4A251A"
+          strokeWidth="2"
+        />
+        {/* Jendela Kecil Menara */}
+        <rect
+          x="50"
+          y="69"
+          width="10"
+          height="11"
+          rx="5"
+          fill="#FEF08A"
+          stroke="#6E3B2B"
+          strokeWidth="2"
+        />
+
+        {/* Kubah Atap Kincir */}
+        <path
+          d="M41 56 Q55 30 69 56 Z"
+          fill="#D9383A"
+          stroke="#7F1D1D"
+          strokeWidth="2.6"
+          strokeLinejoin="round"
+        />
+
+        {/* Rumput Kecil di Depan Pondasi agar Terlihat Tertanam Rapi di Tanah Pulau 3 */}
+        <path
+          d="M28 137 Q32 128 36 137 Q40 130 44 138 M66 138 Q70 129 74 137 Q78 130 82 137"
+          stroke={turfHighlight}
+          strokeWidth="2.6"
+          strokeLinecap="round"
+          fill="none"
+        />
+      </svg>
+
+      {/* Baling-Baling Kincir Angin Berputar Halus */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 8.5, repeat: Infinity, ease: 'linear' }}
+        className="absolute top-[11%] w-16 h-16 sm:w-[86px] sm:h-[86px] flex items-center justify-center"
+      >
+        <svg viewBox="0 0 120 120" className="w-full h-full overflow-visible drop-shadow-xs">
+          {/* 4 Bilah Baling-Baling Kayu Ber kisi-kisi */}
+          {[0, 90, 180, 270].map((deg) => (
+            <g key={deg} transform={`rotate(${deg} 60 60)`}>
+              <line
+                x1="60"
+                y1="60"
+                x2="60"
+                y2="6"
+                stroke="#5C3424"
+                strokeWidth="3.2"
+                strokeLinecap="round"
+              />
+              <polygon
+                points="60,10 75,13 73,46 60,46"
+                fill="#FFFDF7"
+                stroke="#854D37"
+                strokeWidth="2"
+                strokeLinejoin="round"
+              />
+              <line x1="60" y1="22" x2="74" y2="23" stroke="#C29B7F" strokeWidth="1.4" />
+              <line x1="60" y1="34" x2="73" y2="35" stroke="#C29B7F" strokeWidth="1.4" />
+            </g>
+          ))}
+          <circle cx="60" cy="60" r="7.5" fill="#D9383A" stroke="#FFFDF7" strokeWidth="2.5" />
+          <circle cx="60" cy="60" r="3" fill="#FEF08A" />
+        </svg>
+      </motion.div>
+    </div>
+  )
+}
+
+const IslandOrnamentForUnit = ({ unitId, skyMode }) => {
+  const isBright = skyMode === 'bright'
+
   if (unitId === 1) {
     return (
-      <motion.div
-        style={{ left: '11.5%', top: '76.5%' }}
-        animate={{ x: [0, 12, -4, 0], y: [0, -10, -4, 0], rotate: [-8, 10, -8] }}
-        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute text-base sm:text-xl drop-shadow-xs pointer-events-none"
-      >
-        🦋
-      </motion.div>
+      <>
+        <AnimatedButterfly
+          left={isBright ? '12.5%' : '14.2%'}
+          top={isBright ? '74.5%' : '76.5%'}
+          colorPrimary={isBright ? '#F472B6' : '#FBBF24'}
+          colorSecondary="#FFFFFF"
+          delay={0}
+        />
+        <FallingLeavesGroup
+          isBright={isBright}
+          leaves={[
+            { x: isBright ? '33.5%' : '36.8%', y: isBright ? '70.5%' : '74.0%', delay: 0.2 },
+            { x: isBright ? '38.2%' : '40.5%', y: isBright ? '72.0%' : '75.5%', delay: 2.1 },
+          ]}
+        />
+      </>
     )
   }
+
   if (unitId === 2) {
     return (
       <>
-        {[
-          { x: '73%', y: '69.0%', delay: 0 },
-          { x: '75.5%', y: '71.4%', delay: 0.7 },
-          { x: '78%', y: '73.5%', delay: 1.4 },
-        ].map((w, idx) => (
-          <motion.div
-            key={`water-${idx}`}
-            style={{ left: w.x, top: w.y }}
-            animate={{ opacity: [0.35, 1, 0.35], scale: [0.85, 1.25, 0.85], x: [0, 4, 0] }}
-            transition={{ duration: 2.2, repeat: Infinity, delay: w.delay }}
-            className="absolute w-3.5 h-1.5 rounded-full bg-white/95 shadow-[0_0_8px_#FFFFFF] pointer-events-none"
+        {/* Di Langit Cerah (LEVEL), Sungai berada di Pulau 2 */}
+        {isBright && <RiverStreamWithJumpingFish left="74.6%" top="64.6%" isBright={true} />}
+        <AnimatedButterfly
+          left={isBright ? '56.5%' : '82.5%'}
+          top={isBright ? '61.2%' : '62.0%'}
+          colorPrimary="#38BDF8"
+          colorSecondary="#FEF08A"
+          delay={1.1}
+        />
+        {!isBright && (
+          <FallingLeavesGroup
+            isBright={false}
+            leaves={[
+              { x: '61.5%', y: '60.2%', delay: 0.6 },
+              { x: '64.2%', y: '62.0%', delay: 2.4 },
+            ]}
           />
-        ))}
+        )}
       </>
     )
   }
+
   if (unitId === 3) {
     return (
       <>
-        {[
-          { x: '36%', y: '46%', delay: 0 },
-          { x: '42%', y: '47.5%', delay: 1.8 },
-          { x: '32%', y: '49%', delay: 3.2 },
-        ].map((leaf, idx) => (
-          <motion.div
-            key={`leaf-${idx}`}
-            style={{ left: leaf.x, top: leaf.y }}
-            animate={{
-              y: [0, 28, 52],
-              x: [0, -10, 6],
-              rotate: [0, 45, -25],
-              opacity: [0, 0.95, 0],
-            }}
-            transition={{ duration: 5.2, repeat: Infinity, delay: leaf.delay, ease: 'easeInOut' }}
-            className="absolute text-xs sm:text-sm pointer-events-none"
-          >
-            🍃
-          </motion.div>
-        ))}
+        {/* Kincir Angin di Pulau ke-3 yang Menyentuh Tanah */}
+        <GroundedWindmillOnIsland3 isBright={isBright} />
+        <FallingLeavesGroup
+          isBright={isBright}
+          leaves={[
+            { x: isBright ? '35.5%' : '19.5%', y: isBright ? '44.5%' : '44.8%', delay: 0.4 },
+            { x: isBright ? '41.5%' : '39.5%', y: isBright ? '43.2%' : '44.2%', delay: 1.9 },
+            { x: isBright ? '32.0%' : '43.5%', y: isBright ? '46.2%' : '45.8%', delay: 3.3 },
+          ]}
+        />
       </>
     )
   }
+
   if (unitId === 4) {
     return (
-      <div
-        style={{ left: '84.5%', top: '36.8%' }}
-        className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-20 sm:h-28 flex flex-col items-center pointer-events-none"
-      >
-        <svg viewBox="0 0 100 130" className="w-full h-full overflow-visible drop-shadow-md">
-          <polygon points="36,125 64,125 56,52 44,52" fill="#9E5847" stroke="#6E382C" strokeWidth="3" />
-          <polygon points="41,52 59,52 50,36" fill="#EB2B36" stroke="#991B1B" strokeWidth="2.5" />
-          <rect x="45" y="95" width="10" height="30" rx="5" fill="#5C2D23" />
-        </svg>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
-          className="absolute top-[22%] w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"
-        >
-          <svg viewBox="0 0 100 100" className="w-full h-full">
-            <g stroke="#7C2D12" strokeWidth="2">
-              <polygon points="50,50 43,6 57,6" fill="#FFFBEB" />
-              <polygon points="50,50 94,43 94,57" fill="#FCA5A5" />
-              <polygon points="50,50 57,94 43,94" fill="#FFFBEB" />
-              <polygon points="50,50 6,57 6,43" fill="#FCA5A5" />
-            </g>
-            <circle cx="50" cy="50" r="7" fill="#EB2B36" stroke="#FFFFFF" strokeWidth="2.5" />
-          </svg>
-        </motion.div>
-      </div>
+      <>
+        {/* Di Langit Senja (LEVEL AUTUMN), Sungai berada di Pulau 4 */}
+        {!isBright && <RiverStreamWithJumpingFish left="75.2%" top="37.5%" isBright={false} />}
+        {isBright && (
+          <FallingLeavesGroup
+            isBright={true}
+            leaves={[
+              { x: '70.5%', y: '32.5%', delay: 0.7 },
+              { x: '73.8%', y: '34.0%', delay: 2.6 },
+            ]}
+          />
+        )}
+        <AnimatedButterfly
+          left={isBright ? '88.2%' : '86.5%'}
+          top={isBright ? '35.5%' : '34.8%'}
+          colorPrimary="#A78BFA"
+          colorSecondary="#FDE047"
+          delay={0.8}
+        />
+      </>
     )
   }
+
   if (unitId === 5) {
     return (
-      <motion.div
-        style={{ left: '43.5%', top: '18.2%' }}
-        animate={{ y: [0, -6, 0] }}
-        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-16 sm:h-24 pointer-events-none"
-      >
-        <svg viewBox="0 0 110 120" className="w-full h-full drop-shadow-[0_8px_16px_rgba(236,72,153,0.4)]">
-          <polygon points="28,105 14,62 28,38 42,62" fill="#F472B6" stroke="#FFFFFF" strokeWidth="2" />
-          <polygon points="28,105 28,38 42,62" fill="#EC4899" />
-          <polygon points="55,108 36,48 55,12 74,48" fill="#A78BFA" stroke="#FFFFFF" strokeWidth="2.5" />
-          <polygon points="55,108 55,12 74,48" fill="#7C3AED" />
-          <polygon points="82,105 68,64 82,42 96,64" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="2" />
-          <polygon points="82,105 82,42 96,64" fill="#0284C7" />
-          <circle cx="55" cy="26" r="4" fill="#FFFFFF" />
-        </svg>
-      </motion.div>
+      <>
+        <FallingLeavesGroup
+          isBright={isBright}
+          leaves={[
+            { x: isBright ? '41.2%' : '41.5%', y: isBright ? '19.2%' : '18.5%', delay: 0.3 },
+            { x: isBright ? '44.5%' : '44.8%', y: isBright ? '20.8%' : '20.2%', delay: 2.2 },
+          ]}
+        />
+        <AnimatedButterfly
+          left="23.5%"
+          top="21.8%"
+          colorPrimary="#FB7185"
+          colorSecondary="#FEF08A"
+          delay={1.5}
+        />
+      </>
     )
   }
+
   if (unitId === 6) {
     return (
-      <motion.div
-        style={{ left: '84.5%', top: '6.2%' }}
-        animate={{ y: [0, -5, 0], scale: [1, 1.03, 1] }}
-        transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -translate-x-1/2 -translate-y-full w-16 sm:w-22 h-16 sm:h-22 pointer-events-none"
-      >
-        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-[0_10px_20px_rgba(245,158,11,0.5)]">
-          <rect x="22" y="96" width="76" height="14" rx="5" fill="#FDE68A" stroke="#B45309" strokeWidth="2.5" />
-          <rect x="30" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
-          <rect x="78" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
-          <path d="M20 56 L60 26 L100 56 Z" fill="#F59E0B" stroke="#92400E" strokeWidth="3" />
-          <polygon
-            points="60,4 66,18 81,18 69,27 73,41 60,33 47,41 51,27 39,18 54,18"
-            fill="#FEF08A"
-            stroke="#D97706"
-            strokeWidth="2.5"
+      <>
+        {isBright && (
+          <FallingLeavesGroup
+            isBright={true}
+            leaves={[
+              { x: '68.5%', y: '7.8%', delay: 0.5 },
+              { x: '74.2%', y: '9.2%', delay: 2.1 },
+            ]}
           />
-        </svg>
-      </motion.div>
+        )}
+        <AnimatedButterfly
+          left="87.5%"
+          top="10.2%"
+          colorPrimary="#FBBF24"
+          colorSecondary="#FFFFFF"
+          delay={0.4}
+        />
+      </>
     )
   }
+
   return null
+}
+
+// ============================================================
+// TOMBOL NODE LEVEL 3D OVAL ISOMETRIK (SESUAI ASSET LEVEL.PNG & LEVEL AUTUMN.PNG)
+// ============================================================
+const IsometricLevelNodeButton = ({
+  unit,
+  isCompleted,
+  isUnlocked,
+  isCurrentActiveNode,
+  skyMode,
+  onClick,
+  onDoubleClick,
+}) => {
+  const isBright = skyMode === 'bright'
+  // Palet warna persis seperti oval node di LEVEL.png & LEVEL (AUTUMN).png
+  const palette = isCompleted
+    ? {
+        topGradStart: '#6EE7B7',
+        topGradEnd: '#10B981',
+        sideGradStart: '#059669',
+        sideGradEnd: '#047857',
+        rimStroke: '#A7F3D0',
+        innerShadow: '#047857',
+      }
+    : isUnlocked
+    ? {
+        topGradStart: '#FFE033',
+        topGradEnd: '#F59E0B',
+        sideGradStart: '#D97706',
+        sideGradEnd: '#B45309',
+        rimStroke: '#FEF08A',
+        innerShadow: '#B45309',
+      }
+    : {
+        topGradStart: '#C7BDB0',
+        topGradEnd: '#8E8375',
+        sideGradStart: '#6E6459',
+        sideGradEnd: '#524940',
+        rimStroke: '#DFD7CC',
+        innerShadow: '#6E6459',
+      }
+
+  const gradTopId = `node-top-${unit.id}-${skyMode}`
+  const gradSideId = `node-side-${unit.id}-${skyMode}`
+
+  return (
+    <motion.button
+      type="button"
+      whileHover={{ scale: 1.08, y: -2 }}
+      whileTap={{ scale: 0.94, y: 2 }}
+      onClick={onClick}
+      onDoubleClick={onDoubleClick}
+      className="relative w-14 h-10 sm:w-[72px] sm:h-[50px] flex items-center justify-center cursor-pointer focus:outline-none bg-transparent border-0 p-0"
+    >
+      <svg viewBox="0 0 92 64" className="w-full h-full overflow-visible">
+        <defs>
+          <linearGradient id={gradTopId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={palette.topGradStart} />
+            <stop offset="100%" stopColor={palette.topGradEnd} />
+          </linearGradient>
+          <linearGradient id={gradSideId} x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor={palette.sideGradStart} />
+            <stop offset="100%" stopColor={palette.sideGradEnd} />
+          </linearGradient>
+        </defs>
+
+        {/* Bayangan Dasar Oval di Tanah/Sungai (Sesuai Asset) */}
+        <ellipse
+          cx="46"
+          cy="38"
+          rx="42"
+          ry="23"
+          fill={isBright ? 'rgba(45, 55, 25, 0.34)' : '#99000E'}
+          fillOpacity={isBright ? '1' : '0.85'}
+        />
+
+        {/* Dinding Samping Silinder 3D Isometrik */}
+        <path
+          d="M 8 27 L 8 36 A 38 20 0 0 0 84 36 L 84 27 Z"
+          fill={`url(#${gradSideId})`}
+        />
+
+        {/* Permukaan Atas Elips Isometrik */}
+        <ellipse
+          cx="46"
+          cy="26"
+          rx="38"
+          ry="20"
+          fill={`url(#${gradTopId})`}
+          stroke={palette.rimStroke}
+          strokeWidth="1.2"
+        />
+
+        {/* Kilau Lengkung Halus di Tepi Atas */}
+        <path
+          d="M 16 19 A 32 15 0 0 1 76 19"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+          opacity="0.45"
+        />
+
+        {/* Ikon di Atas Tombol Oval (Sesuai Perspektif Isometrik Asset) */}
+        {isCompleted ? (
+          <g>
+            <path
+              d="M 33 25 L 42 33 L 60 17"
+              fill="none"
+              stroke={palette.innerShadow}
+              strokeWidth="5.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity="0.45"
+              transform="translate(-1, -1.5)"
+            />
+            <path
+              d="M 33 25 L 42 33 L 60 17"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </g>
+        ) : isUnlocked ? (
+          /* Tanda Seru (!) Isometrik Miring Persis Seperti Pulau 1 di LEVEL.png */
+          <g>
+            {/* Bayangan Dalam (Embossed Effect) */}
+            <path
+              d="M 39 13 C 38 11, 43 9, 45 12 L 50 24 C 51 26, 47 27, 45 25 Z"
+              fill={palette.innerShadow}
+              opacity="0.55"
+              transform="translate(-1.4, -1.4)"
+            />
+            <ellipse
+              cx="50.5"
+              cy="31.5"
+              rx="3.8"
+              ry="2.8"
+              fill={palette.innerShadow}
+              opacity="0.55"
+            />
+            {/* Batang & Titik Tanda Seru Putih */}
+            <path
+              d="M 39 13 C 38 11, 43 9, 45 12 L 50 24 C 51 26, 47 27, 45 25 Z"
+              fill="#FFFFFF"
+            />
+            <ellipse cx="51.5" cy="32.5" rx="3.6" ry="2.6" fill="#FFFFFF" />
+          </g>
+        ) : (
+          /* Ikon Gembok Putih (🔒) Persis Seperti Pulau Terkunci di LEVEL.png */
+          <g>
+            {/* Bayangan Dalam Gembok */}
+            <path
+              d="M 39 21 V 16 A 7 6.5 0 0 1 53 16 V 21"
+              fill="none"
+              stroke={palette.innerShadow}
+              strokeWidth="3.6"
+              strokeLinecap="round"
+              transform="translate(0, -1.2)"
+              opacity="0.55"
+            />
+            <ellipse
+              cx="46"
+              cy="26.5"
+              rx="10.5"
+              ry="8.5"
+              fill={palette.innerShadow}
+              opacity="0.45"
+            />
+            {/* Gagang & Badan Gembok Putih */}
+            <path
+              d="M 39 21 V 16 A 7 6.5 0 0 1 53 16 V 21"
+              fill="none"
+              stroke="#FFFFFF"
+              strokeWidth="3.4"
+              strokeLinecap="round"
+            />
+            <ellipse cx="46" cy="27.5" rx="10.5" ry="8.5" fill="#FFFFFF" />
+            {/* Lubang Kunci di Tengah Gembok */}
+            <circle cx="46" cy="26.2" r="2.1" fill="#786E62" />
+            <polygon points="44.5,26.8 47.5,26.8 46.8,31.5 45.2,31.5" fill="#786E62" />
+          </g>
+        )}
+      </svg>
+    </motion.button>
+  )
 }
 
 // ============================================================
@@ -924,7 +1453,7 @@ const DashboardPage = () => {
   const [skyMode, setSkyMode] = useState('bright')
   const [showStreakPopover, setShowStreakPopover] = useState(false)
 
-  // State Blur per Pulau (0..10px) saat pulau terpotong batas atas/bawah layar scroll
+  // State Blur per Pulau saat pulau benar-benar terpotong batas tepi atas/bawah layar scroll
   const [islandBlurs, setIslandBlurs] = useState({
     1: 0,
     2: 0,
@@ -978,7 +1507,8 @@ const DashboardPage = () => {
       ? Math.min(...uncompletedUnlockedIds)
       : Math.max(1, ...unlockedIds)
 
-  // Hitung secara halus tingkat blur tiap pulau yang terpotong batas atas/bawah viewport saat scroll
+  // Hitung secara proporsional tingkat blur pulau HANYA ketika pulau benar-benar terpotong di tepi layar
+  // sehingga tidak mengganggu jarak pandang mata di area tengah layar
   const updateIslandScrollBlurs = useCallback(() => {
     const scrollEl = mapScrollRef.current
     const stageEl = mapStageRef.current
@@ -987,17 +1517,17 @@ const DashboardPage = () => {
     const viewRect = scrollEl.getBoundingClientRect()
     const stageRect = stageEl.getBoundingClientRect()
 
-    // Zona transisi halus di tepi atas (90px) & bawah (90px) layar
-    const topSafeEdge = viewRect.top + 85
-    const bottomSafeEdge = viewRect.bottom - 75
-    const fadeZone = 135
+    // Zona tepi sangat tipis & proporsional (26px dari batas atas/bawah container scroll)
+    const topSafeEdge = viewRect.top + 26
+    const bottomSafeEdge = viewRect.bottom - 26
+    const fadeZone = 68
 
     const nextBlurs = {}
     for (const unit of ISLAND_UNITS) {
-      const islTop = stageRect.top + (unit.layerBox.top / 100) * stageRect.height
+      const box = skyMode === 'bright' ? unit.dayLayerBox : unit.sunsetLayerBox
+      const islTop = stageRect.top + (box.top / 100) * stageRect.height
       const islBottom =
-        stageRect.top +
-        ((unit.layerBox.top + unit.layerBox.height) / 100) * stageRect.height
+        stageRect.top + ((box.top + box.height) / 100) * stageRect.height
 
       let cutRatio = 0
       if (islTop < topSafeEdge) {
@@ -1007,17 +1537,19 @@ const DashboardPage = () => {
         cutRatio = Math.max(cutRatio, Math.min(1, (islBottom - bottomSafeEdge) / fadeZone))
       }
 
-      nextBlurs[unit.id] = +(cutRatio * 7.5).toFixed(2)
+      nextBlurs[unit.id] = +(cutRatio * 3.2).toFixed(2)
     }
     setIslandBlurs(nextBlurs)
-  }, [])
+  }, [skyMode])
 
   useEffect(() => {
     if (activeMenu === 'beranda' && mapScrollRef.current) {
       const el = mapScrollRef.current
       const targetUnit =
         ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
-      const targetY = (targetUnit.nodePos.y / 100) * el.scrollHeight
+      const nodePos =
+        skyMode === 'bright' ? targetUnit.dayNodePos : targetUnit.sunsetNodePos
+      const targetY = (nodePos.y / 100) * el.scrollHeight
       el.scrollTo({
         top: Math.max(0, targetY - el.clientHeight * 0.54),
         behavior: 'smooth',
@@ -1025,7 +1557,7 @@ const DashboardPage = () => {
       setTimeout(updateIslandScrollBlurs, 120)
       setTimeout(updateIslandScrollBlurs, 450)
     }
-  }, [activeMenu, currentActiveUnitId, updateIslandScrollBlurs])
+  }, [activeMenu, currentActiveUnitId, skyMode, updateIslandScrollBlurs])
 
   useEffect(() => {
     window.addEventListener('resize', updateIslandScrollBlurs)
@@ -1043,12 +1575,16 @@ const DashboardPage = () => {
       ? selectedUnit
       : ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
 
+  const activeMascotPos =
+    skyMode === 'bright' ? mascotUnit.dayMascotPos : mascotUnit.sunsetMascotPos
+
   const scrollToIsland = (unit) => {
     setSelectedUnitId(unit.id)
     setClickedTooltipUnitId(unit.id)
     if (mapScrollRef.current) {
       const el = mapScrollRef.current
-      const targetY = (unit.nodePos.y / 100) * el.scrollHeight
+      const nodePos = skyMode === 'bright' ? unit.dayNodePos : unit.sunsetNodePos
+      const targetY = (nodePos.y / 100) * el.scrollHeight
       el.scrollTo({
         top: Math.max(0, targetY - el.clientHeight * 0.52),
         behavior: 'smooth',
@@ -1285,7 +1821,7 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         <main className="relative z-10 flex-1 flex flex-col h-full overflow-hidden">
           {/* ========================================================== */}
-          {/* VIEW A: BERANDA (PETA 6 PULAU DENGAN EDGE BLUR SMOOTH)     */}
+          {/* VIEW A: BERANDA (PETA 6 PULAU DENGAN EDGE BLUR PROPORSIONAL) */}
           {/* ========================================================== */}
           {activeMenu === 'beranda' && (
             <div className="relative flex-1 flex flex-col h-full overflow-hidden">
@@ -1407,7 +1943,7 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* SCROLLABLE 6-ISLAND STAGE DENGAN EDGE-BLUR MASK HALUS       */}
+              {/* SCROLLABLE 6-ISLAND STAGE DENGAN EDGE-BLUR PROPORSIONAL    */}
               {/* ========================================================== */}
               <div
                 ref={mapScrollRef}
@@ -1418,85 +1954,60 @@ const DashboardPage = () => {
                 }}
                 style={{
                   WebkitMaskImage:
-                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.22) 4%, rgba(0,0,0,0.78) 10%, #000000 16%, #000000 84%, rgba(0,0,0,0.78) 90%, rgba(0,0,0,0.22) 96%, transparent 100%)',
+                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.65) 1.5%, #000000 3.5%, #000000 96.5%, rgba(0,0,0,0.65) 98.5%, transparent 100%)',
                   maskImage:
-                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.22) 4%, rgba(0,0,0,0.78) 10%, #000000 16%, #000000 84%, rgba(0,0,0,0.78) 90%, rgba(0,0,0,0.22) 96%, transparent 100%)',
+                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.65) 1.5%, #000000 3.5%, #000000 96.5%, rgba(0,0,0,0.65) 98.5%, transparent 100%)',
                 }}
-                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-44 pb-36 scroll-smooth"
+                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-36 pb-28 scroll-smooth"
               >
                 <motion.div
                   ref={mapStageRef}
-                  animate={{ scale: mapZoom, y: [0, -5, 0] }}
+                  animate={{ scale: mapZoom, y: [0, -4, 0] }}
                   transition={{
                     scale: { type: 'spring', stiffness: 260, damping: 24 },
                     y: { duration: 6.5, repeat: Infinity, ease: 'easeInOut' },
                   }}
-                  className="relative w-full max-w-[760px] aspect-[1445/2020] mx-auto select-none"
+                  className="relative w-full max-w-[740px] aspect-[940/1300] mx-auto select-none"
                 >
-                  {/* 1. RENDER TIAP PULAU SEBAGAI LAYER MANDIRI DENGAN SMOOTH EDGE-BLUR SAAT TERPOTONG */}
+                  {/* 1. RENDER TIAP PULAU SESUAI MODE LANGIT (CERAH: LEVEL.PNG / SENJA: LEVEL AUTUMN.PNG) */}
                   {ISLAND_UNITS.map((unit) => {
+                    const box =
+                      skyMode === 'bright' ? unit.dayLayerBox : unit.sunsetLayerBox
                     const blurVal = islandBlurs[unit.id] || 0
-                    const opacityVal = Math.max(0.55, 1 - blurVal * 0.045)
+                    const opacityVal = Math.max(0.78, 1 - blurVal * 0.05)
                     return (
                       <div
-                        key={`island-layer-${unit.id}`}
+                        key={`island-layer-${unit.id}-${skyMode}`}
                         style={{
-                          filter: blurVal > 0.15 ? `blur(${blurVal}px)` : 'none',
+                          filter: blurVal > 0.12 ? `blur(${blurVal}px)` : 'none',
                           opacity: opacityVal,
                         }}
-                        className="absolute inset-0 pointer-events-none transition-[filter,opacity] duration-300 ease-out"
+                        className="absolute inset-0 pointer-events-none transition-[filter,opacity] duration-200 ease-out"
                       >
                         <img
-                          src={unit.layerBox.src}
+                          src={box.src}
                           alt={unit.islandName}
                           style={{
-                            left: `${unit.layerBox.left}%`,
-                            top: `${unit.layerBox.top}%`,
-                            width: `${unit.layerBox.width}%`,
-                            height: `${unit.layerBox.height}%`,
+                            left: `${box.left}%`,
+                            top: `${box.top}%`,
+                            width: `${box.width}%`,
+                            height: `${box.height}%`,
                           }}
-                          className="absolute object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.22)]"
+                          className="absolute object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.18)]"
                           draggable={false}
                         />
-                        <IslandOrnamentForUnit unitId={unit.id} />
+                        <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
                       </div>
                     )
                   })}
 
-                  {/* 2. Indikator Cahaya pada 16 Batu Pijakan (Stepping Stones) */}
-                  {STEPPING_STONES.map((stone, idx) => {
-                    const isPathUnlocked =
-                      progress.unlockedIslands.includes(stone.toUnit) ||
-                      progress.completedIslands.includes(stone.fromUnit)
-                    const stoneBlur = islandBlurs[stone.toUnit] || 0
-                    return (
-                      <div
-                        key={`stone-${idx}`}
-                        style={{
-                          left: `${stone.x}%`,
-                          top: `${stone.y}%`,
-                          filter: stoneBlur > 0.2 ? `blur(${stoneBlur * 0.7}px)` : 'none',
-                        }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 transition-[filter] duration-300"
-                      >
-                        <div
-                          className={`w-2.5 h-2 sm:w-3.5 sm:h-2.5 rounded-full border transition-all ${
-                            isPathUnlocked
-                              ? 'bg-[#FFE066] border-white shadow-[0_0_8px_rgba(255,224,102,0.85)]'
-                              : 'bg-[#D6C7B2]/75 border-white/50'
-                          }`}
-                        />
-                      </div>
-                    )
-                  })}
-
-                  {/* 3. MASCOT ORANG UTAN HD (SESUAI LANDING PAGE) DI PULAU LEVEL AKTIF */}
+                  {/* 2. MASCOT ORANG UTAN HD (SESUAI LANDING PAGE) DI PULAU LEVEL AKTIF */}
                   <motion.div
                     layout
                     initial={false}
                     animate={{
-                      left: `${mascotUnit.mascotPos.x}%`,
-                      top: `${mascotUnit.mascotPos.y}%`,
+                      left: `${activeMascotPos.x}%`,
+                      top: `${activeMascotPos.y}%`,
                     }}
                     transition={{
                       type: 'spring',
@@ -1505,7 +2016,7 @@ const DashboardPage = () => {
                     }}
                     style={{
                       filter:
-                        (islandBlurs[mascotUnit.id] || 0) > 0.2
+                        (islandBlurs[mascotUnit.id] || 0) > 0.15
                           ? `blur(${islandBlurs[mascotUnit.id]}px)`
                           : 'none',
                     }}
@@ -1513,7 +2024,7 @@ const DashboardPage = () => {
                       e.stopPropagation()
                       startQuiz(mascotUnit)
                     }}
-                    className="absolute -translate-x-1/2 -translate-y-[84%] z-20 cursor-pointer group transition-[filter] duration-300"
+                    className="absolute -translate-x-1/2 -translate-y-[84%] z-25 cursor-pointer group transition-[filter] duration-200"
                   >
                     {/* Bayangan Elips di Rumput Bawah Kaki Maskot */}
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-14 sm:w-20 h-3.5 sm:h-4 rounded-full bg-black/28 blur-[2px]" />
@@ -1537,7 +2048,7 @@ const DashboardPage = () => {
                     />
                   </motion.div>
 
-                  {/* 4. NODE LEVEL 3D PADA 6 PULAU + KETERANGAN LEVEL SAAT HOVER/KLIK */}
+                  {/* 3. NODE LEVEL 3D OVAL ISOMETRIK PADA 6 PULAU + KETERANGAN LEVEL SAAT HOVER/KLIK */}
                   {ISLAND_UNITS.map((unit) => {
                     const isCompleted = progress.completedIslands.includes(unit.id)
                     const isUnlocked =
@@ -1546,15 +2057,17 @@ const DashboardPage = () => {
                     const isTooltipVisible =
                       hoveredUnitId === unit.id || clickedTooltipUnitId === unit.id
                     const nodeBlur = islandBlurs[unit.id] || 0
+                    const nodePos =
+                      skyMode === 'bright' ? unit.dayNodePos : unit.sunsetNodePos
 
                     return (
                       <div
                         key={unit.id}
                         style={{
-                          left: `${unit.nodePos.x}%`,
-                          top: `${unit.nodePos.y}%`,
+                          left: `${nodePos.x}%`,
+                          top: `${nodePos.y}%`,
                           filter:
-                            !isTooltipVisible && nodeBlur > 0.2
+                            !isTooltipVisible && nodeBlur > 0.15
                               ? `blur(${nodeBlur * 0.85}px)`
                               : 'none',
                         }}
@@ -1562,7 +2075,7 @@ const DashboardPage = () => {
                         onMouseLeave={() =>
                           setHoveredUnitId((prev) => (prev === unit.id ? null : prev))
                         }
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 transition-[filter] duration-300 ${
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 transition-[filter] duration-200 ${
                           isTooltipVisible ? 'z-[80]' : 'z-30'
                         }`}
                       >
@@ -1575,7 +2088,7 @@ const DashboardPage = () => {
                               exit={{ opacity: 0, y: 6, scale: 0.92 }}
                               transition={{ duration: 0.18, ease: 'easeOut' }}
                               onClick={(e) => e.stopPropagation()}
-                              className="absolute bottom-[calc(100%+18px)] left-1/2 -translate-x-1/2 w-52 sm:w-60 z-[90]"
+                              className="absolute bottom-[calc(100%+16px)] left-1/2 -translate-x-1/2 w-52 sm:w-60 z-[90]"
                             >
                               <div className="bg-white/98 backdrop-blur-md border-2 border-[#EB2B36] rounded-2xl p-3.5 text-center shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
                                 <div className="flex items-center justify-center gap-1.5 mb-1.5">
@@ -1624,71 +2137,41 @@ const DashboardPage = () => {
                           <>
                             <motion.div
                               animate={{
-                                scale: [1.05, 1.55, 1.05],
-                                opacity: [0.65, 0.18, 0.65],
+                                scale: [1.05, 1.5, 1.05],
+                                opacity: [0.6, 0.16, 0.6],
                               }}
                               transition={{
                                 duration: 2.6,
                                 repeat: Infinity,
                                 ease: 'easeInOut',
                               }}
-                              className="absolute -inset-4 sm:-inset-5 rounded-full bg-[#FF3B47] blur-xl pointer-events-none"
+                              className="absolute -inset-3 sm:-inset-4 rounded-full bg-[#FBBF24] blur-lg pointer-events-none"
                             />
                             <motion.div
                               animate={{
                                 scale: [1, 1.22, 1],
-                                opacity: [0.55, 0.2, 0.55],
+                                opacity: [0.5, 0.18, 0.5],
                               }}
                               transition={{
                                 duration: 2.6,
                                 repeat: Infinity,
                                 ease: 'easeInOut',
                               }}
-                              className="absolute -inset-2 rounded-full bg-[#FDA4AF] blur-md pointer-events-none"
+                              className="absolute -inset-1.5 rounded-full bg-[#FDE047] blur-md pointer-events-none"
                             />
                           </>
                         )}
 
-                        {/* TOMBOL NODE LEVEL 3D ISOMETRIK */}
-                        <motion.button
-                          whileHover={{ scale: 1.08, y: -2 }}
-                          whileTap={{ scale: 0.94, y: 2 }}
+                        {/* TOMBOL NODE LEVEL 3D OVAL ISOMETRIK (SESUAI ASSET LEVEL.PNG & LEVEL AUTUMN.PNG) */}
+                        <IsometricLevelNodeButton
+                          unit={unit}
+                          isCompleted={isCompleted}
+                          isUnlocked={isUnlocked}
+                          isCurrentActiveNode={isCurrentActiveNode}
+                          skyMode={skyMode}
                           onClick={(e) => handleNodeClick(e, unit)}
                           onDoubleClick={() => isUnlocked && startQuiz(unit)}
-                          className={`relative w-12 h-11 sm:w-16 sm:h-14 rounded-full flex items-center justify-center border-2 transition-all cursor-pointer ${
-                            isCurrentActiveNode
-                              ? 'bg-gradient-to-b from-[#FF4D58] to-[#E02424] border-white border-b-[6px] border-b-[#88131A] shadow-[0_0_28px_rgba(235,43,54,0.65)]'
-                              : isCompleted
-                              ? 'bg-gradient-to-b from-[#FBBF24] to-[#D97706] border-[#FEF08A] border-b-[6px] border-b-[#92400E] shadow-[0_6px_14px_rgba(0,0,0,0.22)]'
-                              : isUnlocked
-                              ? 'bg-gradient-to-b from-[#FF4D58] to-[#E02424] border-[#FECDD3] border-b-[6px] border-b-[#88131A] shadow-[0_6px_14px_rgba(0,0,0,0.22)]'
-                              : 'bg-gradient-to-b from-[#8C827A] to-[#6B625B] border-[#D6CFC7] border-b-[6px] border-b-[#47403B] shadow-[0_6px_14px_rgba(0,0,0,0.28)]'
-                          }`}
-                        >
-                          <div className="absolute top-1 left-1/2 -translate-x-1/2 w-7 sm:w-9 h-2 rounded-full bg-white/30 pointer-events-none" />
-
-                          {isCompleted ? (
-                            <span className="text-lg sm:text-2xl text-white drop-shadow-xs">
-                              ✓
-                            </span>
-                          ) : isUnlocked ? (
-                            <span className="text-lg sm:text-2xl text-white drop-shadow-xs">
-                              ★
-                            </span>
-                          ) : (
-                            <svg
-                              viewBox="0 0 24 24"
-                              className="w-5 h-5 sm:w-6 sm:h-6 text-[#EAE4DC]"
-                              fill="currentColor"
-                            >
-                              <path
-                                fillRule="evenodd"
-                                clipRule="evenodd"
-                                d="M12 3a4 4 0 0 0-4 4v3H7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7a2 2 0 0 0-2-2h-1V7a4 4 0 0 0-4-4Zm2 7V7a2 2 0 1 0-4 0v3h4Z"
-                              />
-                            </svg>
-                          )}
-                        </motion.button>
+                        />
                       </div>
                     )
                   })}
