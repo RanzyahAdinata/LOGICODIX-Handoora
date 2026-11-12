@@ -1599,10 +1599,10 @@ const DashboardPage = () => {
     const viewRect = scrollEl.getBoundingClientRect()
     const stageRect = stageEl.getBoundingClientRect()
 
-    // Zona tepi sangat tipis & proporsional (26px dari batas atas/bawah container scroll)
-    const topSafeEdge = viewRect.top + 26
-    const bottomSafeEdge = viewRect.bottom - 26
-    const fadeZone = 68
+    // Zona tepi sangat tipis & proporsional (14px dari batas atas/bawah container scroll)
+    const topSafeEdge = viewRect.top + 14
+    const bottomSafeEdge = viewRect.bottom - 14
+    const fadeZone = 50
 
     const nextBlurs = {}
     for (const unit of ISLAND_UNITS) {
@@ -1619,7 +1619,7 @@ const DashboardPage = () => {
         cutRatio = Math.max(cutRatio, Math.min(1, (islBottom - bottomSafeEdge) / fadeZone))
       }
 
-      nextBlurs[unit.id] = +(cutRatio * 3.2).toFixed(2)
+      nextBlurs[unit.id] = +(cutRatio * 2.2).toFixed(2)
     }
     setIslandBlurs(nextBlurs)
   }, [skyMode])
@@ -1956,7 +1956,7 @@ const DashboardPage = () => {
                   key={selectedUnit.id}
                   initial={{ y: -8, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="pointer-events-auto flex-1 max-w-xl bg-gradient-to-r from-[#EB2B36] to-[#D91E2A] border-2 border-[#FCA5A5]/70 border-b-[5px] border-b-[#991B1B] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 shadow-[0_12px_28px_rgba(185,28,28,0.32)]"
+                  className="pointer-events-auto w-fit max-w-sm sm:max-w-md bg-gradient-to-r from-[#EB2B36] to-[#D91E2A] border-2 border-[#FCA5A5]/70 border-b-[5px] border-b-[#991B1B] rounded-2xl px-4 py-2 sm:py-2.5 shadow-[0_12px_28px_rgba(185,28,28,0.32)]"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -1967,9 +1967,12 @@ const DashboardPage = () => {
                         {selectedUnit.islandName}
                       </span>
                     </div>
-                    <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-white truncate mt-0.5">
+                    <h2 className="text-sm sm:text-base font-extrabold text-white truncate mt-0.5">
                       {selectedUnit.title}
                     </h2>
+                    <p className="text-[11px] font-bold text-white/85 line-clamp-1 mt-0.5 leading-snug">
+                      {selectedUnit.subtitle}
+                    </p>
                   </div>
                 </motion.div>
 
@@ -2067,13 +2070,7 @@ const DashboardPage = () => {
                   if (showStreakPopover) setShowStreakPopover(false)
                   if (clickedTooltipUnitId !== null) setClickedTooltipUnitId(null)
                 }}
-                style={{
-                  WebkitMaskImage:
-                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.65) 1.5%, #000000 3.5%, #000000 96.5%, rgba(0,0,0,0.65) 98.5%, transparent 100%)',
-                  maskImage:
-                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.65) 1.5%, #000000 3.5%, #000000 96.5%, rgba(0,0,0,0.65) 98.5%, transparent 100%)',
-                }}
-                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-36 pb-28 scroll-smooth"
+                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-4 pb-28 scroll-smooth"
               >
                 <motion.div
                   ref={mapStageRef}
@@ -2082,7 +2079,7 @@ const DashboardPage = () => {
                     scale: { type: 'spring', stiffness: 260, damping: 24 },
                     y: { duration: 6.5, repeat: Infinity, ease: 'easeInOut' },
                   }}
-                  className="relative w-full max-w-[740px] aspect-[940/1300] mx-auto select-none"
+                  className="relative w-full max-w-[740px] aspect-[940/1300] mx-auto select-none mt-2"
                 >
                   {/* 1. RENDER TIAP PULAU SESUAI MODE LANGIT (CERAH: LEVEL.PNG / SENJA: LEVEL AUTUMN.PNG) */}
                   {ISLAND_UNITS.map((unit) => {
@@ -2113,30 +2110,64 @@ const DashboardPage = () => {
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
-                        {/* BADGE ANIMATIF COMING SOON UNTUK PULAU LEVEL 3 - 6 */}
+                        {/* EFEK AWAN TIPIS ANIMATIF & BADGE COMING SOON ELEGAN UNTUK PULAU LEVEL 3 - 6 */}
                         {unit.id >= 3 && (
                           <div
                             style={{
-                              left: `${box.left + box.width * 0.5}%`,
-                              top: `${box.top + box.height * 0.28}%`,
+                              left: `${box.left}%`,
+                              top: `${box.top}%`,
+                              width: `${box.width}%`,
+                              height: `${box.height}%`,
                             }}
-                            className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-20"
+                            className="absolute pointer-events-none z-20 flex items-center justify-center overflow-visible"
                           >
+                            {/* Lapisan kabut awan tipis bergelombang di atas pulau */}
                             <motion.div
                               animate={{
-                                y: [0, -5, 0],
-                                scale: [1, 1.04, 1],
+                                opacity: [0.38, 0.58, 0.38],
+                                scale: [0.98, 1.04, 0.98],
                               }}
                               transition={{
-                                duration: 3,
+                                duration: 5,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                                delay: (unit.id - 3) * 0.5,
+                              }}
+                              className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/40 to-transparent backdrop-blur-[1.5px] rounded-full filter"
+                            />
+
+                            {/* Animasi Awan Mengambang Halus */}
+                            <motion.div
+                              animate={{
+                                x: [-8, 8, -8],
+                                y: [-3, 3, -3],
+                              }}
+                              transition={{
+                                duration: 6,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                              className="absolute -top-3 w-28 sm:w-36 h-10 bg-white/70 backdrop-blur-md rounded-full shadow-inner pointer-events-none filter blur-[1px]"
+                            />
+
+                            {/* Badge Coming Soon Mewah & Profesional */}
+                            <motion.div
+                              animate={{
+                                y: [0, -6, 0],
+                              }}
+                              transition={{
+                                duration: 3.2,
                                 repeat: Infinity,
                                 ease: 'easeInOut',
                                 delay: (unit.id - 3) * 0.4,
                               }}
-                              className="px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/75 backdrop-blur-md border-2 border-amber-300 text-amber-300 text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+                              className="relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/92 backdrop-blur-md border-2 border-[#FBBF24] text-[#B45309] text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-[0_8px_24px_rgba(217,119,6,0.28)]"
                             >
-                              <span className="animate-spin text-xs">⏳</span>
-                              <span>COMING SOON</span>
+                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0" />
+                              <span>SEGERA HADIR</span>
+                              <span className="text-[11px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-lg border border-amber-300">
+                                Segera
+                              </span>
                             </motion.div>
                           </div>
                         )}
@@ -2657,7 +2688,7 @@ const DashboardPage = () => {
                   </div>
                 </motion.div>
 
-                {/* Tabs Modul Level 1 - 6 */}
+                {/* Tabs Modul Level 1 - 6 Tanpa Emoticon / Emoji */}
                 <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
                   {DICTIONARY_MODULES.map((mod) => {
                     const isSelected = selectedDictModuleId === mod.id && !dictionarySearch
@@ -2674,7 +2705,6 @@ const DashboardPage = () => {
                             : 'bg-white/90 text-gray-600 border-[#EAEAEA] hover:border-gray-300'
                         }`}
                       >
-                        <span>{mod.icon}</span>
                         <span>{mod.badge}</span>
                         {mod.isComingSoon && (
                           <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-400 text-amber-950 ml-1">
@@ -2750,53 +2780,80 @@ const DashboardPage = () => {
 
                   return (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {activeEntries.map((item, idx) => (
-                        <motion.div
-                          key={`${item.letter}-${idx}`}
-                          initial={{ opacity: 0, scale: 0.95 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: idx * 0.02 }}
-                          whileHover={{ y: -4 }}
-                          className="bg-white/95 backdrop-blur-sm border-2 border-[#EBEBEB] hover:border-[#E02424] rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
-                        >
-                          <div>
-                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
-                                {item.moduleBadge || item.category}
-                              </span>
-                              <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
-                                BISINDO
-                              </span>
-                            </div>
+                      {activeEntries.map((item, idx) => {
+                        const isSecretComingSoon = !dictionarySearch && selectedDictModuleId >= 3
 
-                            {/* Gambar Isyarat HD Utuh */}
-                            <div className="w-full aspect-square rounded-2xl bg-[#FFF6F6] p-3 flex items-center justify-center border border-rose-100 mb-3 shadow-inner group-hover:bg-[#FFF0F0] transition">
-                              <img
-                                src={item.signImg}
-                                alt={item.word}
-                                className="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-108 transition-transform duration-300"
-                              />
-                            </div>
-
-                            <h3 className="text-base font-black text-[#2B2B2B] text-center mb-1">
-                              {item.word}
-                            </h3>
-                            <p className="text-[11px] font-bold text-gray-500 text-center leading-relaxed line-clamp-3">
-                              {item.desc}
-                            </p>
-                          </div>
-
-                          <button
-                            onClick={() => {
-                              const targetLvl = selectedDictModuleId || 1
-                              navigate(`/quiz/${targetLvl}/1`)
-                            }}
-                            className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-600 hover:text-white text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424]"
+                        return (
+                          <motion.div
+                            key={`${item.letter}-${idx}`}
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: idx * 0.02 }}
+                            whileHover={{ y: -4 }}
+                            className="bg-white/95 backdrop-blur-sm border-2 border-[#EBEBEB] hover:border-[#E02424] rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
                           >
-                            Latih Isyarat ▶
-                          </button>
-                        </motion.div>
-                      ))}
+                            <div>
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                                  {item.moduleBadge || item.category}
+                                </span>
+                                <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
+                                  BISINDO
+                                </span>
+                              </div>
+
+                              {/* Gambar Isyarat HD Utuh Persegi Simetris (atau Tampilan Misteri Coming Soon) */}
+                              <div className="w-full aspect-square rounded-2xl bg-[#FFF6F6] p-3 flex items-center justify-center border border-rose-100 mb-3 shadow-inner group-hover:bg-[#FFF0F0] transition relative overflow-hidden">
+                                {isSecretComingSoon ? (
+                                  /* UI Rahasia & Estetik untuk Isyarat Coming Soon */
+                                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 flex flex-col items-center justify-center p-3 text-center">
+                                    <div className="w-12 h-12 rounded-2xl bg-white border border-amber-200 shadow-sm flex items-center justify-center text-xl mb-1 text-amber-600">
+                                      🔒
+                                    </div>
+                                    <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">
+                                      Dirahasiakan
+                                    </span>
+                                    <span className="text-[9px] font-bold text-amber-600/80 mt-0.5">
+                                      Segera Hadir
+                                    </span>
+                                  </div>
+                                ) : (
+                                  <img
+                                    src={item.signImg}
+                                    alt={item.word}
+                                    className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-300"
+                                  />
+                                )}
+                              </div>
+
+                              <h3 className="text-base font-black text-[#2B2B2B] text-center mb-1">
+                                {item.word}
+                              </h3>
+                              <p className="text-[11px] font-bold text-gray-500 text-center leading-relaxed line-clamp-3">
+                                {isSecretComingSoon
+                                  ? 'Bentuk gestur tangan dan video interaktif untuk materi ini akan segera dirilis.'
+                                  : item.desc}
+                              </p>
+                            </div>
+
+                            {isSecretComingSoon ? (
+                              <div className="mt-3 w-full py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black uppercase tracking-wider text-center">
+                                SEGERA DIBUKA
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  const targetLvl = selectedDictModuleId || 1
+                                  navigate(`/quiz/${targetLvl}/1`)
+                                }}
+                                className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-600 hover:text-white text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424]"
+                              >
+                                Latih Isyarat ▶
+                              </button>
+                            )}
+                          </motion.div>
+                        )
+                      })}
                     </div>
                   )
                 })()}
