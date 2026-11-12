@@ -2434,14 +2434,26 @@ const DashboardPage = () => {
                       skyMode === 'bright' ? unit.dayLayerBox : unit.sunsetLayerBox
                     const blurVal = islandBlurs[unit.id] || 0
                     const opacityVal = Math.max(0.78, 1 - blurVal * 0.05)
+                    const isComingSoon = unit.id >= 3
+
+                    // Filter blur tepi scroll + filter grayscale jika pulau masih tahap konstruksi (coming soon)
+                    const filterParts = []
+                    if (isComingSoon) {
+                      filterParts.push('grayscale(100%) contrast(92%) brightness(96%)')
+                    }
+                    if (blurVal > 0.12) {
+                      filterParts.push(`blur(${blurVal}px)`)
+                    }
+                    const combinedFilter = filterParts.length > 0 ? filterParts.join(' ') : 'none'
+
                     return (
                       <div
                         key={`island-layer-${unit.id}-${skyMode}`}
                         style={{
-                          filter: blurVal > 0.12 ? `blur(${blurVal}px)` : 'none',
+                          filter: combinedFilter,
                           opacity: opacityVal,
                         }}
-                        className="absolute inset-0 pointer-events-none transition-[filter,opacity] duration-200 ease-out"
+                        className="absolute inset-0 pointer-events-none transition-[filter,opacity] duration-500 ease-out"
                       >
                         <img
                           src={box.src}
@@ -2452,7 +2464,7 @@ const DashboardPage = () => {
                             width: `${box.width}%`,
                             height: `${box.height}%`,
                           }}
-                          className="absolute object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.18)]"
+                          className="absolute object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.18)] transition-[filter] duration-500"
                           draggable={false}
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
