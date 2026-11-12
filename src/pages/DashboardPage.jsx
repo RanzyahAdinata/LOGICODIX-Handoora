@@ -2194,7 +2194,7 @@ const DashboardPage = () => {
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
-                        {/* KUMPULAN AWAN KECIL-KECIL ORGANIK MENGERUBUNGI PULAU COMING SOON (LEVEL 3 - 6) */}
+                        {/* KETERANGAN COMING SOON ELEGAN & TIDAK MENGGANGGU PEMANDANGAN (LEVEL 3 - 6) */}
                         {unit.id >= 3 && (
                           <div
                             style={{
@@ -2203,9 +2203,22 @@ const DashboardPage = () => {
                               width: `${box.width}%`,
                               height: `${box.height}%`,
                             }}
-                            className="absolute pointer-events-none z-15 overflow-visible"
+                            className="absolute pointer-events-none z-15 overflow-visible flex items-center justify-center"
                           >
                             <ComingSoonFloatingClouds skyMode={skyMode} />
+
+                            {/* Badge Pill Coming Soon Minimalis & Bersih di Tepi Bawah Pulau */}
+                            <motion.div
+                              initial={{ opacity: 0, y: 4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.6 }}
+                              className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-amber-200/80 shadow-[0_4px_14px_rgba(0,0,0,0.08)] flex items-center gap-1.5"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-900/90 whitespace-nowrap">
+                                Segera Hadir
+                              </span>
+                            </motion.div>
                           </div>
                         )}
                       </div>
@@ -2313,9 +2326,9 @@ const DashboardPage = () => {
                                 </p>
 
                                 {unit.id >= 3 ? (
-                                  <div className="w-full py-2.5 px-3 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 text-amber-800 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-sm">
-                                    <span className="animate-spin text-sm">⏳</span>
-                                    <span>COMING SOON</span>
+                                  <div className="w-full py-2.5 px-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-2xs">
+                                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                                    <span>Segera Hadir</span>
                                   </div>
                                 ) : isUnlocked ? (
                                   <motion.button
@@ -2510,14 +2523,18 @@ const DashboardPage = () => {
                       <img
                         src={currentAvatar}
                         alt={user?.nama || 'Foto Profil'}
-                        className="w-24 h-24 rounded-3xl object-cover border-3 border-[#EB2B36] shadow-md bg-[#FFF1F2]"
+                        className="w-24 h-24 rounded-3xl object-cover border-2 border-gray-200 shadow-sm bg-gray-50"
                       />
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute -bottom-2 -right-2 bg-[#EB2B36] hover:bg-[#D91E2A] text-white text-[11px] font-extrabold px-2.5 py-1 rounded-xl border-2 border-white shadow-md cursor-pointer transition-transform hover:scale-105"
+                        className="absolute -bottom-2 -right-2 bg-[#E02424] hover:bg-[#C91A1A] text-white text-[11px] font-black px-2.5 py-1 rounded-xl border-2 border-white shadow-sm cursor-pointer transition-transform hover:scale-105 flex items-center gap-1"
                       >
-                        📷 Ubah
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span>Ubah</span>
                       </button>
                       <input
                         ref={fileInputRef}
@@ -2529,18 +2546,20 @@ const DashboardPage = () => {
                     </div>
 
                     <div className="text-center sm:text-left flex-1">
-                      <h1 className="text-2xl font-extrabold text-[#2B2B2B]">
+                      <h1 className="text-2xl font-black text-gray-900">
                         {user?.nama || 'Sobat Handoora'}
                       </h1>
-                      <p className="text-xs sm:text-sm text-[#777777] font-bold mt-0.5">
+                      <p className="text-xs sm:text-sm text-gray-500 font-bold mt-0.5">
                         {user?.email || 'sobat@handoora.id'} • {user?.umur || 20} Tahun
                       </p>
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
-                        <span className="px-3 py-1 rounded-full bg-[#FFF0F0] border border-[#FECDD3] text-[11px] font-extrabold text-[#E02424]">
-                          🔥 {progress.streak} Hari Beruntun
+                        <span className="px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-[11px] font-black text-[#E02424] flex items-center gap-1.5">
+                          <IconFlame className="w-3.5 h-3.5" color="#E02424" />
+                          <span>{progress.streak} Hari Beruntun</span>
                         </span>
-                        <span className="px-3 py-1 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[11px] font-extrabold text-[#059669]">
-                          🏝️ {progress.completedIslands.length} dari {ISLAND_UNITS.length} Level Selesai
+                        <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-black text-emerald-700 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                          <span>{progress.completedIslands.length} dari {ISLAND_UNITS.length} Level Selesai</span>
                         </span>
                       </div>
                     </div>
@@ -3015,16 +3034,16 @@ const DashboardPage = () => {
                               {/* Nomor Rank Icon */}
                               <div className="w-8 text-center shrink-0">
                                 {rank === 1 ? (
-                                  <span className="w-7 h-7 rounded-full bg-amber-400 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
-                                    🥇
+                                  <span className="w-7 h-7 rounded-full bg-amber-500 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
+                                    1
                                   </span>
                                 ) : rank === 2 ? (
-                                  <span className="w-7 h-7 rounded-full bg-slate-300 text-slate-700 font-black text-xs flex items-center justify-center shadow-xs mx-auto">
-                                    🥈
+                                  <span className="w-7 h-7 rounded-full bg-slate-400 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
+                                    2
                                   </span>
                                 ) : rank === 3 ? (
                                   <span className="w-7 h-7 rounded-full bg-amber-700 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
-                                    🥉
+                                    3
                                   </span>
                                 ) : (
                                   <span className="text-sm font-extrabold text-gray-500">
@@ -3126,18 +3145,18 @@ const DashboardPage = () => {
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
               <div className="max-w-4xl mx-auto w-full space-y-6">
                 {/* Header Tab Submenu: Pengaturan | Pusat Bantuan | FAQ */}
-                <div className="flex items-center gap-2 p-1.5 bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-2xl shadow-xs">
+                <div className="flex items-center gap-2 p-1.5 bg-white/95 backdrop-blur-md border border-gray-200 rounded-2xl shadow-xs">
                   {[
-                    { id: 'pengaturan', label: '⚙️ Pengaturan' },
-                    { id: 'bantuan', label: '🛟 Pusat Bantuan' },
-                    { id: 'faq', label: '❓ FAQ & Tanya Jawab' },
+                    { id: 'pengaturan', label: 'Pengaturan' },
+                    { id: 'bantuan', label: 'Pusat Bantuan' },
+                    { id: 'faq', label: 'FAQ & Tanya Jawab' },
                   ].map((tab) => (
                     <button
                       key={tab.id}
                       onClick={() => setLainnyaTab(tab.id)}
                       className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
                         lainnyaTab === tab.id
-                          ? 'bg-[#E02424] text-white shadow-md'
+                          ? 'bg-[#E02424] text-white shadow-xs'
                           : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
@@ -3221,17 +3240,17 @@ const DashboardPage = () => {
                             }}
                             className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-black text-gray-700 transition cursor-pointer border border-gray-200"
                           >
-                            {skyMode === 'bright' ? '☀️ Langit Cerah' : '🌅 Langit Senja'}
+                            {skyMode === 'bright' ? 'Langit Siang' : 'Langit Senja'}
                           </button>
                         </div>
                       </div>
                     </div>
 
                     {/* Reset Progres Pembelajaran */}
-                    <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
-                        <h3 className="text-base font-black text-[#2B2B2B]">Reset Progres Belajar</h3>
-                        <p className="text-xs text-gray-400 font-bold mt-0.5">
+                        <h3 className="text-base font-black text-gray-900">Reset Progres Belajar</h3>
+                        <p className="text-xs text-gray-500 font-bold mt-0.5">
                           Ulangi seluruh modul dari Level 1 dan kosongkan riwayat kuis tersimpan.
                         </p>
                       </div>
@@ -3247,7 +3266,7 @@ const DashboardPage = () => {
                         }}
                         className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-600 border border-rose-200 cursor-pointer transition"
                       >
-                        🔄 RESET KE LEVEL 1
+                        Reset ke Level 1
                       </button>
                     </div>
                   </motion.div>
@@ -3258,26 +3277,34 @@ const DashboardPage = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6"
+                    className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6"
                   >
                     <div>
-                      <h2 className="text-xl font-black text-[#2B2B2B]">Pusat Bantuan & Dukungan Handoora</h2>
+                      <h2 className="text-xl font-black text-gray-900">Pusat Bantuan & Dukungan Handoora</h2>
                       <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1">
                         Butuh bantuan seputar penggunaan kamera, navigasi kuis, atau akun belajar? Kami siap membantu!
                       </p>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
-                        <span className="text-2xl">📹</span>
+                      <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                        </div>
                         <h4 className="text-sm font-black text-gray-800">Panduan Kamera Real-time</h4>
                         <p className="text-xs text-gray-600 font-bold leading-relaxed">
                           Pastikan ruangan memiliki pencahayaan cukup dan tanganmu berada di dalam bingkai retikel kamera agar deteksi AI berjalan optimal.
                         </p>
                       </div>
 
-                      <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200 space-y-2">
-                        <span className="text-2xl">💬</span>
+                      <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div className="w-8 h-8 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-700">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                          </svg>
+                        </div>
                         <h4 className="text-sm font-black text-gray-800">Hubungi Tim Handoora</h4>
                         <p className="text-xs text-gray-600 font-bold leading-relaxed">
                           Kirim saran dan masukan melalui email halo@handoora.id atau komunitas BISINDO Discord Handoora Indonesia.

@@ -163,8 +163,8 @@ const TrainingPage = () => {
       </header>
 
       {/* Konten Utama: 2 Kolom (Kamera Live + Kartu Panduan Isyarat) */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-4 flex flex-col justify-center">
-        <div className="text-center mb-6">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-6 flex flex-col justify-center">
+        <div className="text-center mb-8">
           <h1 className="text-2xl sm:text-3xl font-black text-gray-800 tracking-tight">
             Latih Isyarat "{currentSign.word}"
           </h1>
@@ -173,92 +173,98 @@ const TrainingPage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch max-w-4xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto w-full">
           {/* Kolom Kiri: Kamera Live View */}
-          <div
-            className={`relative aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-xl flex flex-col items-center justify-center p-4 transition-all duration-300 border-4 ${
-              visionStatus === 'success'
-                ? 'border-emerald-500 ring-4 ring-emerald-400/40 shadow-emerald-500/20'
-                : visionStatus === 'wrong'
-                ? 'border-rose-500 ring-4 ring-rose-400/30 shadow-rose-500/20'
-                : 'border-slate-700'
-            }`}
-          >
-            {cameraActive ? (
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                onLoadedMetadata={(e) => e.target.play().catch(() => {})}
-                className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
-              />
-            ) : (
-              <div className="flex flex-col items-center text-center p-4 text-slate-300 z-10">
-                <span className="text-3xl mb-2">📷</span>
-                <p className="font-extrabold text-sm mb-1 text-white">
-                  {cameraPermissionDenied ? 'Izin Kamera Belum Aktif' : 'Menyiapkan Kamera...'}
-                </p>
-                <p className="text-xs text-slate-400 max-w-xs mb-3 font-bold">
-                  Aktifkan kamera pada browsermu agar AI dapat membaca isyarat tanganmu.
-                </p>
-                <button
-                  type="button"
-                  onClick={startCamera}
-                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF4754] to-[#E02424] text-white text-xs font-black shadow-md cursor-pointer hover:scale-102 transition"
-                >
-                  Buka Kamera
-                </button>
-              </div>
-            )}
-
-            {/* Sudut Retikel Kamera */}
-            <div className={`absolute top-3 left-3 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/70'}`} />
-            <div className={`absolute top-3 right-3 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/70'}`} />
-            <div className={`absolute bottom-3 left-3 w-6 h-4 border-b-4 border-l-4 rounded-bl-lg pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/70'}`} />
-            <div className={`absolute bottom-3 right-3 w-6 h-4 border-b-4 border-r-4 rounded-br-lg pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/70'}`} />
-
-            {/* Hold progress bar */}
-            {holdProgress > 0 && visionStatus !== 'success' && (
-              <div className="absolute top-3 inset-x-12 h-2 bg-black/40 rounded-full overflow-hidden p-0.5">
-                <div style={{ width: `${holdProgress}%` }} className="h-full bg-emerald-400 rounded-full transition-all duration-150" />
-              </div>
-            )}
-
-            {/* Badge Status Deteksi */}
+          <div className="flex flex-col">
             <div
-              className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full text-white text-xs font-bold border flex items-center gap-2 shadow-lg backdrop-blur-md max-w-[90%] text-center transition-all ${
+              className={`relative w-full aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-lg flex flex-col items-center justify-center p-4 transition-all duration-300 border-3 ${
                 visionStatus === 'success'
-                  ? 'bg-emerald-600/90 border-emerald-300'
+                  ? 'border-emerald-500 ring-4 ring-emerald-400/40 shadow-emerald-500/20'
                   : visionStatus === 'wrong'
-                  ? 'bg-rose-600/90 border-rose-300'
-                  : 'bg-black/75 border-white/20'
+                  ? 'border-rose-500 ring-4 ring-rose-400/30 shadow-rose-500/20'
+                  : 'border-slate-800'
               }`}
             >
-              <span
-                className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+              {cameraActive ? (
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  onLoadedMetadata={(e) => e.target.play().catch(() => {})}
+                  className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
+                />
+              ) : (
+                <div className="flex flex-col items-center text-center p-6 text-slate-300 z-10">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <p className="font-black text-sm mb-1 text-white">
+                    {cameraPermissionDenied ? 'Izin Kamera Belum Aktif' : 'Menyiapkan Kamera...'}
+                  </p>
+                  <p className="text-xs text-slate-400 max-w-xs mb-4 font-bold leading-relaxed">
+                    Aktifkan kamera pada browsermu agar AI dapat membaca isyarat tanganmu.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={startCamera}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF4754] to-[#E02424] text-white text-xs font-black shadow-md cursor-pointer hover:scale-102 transition"
+                  >
+                    Buka Kamera
+                  </button>
+                </div>
+              )}
+
+              {/* Sudut Retikel Kamera */}
+              <div className={`absolute top-4 left-4 w-7 h-7 border-t-3 border-l-3 rounded-tl-xl pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/60'}`} />
+              <div className={`absolute top-4 right-4 w-7 h-7 border-t-3 border-r-3 rounded-tr-xl pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/60'}`} />
+              <div className={`absolute bottom-4 left-4 w-7 h-7 border-b-3 border-l-3 rounded-bl-xl pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/60'}`} />
+              <div className={`absolute bottom-4 right-4 w-7 h-7 border-b-3 border-r-3 rounded-br-xl pointer-events-none transition-colors ${visionStatus === 'success' ? 'border-emerald-400' : 'border-white/60'}`} />
+
+              {/* Hold progress bar */}
+              {holdProgress > 0 && visionStatus !== 'success' && (
+                <div className="absolute top-4 inset-x-12 h-2 bg-black/40 rounded-full overflow-hidden p-0.5">
+                  <div style={{ width: `${holdProgress}%` }} className="h-full bg-emerald-400 rounded-full transition-all duration-150" />
+                </div>
+              )}
+
+              {/* Badge Status Deteksi */}
+              <div
+                className={`absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white text-xs font-bold border flex items-center gap-2 shadow-lg backdrop-blur-md max-w-[90%] text-center transition-all ${
                   visionStatus === 'success'
-                    ? 'bg-emerald-300 ring-2 ring-emerald-100'
+                    ? 'bg-emerald-600/95 border-emerald-300'
                     : visionStatus === 'wrong'
-                    ? 'bg-rose-300 animate-pulse'
-                    : 'bg-amber-400 animate-ping'
+                    ? 'bg-rose-600/95 border-rose-300'
+                    : 'bg-black/80 border-white/20'
                 }`}
-              />
-              <span className="truncate">{visionFeedback}</span>
+              >
+                <span
+                  className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                    visionStatus === 'success'
+                      ? 'bg-emerald-300 ring-2 ring-emerald-100'
+                      : visionStatus === 'wrong'
+                      ? 'bg-rose-300 animate-pulse'
+                      : 'bg-amber-400 animate-ping'
+                  }`}
+                />
+                <span className="truncate">{visionFeedback}</span>
+              </div>
             </div>
           </div>
 
           {/* Kolom Kanan: Panduan Gambar Isyarat HD & Deskripsi */}
-          <div className="bg-white rounded-3xl border-2 border-gray-200 p-6 flex flex-col justify-between shadow-sm">
+          <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 flex flex-col justify-between shadow-sm">
             <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
                   {currentSign.moduleBadge || 'BISINDO'}
                 </span>
-                <span className="text-xl font-black text-gray-800">{currentSign.letter}</span>
+                <span className="text-2xl font-black text-gray-800">{currentSign.letter}</span>
               </div>
 
-              <div className="w-full aspect-square max-w-[240px] mx-auto rounded-2xl bg-[#FFF6F6] p-4 flex items-center justify-center border border-rose-100 mb-4 shadow-inner">
+              <div className="w-full aspect-square max-w-[220px] mx-auto rounded-2xl bg-[#FFF6F6] p-4 flex items-center justify-center border border-rose-100 mb-4 shadow-inner">
                 <img
                   src={currentSign.signImg}
                   alt={currentSign.word}
@@ -266,17 +272,17 @@ const TrainingPage = () => {
                 />
               </div>
 
-              <h2 className="text-lg font-black text-gray-800 text-center mb-1">
+              <h2 className="text-xl font-black text-gray-800 text-center mb-1.5">
                 {currentSign.word}
               </h2>
-              <p className="text-xs font-bold text-gray-500 text-center leading-relaxed">
+              <p className="text-xs font-bold text-gray-500 text-center leading-relaxed max-w-sm mx-auto">
                 {currentSign.desc}
               </p>
             </div>
 
             {/* Pilihan Cepat Huruf Lain untuk Dilatih */}
-            <div className="pt-4 mt-4 border-t border-gray-100">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider block mb-2 text-center">
+            <div className="pt-5 mt-5 border-t border-gray-100">
+              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider block mb-2.5 text-center">
                 Pilih Isyarat Lain:
               </span>
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none justify-center flex-wrap">
