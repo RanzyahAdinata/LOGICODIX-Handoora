@@ -185,17 +185,20 @@ const TrainingPage = () => {
                   : 'border-slate-800'
               }`}
             >
-              {cameraActive ? (
-                <video
-                  ref={videoRef}
-                  autoPlay
-                  playsInline
-                  muted
-                  onLoadedMetadata={(e) => e.target.play().catch(() => {})}
-                  className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
-                />
-              ) : (
-                <div className="flex flex-col items-center text-center p-6 text-slate-300 z-10">
+              {/* Video element selalu di-mount agar ref langsung tersedia dan siap streaming */}
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                muted
+                onLoadedMetadata={(e) => e.target.play().catch(() => {})}
+                className={`absolute inset-0 w-full h-full object-cover transform -scale-x-100 transition-opacity duration-300 ${
+                  cameraActive ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none'
+                }`}
+              />
+
+              {!cameraActive && (
+                <div className="flex flex-col items-center text-center p-6 text-slate-300 z-20">
                   <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 mb-3 shadow-inner">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />

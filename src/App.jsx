@@ -27,18 +27,16 @@ function App() {
           },
         }}
       />
-      <AnimatePresence mode="wait">
-        <Routes location={location} key={location.pathname}>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/belajar" element={<DashboardPage />} />
-          <Route path="/quiz/:levelId" element={<QuizPage />} />
-          <Route path="/quiz/:levelId/:stageId" element={<QuizPage />} />
-          <Route path="/training" element={<TrainingPage />} />
-          <Route path="/training/:letterParam" element={<TrainingPage />} />
-        </Routes>
-      </AnimatePresence>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/belajar" element={<DashboardPage />} />
+        <Route path="/quiz/:levelId" element={<QuizPage />} />
+        <Route path="/quiz/:levelId/:stageId" element={<QuizPage />} />
+        <Route path="/training" element={<TrainingPage />} />
+        <Route path="/training/:letterParam" element={<TrainingPage />} />
+      </Routes>
     </AuthProvider>
   )
 }
