@@ -62,7 +62,7 @@ const LandingPage = () => {
           {/* Tagline matching exact UI design */}
           <motion.h1
             variants={itemVariants}
-            className="text-xl sm:text-[26px] md:text-[28px] font-bold text-[#666666] leading-[1.35] mb-7 font-display tracking-tight text-center"
+            className="text-xl sm:text-[26px] md:text-[28px] font-black text-[#4B4B4B] leading-[1.35] mb-7 font-display tracking-tight text-center"
           >
             Cara paling asyik buat jago
             <br />
