@@ -1698,9 +1698,8 @@ const DashboardPage = () => {
   }
 
   const handleLogout = async () => {
-    await logout()
     toast.success('Berhasil keluar dari akun')
-    navigate('/')
+    await logout()
   }
 
   const activeStreakDays = Math.min(7, Math.max(1, progress.streak % 8 || 1))

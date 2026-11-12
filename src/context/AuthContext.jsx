@@ -69,6 +69,8 @@ export const AuthProvider = ({ children }) => {
         icon: '🔒',
         duration: 6000,
       })
+      // Refresh halaman ke login agar seluruh state UI ter-reset bersih
+      window.location.href = '/login'
     }
 
     const isExpired = () => {
@@ -148,8 +150,15 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = async () => {
-    await authService.logout()
+    localStorage.removeItem(ACTIVITY_KEY)
+    try {
+      await authService.logout()
+    } catch {
+      /* abaikan */
+    }
     setUser(null)
+    // Langsung arahkan dan refresh halaman penuh ke '/' agar seluruh state UI ter-reset bersih
+    window.location.href = '/'
   }
 
   const value = {
