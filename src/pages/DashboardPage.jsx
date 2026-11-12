@@ -1608,6 +1608,14 @@ const DashboardPage = () => {
     }
     setClickedTooltipUnitId(null)
     setHoveredUnitId(null)
+
+    // Jika Level 1, buka QuizPage 3-tahap lengkap
+    if (unit.id === 1) {
+      navigate(`/quiz/${unit.id}/1`)
+      return
+    }
+
+    // Untuk level lain jika kuis spesifik belum tersedia, buka mode kuis inline bawaan
     setQuizUnit(unit)
     setQuizStep(0)
     setSelectedOption(null)
