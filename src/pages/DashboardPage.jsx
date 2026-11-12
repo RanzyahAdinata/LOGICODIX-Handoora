@@ -1463,13 +1463,10 @@ const DashboardPage = () => {
     6: 0,
   })
 
-  // Modal Buku Panduan & Kuis Interaktif
+  // Modal Sesi Lanjut/Ulang Kuis & Kuis Interaktif
+  const [levelSessionModalUnit, setLevelSessionModalUnit] = useState(null)
+  const [savedSessionData, setSavedSessionData] = useState(null)
   const [guideUnit, setGuideUnit] = useState(null)
-  const [quizUnit, setQuizUnit] = useState(null)
-  const [quizStep, setQuizStep] = useState(0)
-  const [selectedOption, setSelectedOption] = useState(null)
-  const [isAnswerChecked, setIsAnswerChecked] = useState(false)
-  const [isAnswerCorrect, setIsAnswerCorrect] = useState(false)
 
   // Form Profil Pengguna + Ganti Foto Profil
   const [profileForm, setProfileForm] = useState({
@@ -1598,6 +1595,25 @@ const DashboardPage = () => {
     setClickedTooltipUnitId((prev) => (prev === unit.id ? null : unit.id))
   }
 
+  const checkSavedQuizSession = (unitId) => {
+    const userId = user?.id || 'guest'
+    for (let s = 1; s <= 3; s++) {
+      const key = `handoora_session_progress_${userId}_L${unitId}_S${s}`
+      const raw = localStorage.getItem(key)
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw)
+          if (parsed?.remainingQuestionIds?.length > 0) {
+            return { stageId: s, ...parsed }
+          }
+        } catch {
+          // ignore
+        }
+      }
+    }
+    return null
+  }
+
   const startQuiz = (unit) => {
     const isUnlocked = progress.unlockedIslands.includes(unit.id) || unit.id === 1
     if (!isUnlocked) {
@@ -1609,67 +1625,38 @@ const DashboardPage = () => {
     setClickedTooltipUnitId(null)
     setHoveredUnitId(null)
 
-    // Jika Level 1, buka QuizPage 3-tahap lengkap
-    if (unit.id === 1) {
-      navigate(`/quiz/${unit.id}/1`)
+    // Cek apakah ada riwayat sesi kuis yang belum selesai untuk level ini
+    const session = checkSavedQuizSession(unit.id)
+    if (session) {
+      setSavedSessionData(session)
+      setLevelSessionModalUnit(unit)
       return
     }
 
-    // Untuk level lain jika kuis spesifik belum tersedia, buka mode kuis inline bawaan
-    setQuizUnit(unit)
-    setQuizStep(0)
-    setSelectedOption(null)
-    setIsAnswerChecked(false)
-    setIsAnswerCorrect(false)
+    // Jika belum ada sesi tertunda, langsung buka QuizPage level tersebut
+    navigate(`/quiz/${unit.id}/1`)
   }
 
-  const handleCheckAnswer = () => {
-    if (selectedOption === null || !quizUnit) return
-    const currentQ = quizUnit.questions[quizStep]
-    const correct = selectedOption === currentQ.correctIndex
-    setIsAnswerCorrect(correct)
-    setIsAnswerChecked(true)
+  const handleResumeSavedSession = () => {
+    if (!levelSessionModalUnit || !savedSessionData) return
+    const stage = savedSessionData.stageId || 1
+    const uId = levelSessionModalUnit.id
+    setLevelSessionModalUnit(null)
+    setSavedSessionData(null)
+    navigate(`/quiz/${uId}/${stage}`)
   }
 
-  const handleNextQuestion = async () => {
-    if (!quizUnit) return
-    if (quizStep + 1 < quizUnit.questions.length) {
-      setQuizStep((s) => s + 1)
-      setSelectedOption(null)
-      setIsAnswerChecked(false)
-      setIsAnswerCorrect(false)
-    } else {
-      const nextIslandId = Math.min(ISLAND_UNITS.length, quizUnit.id + 1)
-      const completedIslands = Array.from(
-        new Set([...progress.completedIslands, quizUnit.id])
-      )
-      const unlockedIslands = Array.from(
-        new Set([...progress.unlockedIslands, quizUnit.id, nextIslandId])
-      )
-
-      const updated = {
-        ...progress,
-        xp: progress.xp + quizUnit.xpReward,
-        gems: progress.gems + (quizUnit.gemReward || 15),
-        completedIslands,
-        unlockedIslands,
-        dailyQuests: {
-          ...progress.dailyQuests,
-          xpEarnedToday: (progress.dailyQuests?.xpEarnedToday || 0) + quizUnit.xpReward,
-          highScoreLessons: completedIslands.length,
-        },
-      }
-      setProgress(updated)
-      setQuizUnit(null)
-      setSelectedUnitId(nextIslandId)
-
-      if (user?.id) {
-        await progressService.saveProgressToSupabase(user.id, updated)
-      }
-      toast.success(
-        `Selamat! ${quizUnit.unitLabel} selesai! Level berikutnya telah terbuka! 🎉`
-      )
+  const handleRestartQuizFromBeginning = () => {
+    if (!levelSessionModalUnit) return
+    const uId = levelSessionModalUnit.id
+    const userId = user?.id || 'guest'
+    // Bersihkan sesi tersimpan untuk level ini
+    for (let s = 1; s <= 3; s++) {
+      localStorage.removeItem(`handoora_session_progress_${userId}_L${uId}_S${s}`)
     }
+    setLevelSessionModalUnit(null)
+    setSavedSessionData(null)
+    navigate(`/quiz/${uId}/1`)
   }
 
   const handlePhotoUpload = async (e) => {
@@ -1853,16 +1840,6 @@ const DashboardPage = () => {
                       {selectedUnit.title}
                     </h2>
                   </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => setGuideUnit(selectedUnit)}
-                    className="shrink-0 bg-white/15 hover:bg-white/25 border-2 border-white/40 border-b-4 border-b-[#7F1D1D]/50 px-3.5 py-2 rounded-xl flex items-center gap-2 text-xs font-extrabold text-white uppercase tracking-wider cursor-pointer transition-all"
-                  >
-                    <span className="text-base">📖</span>
-                    <span className="hidden sm:inline">BUKU PANDUAN</span>
-                  </motion.button>
                 </motion.div>
 
                 {/* Kanan Atas: HANYA Api Streak (Sesuai Web - Beranda.png & Web - Beranda-1.png) */}
@@ -2118,19 +2095,19 @@ const DashboardPage = () => {
                                     }}
                                     className="w-full py-2 px-4 rounded-xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                                   >
-                                    <span>{isCompleted ? 'LATIH LAGI' : 'MULAI BELAJAR'}</span>
+                                    <span>
+                                      {checkSavedQuizSession(unit.id)
+                                        ? 'LANJUTKAN KUIS'
+                                        : isCompleted
+                                        ? 'LATIH LAGI'
+                                        : 'MULAI BELAJAR'}
+                                    </span>
                                     <span className="text-[10px]">▶</span>
                                   </motion.button>
                                 ) : (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setGuideUnit(unit)
-                                    }}
-                                    className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider cursor-pointer"
-                                  >
-                                    🔒 LIHAT PANDUAN LEVEL
-                                  </button>
+                                  <div className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider text-center">
+                                    🔒 SELESAIKAN LEVEL {unit.id - 1}
+                                  </div>
                                 )}
                               </div>
 
@@ -2602,216 +2579,62 @@ const DashboardPage = () => {
         </nav>
 
         {/* ============================================================ */}
-        {/* MODAL 1: BUKU PANDUAN BISINDO                                */}
+        {/* MODAL PILIHAN LANJUTKAN / ULANG SESI KUIS LEVEL               */}
         {/* ============================================================ */}
         <AnimatePresence>
-          {guideUnit && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setGuideUnit(null)}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4"
-            >
+          {levelSessionModalUnit && savedSessionData && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
               <motion.div
-                initial={{ scale: 0.92, y: 16 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.92, y: 16 }}
-                onClick={(e) => e.stopPropagation()}
-                className="w-full max-w-lg bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl space-y-5"
+                initial={{ scale: 0.92, y: 16, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.92, y: 16, opacity: 0 }}
+                className="w-full max-w-md bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl text-center space-y-5"
               >
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-black text-[#E02424] uppercase tracking-wider">
-                      📖 Buku Panduan • {guideUnit.unitLabel}
-                    </span>
-                    <h3 className="text-xl font-extrabold text-[#2B2B2B] mt-2">
-                      {guideUnit.title}
-                    </h3>
-                    <p className="text-xs font-bold text-[#777777] mt-0.5">
-                      {guideUnit.subtitle}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setGuideUnit(null)}
-                    className="w-9 h-9 rounded-full bg-[#F4F4F4] hover:bg-[#EAEAEA] text-[#555555] font-extrabold cursor-pointer"
-                  >
-                    ✕
-                  </button>
+                <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center text-3xl mx-auto shadow-inner">
+                  ⏱️
                 </div>
 
-                <div className="space-y-3">
-                  {guideUnit.guide.map((g, i) => (
-                    <div
-                      key={i}
-                      className="bg-[#FFFBF4] border-2 border-[#F5E1B8] rounded-2xl p-4 flex items-center gap-4"
-                    >
-                      <div className="w-14 h-14 rounded-2xl bg-white border-2 border-[#F3D299] flex items-center justify-center text-3xl shrink-0 shadow-2xs">
-                        {g.sign}
-                      </div>
-                      <div>
-                        <p className="text-sm font-extrabold text-[#2B2B2B]">
-                          Isyarat: “{g.word}”
-                        </p>
-                        <p className="text-xs text-[#666666] font-semibold mt-0.5 leading-relaxed">
-                          {g.desc}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="flex justify-end gap-3 pt-2">
-                  <Button
-                    variant="secondary"
-                    size="md"
-                    onClick={() => setGuideUnit(null)}
-                  >
-                    TUTUP
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="md"
-                    onClick={() => {
-                      const u = guideUnit
-                      setGuideUnit(null)
-                      startQuiz(u)
-                    }}
-                  >
-                    MULAI LATIHAN ▶
-                  </Button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ============================================================ */}
-        {/* MODAL 2: KUIS PELAJARAN BISINDO INTERAKTIF                   */}
-        {/* ============================================================ */}
-        <AnimatePresence>
-          {quizUnit && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.92, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.92, y: 20 }}
-                className="w-full max-w-xl bg-white border-2 border-[#EBEBEB] rounded-[34px] p-6 sm:p-8 shadow-2xl space-y-6"
-              >
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuizUnit(null)}
-                    className="text-[#999999] hover:text-[#333333] font-black text-lg cursor-pointer"
-                  >
-                    ✕
-                  </button>
-                  <div className="flex-1 h-3.5 bg-[#F0F0F0] rounded-full overflow-hidden">
-                    <motion.div
-                      animate={{
-                        width: `${((quizStep + 1) / quizUnit.questions.length) * 100}%`,
-                      }}
-                      className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full"
-                    />
-                  </div>
-                  <span className="text-xs font-extrabold text-[#E02424]">
-                    {quizStep + 1}/{quizUnit.questions.length}
+                <div>
+                  <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-black text-[#E02424] uppercase tracking-wider">
+                    {levelSessionModalUnit.unitLabel} • Tahap {savedSessionData.stageId}
                   </span>
-                </div>
-
-                <div className="space-y-4">
-                  <span className="inline-block px-3 py-1 rounded-full bg-[#FFF5E5] text-[11px] font-black text-[#D97706] uppercase tracking-wider">
-                    {quizUnit.islandName} • Soal {quizStep + 1} dari {quizUnit.questions.length}
-                  </span>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#2B2B2B] leading-snug">
-                    {quizUnit.questions[quizStep].prompt}
+                  <h3 className="text-xl font-extrabold text-[#2B2B2B] mt-2">
+                    Lanjutkan Belajar?
                   </h3>
-
-                  <div className="w-24 h-24 mx-auto rounded-3xl bg-[#FFF9EC] border-2 border-[#F5E0B5] flex items-center justify-center text-5xl shadow-inner">
-                    {quizUnit.questions[quizStep].emoji}
-                  </div>
+                  <p className="text-xs text-gray-500 font-bold mt-1">
+                    Kamu memiliki riwayat kuis pada level ini yang belum selesai ({savedSessionData.remainingQuestionIds?.length} soal tersisa).
+                  </p>
                 </div>
 
-                <div className="space-y-2.5">
-                  {quizUnit.questions[quizStep].options.map((opt, idx) => {
-                    const isSelected = selectedOption === idx
-                    const isCorrectOpt =
-                      idx === quizUnit.questions[quizStep].correctIndex
-
-                    let styleClass =
-                      'bg-[#FAFAFA] border-[#E5E5E5] text-[#333333] hover:border-[#EB2B36]/50'
-                    if (isAnswerChecked) {
-                      if (isCorrectOpt) {
-                        styleClass =
-                          'bg-[#ECFDF5] border-[#10B981] text-[#065F46]'
-                      } else if (isSelected) {
-                        styleClass =
-                          'bg-[#FEF2F2] border-[#EF4444] text-[#991B1B]'
-                      }
-                    } else if (isSelected) {
-                      styleClass =
-                        'bg-[#FFF0F0] border-[#E02424] text-[#E02424] shadow-xs'
-                    }
-
-                    return (
-                      <button
-                        key={idx}
-                        disabled={isAnswerChecked}
-                        onClick={() => setSelectedOption(idx)}
-                        className={`w-full text-left p-4 rounded-2xl border-2 font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-3 ${styleClass}`}
-                      >
-                        <span className="w-7 h-7 rounded-lg bg-white border border-[#E0E0E0] flex items-center justify-center text-xs font-extrabold text-[#555555] shrink-0">
-                          {idx + 1}
-                        </span>
-                        <span>{opt}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-
-                {isAnswerChecked && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 6 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`p-4 rounded-2xl border-2 text-xs font-bold leading-relaxed ${
-                      isAnswerCorrect
-                        ? 'bg-[#ECFDF5] border-[#6EE7B7] text-[#065F46]'
-                        : 'bg-[#FEF2F2] border-[#FCA5A5] text-[#991B1B]'
-                    }`}
+                <div className="flex flex-col gap-2.5 pt-1">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={handleResumeSavedSession}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-extrabold text-sm uppercase tracking-wider shadow-md cursor-pointer"
                   >
-                    <p className="font-extrabold text-sm mb-1">
-                      {isAnswerCorrect
-                        ? '🎉 Luar Biasa! Jawabanmu Tepat!'
-                        : '💡 Kurang Tepat, Yuk Ingat Kembali:'}
-                    </p>
-                    {quizUnit.questions[quizStep].explanation}
-                  </motion.div>
-                )}
+                    LANJUTKAN PROGRES SEBELUMNYA ▶
+                  </motion.button>
 
-                <div className="flex justify-end">
-                  {!isAnswerChecked ? (
-                    <Button
-                      variant="primary"
-                      size="md"
-                      disabled={selectedOption === null}
-                      onClick={handleCheckAnswer}
-                    >
-                      PERIKSA JAWABAN
-                    </Button>
-                  ) : (
-                    <Button variant="primary" size="md" onClick={handleNextQuestion}>
-                      {quizStep + 1 < quizUnit.questions.length
-                        ? 'SOAL BERIKUTNYA ▶'
-                        : 'SELESAIKAN LEVEL 🎉'}
-                    </Button>
-                  )}
+                  <button
+                    onClick={handleRestartQuizFromBeginning}
+                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-gray-200 hover:bg-gray-50 text-gray-600 font-extrabold text-xs uppercase tracking-wider cursor-pointer transition"
+                  >
+                    🔄 ULANGI KUIS DARI AWAL
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setLevelSessionModalUnit(null)
+                      setSavedSessionData(null)
+                    }}
+                    className="text-xs text-gray-400 hover:text-gray-700 font-bold py-1 transition"
+                  >
+                    Batal
+                  </button>
                 </div>
               </motion.div>
-            </motion.div>
+            </div>
           )}
         </AnimatePresence>
       </div>

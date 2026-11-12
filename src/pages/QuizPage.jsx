@@ -3,7 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { progressService } from '../services/storage'
-import { LEVEL1_STAGES } from '../data/level1QuizData'
+import { getLevelStages } from '../data/allLevelsQuizData'
+import { analyzeHandGesture } from '../utils/gestureDetector'
 import Button from '../components/ui/Button'
 
 // Pure lightweight CSS / DOM Confetti Effect
@@ -63,10 +64,10 @@ export default function QuizPage() {
 
   // Stage state
   const [currentStageId, setCurrentStageId] = useState(initialStageId)
-  const currentStage = LEVEL1_STAGES.find((s) => s.stageId === currentStageId) || LEVEL1_STAGES[0]
+  const currentStages = getLevelStages(levelId)
+  const currentStage = currentStages.find((s) => s.stageId === currentStageId) || currentStages[0]
 
-  // Queue-based questions (mendukung mistake recovery)
-  // Ketika user salah / lompat, soal tersebut dimasukkan ke antrean akhir
+  // Queue-based questions (mendukung mistake recovery & smart skipping)
   const [queue, setQueue] = useState([])
   const [totalOriginal, setTotalOriginal] = useState(0)
   const [correctIds, setCorrectIds] = useState(new Set())
@@ -77,16 +78,24 @@ export default function QuizPage() {
   const [selectedIndex, setSelectedIndex] = useState(null)
   const [isAnswerChecked, setIsAnswerChecked] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
+
+  // Kamera & Real-time Vision Gesture Recognition State
   const [cameraActive, setCameraActive] = useState(false)
-  const [isDetecting, setIsDetecting] = useState(false)
-  const [detectedSuccess, setDetectedSuccess] = useState(false)
+  const [cameraPermissionDenied, setCameraPermissionDenied] = useState(false)
+  const [visionFeedback, setVisionFeedback] = useState('Posisikan tanganmu di dalam bingkai kamera')
+  const [visionStatus, setVisionStatus] = useState('idle') // 'idle' | 'detecting' | 'success' | 'wrong'
+  const [handHoldProgress, setHandHoldProgress] = useState(0) // 0 - 100% hold timer untuk akurasi
+
   const videoRef = useRef(null)
+  const hiddenCanvasRef = useRef(null)
+  const detectionLoopRef = useRef(null)
+  const holdCountRef = useRef(0)
 
   // Quiz completion / Result Page state
   const [isQuizCompleted, setIsQuizCompleted] = useState(false)
   const [resultStats, setResultStats] = useState({
     accuracy: 100,
-    xpEarned: 15,
+    xpEarned: 20,
     streak: 1,
     correctTotal: 0,
     totalQuestions: 0,
@@ -95,95 +104,217 @@ export default function QuizPage() {
   // Modal confirm exit
   const [showExitModal, setShowExitModal] = useState(false)
 
-  // Inisialisasi antrean setiap kali stage berganti
+  // Inisialisasi antrean soal setiap kali level atau stage berganti
   useEffect(() => {
-    const stage = LEVEL1_STAGES.find((s) => s.stageId === currentStageId) || LEVEL1_STAGES[0]
-    const initialQueue = [...stage.questions]
+    const stages = getLevelStages(levelId)
+    const stage = stages.find((s) => s.stageId === currentStageId) || stages[0]
+
+    // Cek apakah ada saved in-progress session untuk stage ini
+    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
+    const savedData = localStorage.getItem(savedProgressKey)
+    let initialQueue = [...stage.questions]
+
+    if (savedData) {
+      try {
+        const parsed = JSON.parse(savedData)
+        if (Array.isArray(parsed.remainingQuestionIds) && parsed.remainingQuestionIds.length > 0) {
+          const map = new Map(stage.questions.map((q) => [q.id, q]))
+          const restoredQueue = parsed.remainingQuestionIds.map((id) => map.get(id)).filter(Boolean)
+          if (restoredQueue.length > 0) {
+            initialQueue = restoredQueue
+            setCorrectIds(new Set(parsed.solvedQuestionIds || []))
+          }
+        }
+      } catch (e) {
+        console.warn('Gagal membaca sesi tersimpan:', e)
+      }
+    } else {
+      setCorrectIds(new Set())
+    }
+
     setQueue(initialQueue)
-    setTotalOriginal(initialQueue.length)
-    setCorrectIds(new Set())
+    setTotalOriginal(stage.questions.length)
     setWrongCount(0)
     setIsRetryingWrong(false)
     setSelectedIndex(null)
     setIsAnswerChecked(false)
     setIsCorrect(false)
     setIsQuizCompleted(false)
-    setCameraActive(false)
-    setIsDetecting(false)
-    setDetectedSuccess(false)
-  }, [currentStageId])
+    setVisionStatus('idle')
+    setVisionFeedback('Posisikan tanganmu di dalam bingkai kamera')
+    setHandHoldProgress(0)
+    holdCountRef.current = 0
+  }, [levelId, currentStageId, user?.id])
+
+  // Simpan state progress saat antrean berubah
+  useEffect(() => {
+    if (!currentStage || isQuizCompleted) return
+    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
+    if (queue.length > 0 && queue.length < totalOriginal) {
+      localStorage.setItem(
+        savedProgressKey,
+        JSON.stringify({
+          levelId,
+          stageId: currentStageId,
+          remainingQuestionIds: queue.map((q) => q.id),
+          solvedQuestionIds: Array.from(correctIds),
+          updatedAt: Date.now(),
+        })
+      )
+    } else if (isQuizCompleted || queue.length === 0) {
+      localStorage.removeItem(savedProgressKey)
+    }
+  }, [queue, correctIds, isQuizCompleted, currentStage, levelId, currentStageId, user?.id, totalOriginal])
 
   // Current question adalah item pertama di antrean
   const currentQuestion = queue.length > 0 ? queue[0] : null
 
-  // Progress Bar calculation: rasio jawaban benar unik terhadap total soal asli
-  const progressPercent = totalOriginal > 0 ? Math.min(100, Math.round((correctIds.size / totalOriginal) * 100)) : 0
+  // Progress Bar calculation
+  const progressPercent =
+    totalOriginal > 0 ? Math.min(100, Math.round((correctIds.size / totalOriginal) * 100)) : 0
 
-  // Aktifkan simulasi / stream kamera untuk tipe 'peragakan'
+  // -------------------------------------------------------------
+  // REAL-TIME WEBCAM & HAND GESTURE DETECTION LOOP
+  // -------------------------------------------------------------
   useEffect(() => {
     if (!currentQuestion) return
 
+    let stream = null
+    let active = true
+
     if (currentQuestion.type === 'peragakan') {
-      let stream = null
+      setVisionStatus('detecting')
+      setVisionFeedback('Membuka kamera & mendeteksi isyarat tangan...')
+      setHandHoldProgress(0)
+      holdCountRef.current = 0
+
       navigator.mediaDevices
-        ?.getUserMedia({ video: true })
+        ?.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } })
         .then((s) => {
+          if (!active) {
+            s.getTracks().forEach((t) => t.stop())
+            return
+          }
           stream = s
           if (videoRef.current) {
             videoRef.current.srcObject = s
+            videoRef.current.play().catch(() => {})
           }
           setCameraActive(true)
-        })
-        .catch(() => {
-          // Fallback tanpa izin webcam (tetap sediakan simulator AI sensor)
-          setCameraActive(false)
-        })
+          setCameraPermissionDenied(false)
 
-      return () => {
-        if (stream) {
-          stream.getTracks().forEach((track) => track.stop())
-        }
-      }
+          // Mulai loop analisis frame visual
+          startDetectionLoop()
+        })
+        .catch((err) => {
+          console.warn('Izin kamera ditolak atau tidak tersedia:', err)
+          setCameraActive(false)
+          setCameraPermissionDenied(true)
+          setVisionStatus('idle')
+          setVisionFeedback('Kamera tidak aktif. Klik "LOMPATI" untuk mengerjakan soal lain dulu.')
+        })
     } else {
       setCameraActive(false)
+      setVisionStatus('idle')
+      stopDetectionLoop()
+    }
+
+    return () => {
+      active = false
+      stopDetectionLoop()
+      if (stream) {
+        stream.getTracks().forEach((track) => track.stop())
+      }
     }
   }, [currentQuestion?.id])
 
-  // Handle pilih opsi jawaban
+  const stopDetectionLoop = () => {
+    if (detectionLoopRef.current) {
+      clearInterval(detectionLoopRef.current)
+      detectionLoopRef.current = null
+    }
+  }
+
+  const startDetectionLoop = () => {
+    stopDetectionLoop()
+    holdCountRef.current = 0
+
+    detectionLoopRef.current = setInterval(() => {
+      if (!videoRef.current || !hiddenCanvasRef.current || isAnswerChecked) return
+
+      const video = videoRef.current
+      const canvas = hiddenCanvasRef.current
+      if (video.readyState < 2) return
+
+      const analysis = analyzeHandGesture(video, canvas, currentQuestion?.targetLetter)
+
+      if (analysis.detected) {
+        // Tangan cocok! Tingkatkan hold count agar pengguna menahan posisi stabil selama ~1 detik
+        holdCountRef.current += 1
+        const pct = Math.min(100, Math.round((holdCountRef.current / 4) * 100))
+        setHandHoldProgress(pct)
+        setVisionStatus('detecting')
+        setVisionFeedback(`Bagus! Tahan posisimu... (${pct}%)`)
+
+        if (holdCountRef.current >= 4) {
+          // BERHASIL 100%! Berikan border hijau sukses dan kunci jawaban benar
+          stopDetectionLoop()
+          setVisionStatus('success')
+          setVisionFeedback('Luar biasa! Isyarat tangan terdeteksi benar!')
+          setIsCorrect(true)
+          setIsAnswerChecked(true)
+        }
+      } else {
+        // Jika tangan hilang atau salah pose
+        if (holdCountRef.current > 0) {
+          holdCountRef.current = Math.max(0, holdCountRef.current - 1)
+          setHandHoldProgress(Math.round((holdCountRef.current / 4) * 100))
+        }
+        if (analysis.handPresent) {
+          setVisionStatus('wrong')
+          setVisionFeedback(analysis.feedback || 'Gerakan belum tepat, sesuaikan posisi tanganmu')
+        } else {
+          setVisionStatus('detecting')
+          setVisionFeedback('Posisikan tanganmu ke depan kamera')
+        }
+      }
+    }, 280) // Cek setiap ~280ms untuk performa mulus 60fps
+  }
+
+  // Handle pilih opsi jawaban kartu
   const handleSelectOption = (idx) => {
     if (isAnswerChecked) return
     setSelectedIndex(idx)
   }
 
-  // Handle Periksa / CEK
+  // Handle Periksa / CEK untuk soal pilihan kartu & tebak huruf
   const handleCheckAnswer = () => {
     if (!currentQuestion || isAnswerChecked) return
-
-    if (currentQuestion.type === 'peragakan') {
-      // Pada tipe peragakan, simulasi AI hand gesture recognition
-      setIsDetecting(true)
-      setTimeout(() => {
-        setIsDetecting(false)
-        setDetectedSuccess(true)
-        setIsCorrect(true)
-        setIsAnswerChecked(true)
-      }, 750)
-      return
-    }
-
     if (selectedIndex === null) return
+
     const correct = selectedIndex === currentQuestion.correctIndex
     setIsCorrect(correct)
     setIsAnswerChecked(true)
   }
 
   // Handle LOMPATI (Skip)
+  // Aturan baru: Melompati soal TIDAK dianggap salah! Soal hanya dipindahkan ke akhir antrean
+  // Khusus untuk soal kamera (jika user belum siap open cam), soal kamera dipindah ke belakang
+  // sehingga soal pilihan/tebak didahulukan.
   const handleSkipQuestion = () => {
     if (!currentQuestion || isAnswerChecked) return
-    // Lompat diperlakukan seperti jawaban salah sehingga akan diulang di akhir
-    setIsCorrect(false)
-    setIsAnswerChecked(true)
+
+    const remainingQueue = queue.slice(1)
+    // Pindahkan soal yang dilewati ke antrean paling belakang tanpa menambah wrongCount
+    setQueue([...remainingQueue, currentQuestion])
+
+    // Reset interaction state
     setSelectedIndex(null)
+    setIsAnswerChecked(false)
+    setIsCorrect(false)
+    setVisionStatus('idle')
+    setHandHoldProgress(0)
+    holdCountRef.current = 0
   }
 
   // Handle Lanjutkan (Next button di bottom banner)
@@ -206,7 +337,7 @@ export default function QuizPage() {
 
       setQueue(remainingQueue)
     } else {
-      // JAWABAN SALAH / DI-LOMPATI:
+      // JAWABAN SALAH:
       // Masukkan soal ini kembali ke antrean paling akhir (Mistake Recovery)
       setWrongCount((prev) => prev + 1)
       setIsRetryingWrong(true)
@@ -217,8 +348,9 @@ export default function QuizPage() {
     setSelectedIndex(null)
     setIsAnswerChecked(false)
     setIsCorrect(false)
-    setDetectedSuccess(false)
-    setIsDetecting(false)
+    setVisionStatus('idle')
+    setHandHoldProgress(0)
+    holdCountRef.current = 0
   }
 
   // Simpan progres ke local storage / Supabase saat kuis selesai
@@ -228,8 +360,13 @@ export default function QuizPage() {
     // Trigger selebrasi confetti mewah
     triggerLuxuryConfetti()
 
-    const earnedXp = currentStage.xpReward || 15
-    const accuracy = totalOriginal > 0 ? Math.round((totalOriginal / (totalOriginal + wrongCount)) * 100) : 100
+    // Hapus sesi saved in-progress karena kuis sudah selesai tuntas
+    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
+    localStorage.removeItem(savedProgressKey)
+
+    const earnedXp = currentStage.xpReward || 20
+    const accuracy =
+      totalOriginal > 0 ? Math.round((totalOriginal / (totalOriginal + wrongCount)) * 100) : 100
 
     setResultStats({
       accuracy,
@@ -244,17 +381,20 @@ export default function QuizPage() {
         const currentProgress = await progressService.getProgress(user.id)
         const newXp = (currentProgress?.xp || 0) + earnedXp
 
-        // Simpan stage completion di localStorage
+        // Simpan stage completion
         const stageKey = `handoora_stage_done_${user.id}_L${levelId}_S${currentStageId}`
         localStorage.setItem(stageKey, 'true')
 
-        // Jika ini Tahap 3 (tahap terakhir Level 1), buka Level 2
+        // Jika ini Tahap 3 (tahap akhir level), buka level berikutnya di peta pulau
         let unlocked = currentProgress?.unlockedIslands || [1]
         let completed = currentProgress?.completedIslands || []
 
-        if (currentStageId === 3 && levelId === 1) {
-          if (!completed.includes(1)) completed = [...completed, 1]
-          if (!unlocked.includes(2)) unlocked = [...unlocked, 2]
+        if (currentStageId === 3) {
+          if (!completed.includes(levelId)) completed = [...completed, levelId]
+          const nextLevel = levelId + 1
+          if (nextLevel <= 6 && !unlocked.includes(nextLevel)) {
+            unlocked = [...unlocked, nextLevel]
+          }
         }
 
         const updatedProgress = {
@@ -279,13 +419,16 @@ export default function QuizPage() {
       setCurrentStageId(nextStage)
       navigate(`/quiz/${levelId}/${nextStage}`, { replace: true })
     } else {
-      // Selesai seluruh Level 1, kembali ke beranda dengan pulau baru terbuka
+      // Selesai seluruh tahapan level ini, kembali ke beranda dengan pulau baru terbuka
       navigate('/belajar')
     }
   }
 
   return (
     <div className="min-h-screen bg-[#FDFBF7] font-nunito flex flex-col justify-between select-none">
+      {/* Hidden offscreen canvas untuk analisis frame video */}
+      <canvas ref={hiddenCanvasRef} width={240} height={180} className="hidden" />
+
       {/* ========================================================= */}
       {/* 1. TOP HEADER (Progress, Stage, Close Button) */}
       {/* ========================================================= */}
@@ -310,17 +453,16 @@ export default function QuizPage() {
               transition={{ duration: 0.4, ease: 'easeOut' }}
               className="h-full bg-gradient-to-r from-[#FF6B6B] via-[#FF4754] to-[#E02424] rounded-full relative shadow-[0_0_8px_rgba(224,36,36,0.4)]"
             >
-              {/* Highlight kilap di bagian atas bar */}
               <div className="absolute inset-x-1 top-0.5 h-1 bg-white/40 rounded-full" />
             </motion.div>
           </div>
         </div>
 
-        {/* Badge Tahap & Streak */}
+        {/* Badge Level & Tahap */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs flex items-center gap-1.5 shadow-xs">
             <span>🔥</span>
-            <span>Tahap {currentStageId}/3</span>
+            <span>Level {levelId} • Tahap {currentStageId}/3</span>
           </div>
         </div>
       </header>
@@ -352,7 +494,6 @@ export default function QuizPage() {
                   className="w-full h-full object-contain drop-shadow-lg"
                 />
               </motion.div>
-              {/* Glow selebrasi */}
               <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-tr from-[#FFED4A]/20 via-[#FF4754]/15 to-transparent blur-2xl" />
             </div>
 
@@ -362,7 +503,7 @@ export default function QuizPage() {
             </h1>
             <p className="text-gray-500 font-bold text-sm sm:text-base mb-6">
               {currentStageId === 3
-                ? 'Luar biasa! Kamu telah menguasai seluruh alfabet BISINDO A–Z!'
+                ? `Luar biasa! Kamu telah menguasai seluruh materi pada Level ${levelId}!`
                 : `Hebat sekali! Kamu berhasil menuntaskan ${currentStage.stageTitle}.`}
             </p>
 
@@ -389,7 +530,7 @@ export default function QuizPage() {
               className="w-full py-4 text-base font-extrabold uppercase tracking-wider shadow-lg"
               onClick={handleProceedNextStage}
             >
-              {currentStageId < 3 ? `LANJUT KE TAHAP ${currentStageId + 1} ▶` : 'SELESAIKAN LEVEL 1 🏆'}
+              {currentStageId < 3 ? `LANJUT KE TAHAP ${currentStageId + 1} ▶` : `SELESAIKAN LEVEL ${levelId} 🏆`}
             </Button>
           </motion.div>
         ) : (
@@ -416,12 +557,20 @@ export default function QuizPage() {
               </h2>
 
               {/* ----------------------------------------------------- */}
-              {/* TIPE 1: 'peragakan' (Kamera Preview + Kartu Huruf Merah) */}
+              {/* TIPE 1: 'peragakan' (Kamera Preview Otomatis + AI Feedback) */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'peragakan' && (
                 <div className="w-full max-w-2xl grid grid-cols-1 md:grid-cols-2 gap-5 items-stretch">
-                  {/* Kartu Kiri: Kamera / Simulator Gesture AI */}
-                  <div className="relative aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden border-4 border-slate-700/60 shadow-lg flex flex-col items-center justify-center p-4">
+                  {/* Kartu Kiri: Kamera Live + Border Sinyal Hijau/Merah */}
+                  <div
+                    className={`relative aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-xl flex flex-col items-center justify-center p-4 transition-all duration-300 border-4 ${
+                      visionStatus === 'success'
+                        ? 'border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.5)] ring-4 ring-emerald-400/40'
+                        : visionStatus === 'wrong'
+                        ? 'border-rose-500 shadow-[0_0_20px_rgba(239,68,68,0.4)] ring-4 ring-rose-400/30'
+                        : 'border-slate-700/60'
+                    }`}
+                  >
                     {cameraActive ? (
                       <video
                         ref={videoRef}
@@ -435,51 +584,86 @@ export default function QuizPage() {
                         <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 text-2xl">
                           📷
                         </div>
-                        <p className="font-extrabold text-sm mb-1 text-white">Pratinjau Isyarat Kamera</p>
-                        <p className="text-xs text-slate-400">
-                          Arahkan tanganmu ke depan kamera sesuai contoh isyarat.
+                        <p className="font-extrabold text-sm mb-1 text-white">
+                          {cameraPermissionDenied ? 'Izin Kamera Belum Diberikan' : 'Membuka Kamera...'}
+                        </p>
+                        <p className="text-xs text-slate-400 max-w-xs">
+                          {cameraPermissionDenied
+                            ? 'Aktifkan izin kamera pada browser, atau klik "LOMPATI" di bawah untuk lanjut dulu.'
+                            : 'Arahkan tanganmu ke depan kamera sesuai isyarat.'}
                         </p>
                       </div>
                     )}
 
-                    {/* Corner Reticle Accents (Sesuai Desain Web - Quiz.png) */}
-                    <div className="absolute top-3 left-3 w-6 h-6 border-t-4 border-l-4 border-white/80 rounded-tl-lg pointer-events-none" />
-                    <div className="absolute top-3 right-3 w-6 h-6 border-t-4 border-r-4 border-white/80 rounded-tr-lg pointer-events-none" />
-                    <div className="absolute bottom-3 left-3 w-6 h-4 border-b-4 border-l-4 border-white/80 rounded-bl-lg pointer-events-none" />
-                    <div className="absolute bottom-3 right-3 w-6 h-4 border-b-4 border-r-4 border-white/80 rounded-br-lg pointer-events-none" />
+                    {/* Sudut Retikel Kamera (Sesuai Desain Web - Quiz.png) */}
+                    <div
+                      className={`absolute top-3 left-3 w-6 h-6 border-t-4 border-l-4 rounded-tl-lg pointer-events-none transition-colors ${
+                        visionStatus === 'success' ? 'border-emerald-400' : 'border-white/80'
+                      }`}
+                    />
+                    <div
+                      className={`absolute top-3 right-3 w-6 h-6 border-t-4 border-r-4 rounded-tr-lg pointer-events-none transition-colors ${
+                        visionStatus === 'success' ? 'border-emerald-400' : 'border-white/80'
+                      }`}
+                    />
+                    <div
+                      className={`absolute bottom-3 left-3 w-6 h-4 border-b-4 border-l-4 rounded-bl-lg pointer-events-none transition-colors ${
+                        visionStatus === 'success' ? 'border-emerald-400' : 'border-white/80'
+                      }`}
+                    />
+                    <div
+                      className={`absolute bottom-3 right-3 w-6 h-4 border-b-4 border-r-4 rounded-br-lg pointer-events-none transition-colors ${
+                        visionStatus === 'success' ? 'border-emerald-400' : 'border-white/80'
+                      }`}
+                    />
 
-                    {/* Sensor Scanning Overlay saat Mendeteksi */}
-                    {isDetecting && (
-                      <motion.div
-                        animate={{ y: [-60, 60, -60] }}
-                        transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
-                        className="absolute inset-x-4 h-1 bg-gradient-to-r from-transparent via-[#FF4754] to-transparent shadow-[0_0_12px_#FF4754]"
-                      />
+                    {/* Hold Progress Bar di bagian atas frame kamera */}
+                    {handHoldProgress > 0 && visionStatus !== 'success' && (
+                      <div className="absolute top-3 inset-x-12 h-2 bg-black/40 rounded-full overflow-hidden p-0.5">
+                        <motion.div
+                          animate={{ width: `${handHoldProgress}%` }}
+                          className="h-full bg-emerald-400 rounded-full"
+                        />
+                      </div>
                     )}
 
-                    {/* Badge Deteksi Real-Time */}
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-black/70 backdrop-blur-md text-white text-[11px] font-bold border border-white/20 flex items-center gap-1.5 shadow-md">
-                      <span className={`w-2 h-2 rounded-full ${detectedSuccess ? 'bg-emerald-400' : 'bg-red-500 animate-pulse'}`} />
-                      <span>{detectedSuccess ? 'Isyarat Terdeteksi Sempurna!' : isDetecting ? 'Memindai Tangan...' : 'Siap Mengenali Gerakan'}</span>
+                    {/* Badge Sinyal Deteksi Real-Time di Bawah Kamera */}
+                    <div
+                      className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full text-white text-xs font-bold border flex items-center gap-2 shadow-lg backdrop-blur-md max-w-[90%] text-center transition-all ${
+                        visionStatus === 'success'
+                          ? 'bg-emerald-600/90 border-emerald-300'
+                          : visionStatus === 'wrong'
+                          ? 'bg-rose-600/90 border-rose-300'
+                          : 'bg-black/75 border-white/20'
+                      }`}
+                    >
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full shrink-0 ${
+                          visionStatus === 'success'
+                            ? 'bg-emerald-300 ring-2 ring-emerald-100'
+                            : visionStatus === 'wrong'
+                            ? 'bg-rose-300 animate-pulse'
+                            : 'bg-amber-400 animate-ping'
+                        }`}
+                      />
+                      <span className="truncate">{visionFeedback}</span>
                     </div>
                   </div>
 
-                  {/* Kartu Kanan: Kartu Stack Merah & Contoh Isyarat BISINDO */}
+                  {/* Kartu Kanan: Target Isyarat & Gambar Referensi HD */}
                   <div className="relative aspect-4/3 sm:aspect-square flex items-center justify-center p-2">
-                    {/* Shadow Stack Card Merah di Belakang */}
                     <div className="absolute inset-4 bg-[#B91C1C] rounded-3xl transform rotate-3 shadow-md" />
                     <div className="absolute inset-4 bg-[#DC2626] rounded-3xl transform -rotate-2 shadow-md" />
 
-                    {/* Kartu Depan Merah Utama */}
                     <div className="relative w-full h-full bg-gradient-to-br from-[#FF4754] via-[#E02424] to-[#B91C1C] rounded-3xl p-6 text-white shadow-xl flex flex-col justify-between border-2 border-white/20">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-black tracking-widest uppercase bg-white/20 px-2.5 py-1 rounded-full">
                           BISINDO
                         </span>
-                        <span className="text-3xl font-black">{currentQuestion.targetLetter}</span>
+                        <span className="text-2xl sm:text-3xl font-black">{currentQuestion.targetLetter}</span>
                       </div>
 
-                      {/* Gambar Isyarat Asli BISINDO */}
+                      {/* Gambar Isyarat HD Utuh */}
                       <div className="w-full flex-1 flex items-center justify-center my-2">
                         <div className="w-36 h-36 sm:w-44 sm:h-44 bg-white/95 rounded-2xl p-3 shadow-inner flex items-center justify-center">
                           <img
@@ -518,7 +702,6 @@ export default function QuizPage() {
                             : 'bg-white hover:bg-rose-50/40 border-gray-200 text-gray-800'
                         }`}
                       >
-                        {/* Header kartu huruf */}
                         <div className="w-full flex justify-between items-center">
                           <span
                             className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
@@ -529,7 +712,6 @@ export default function QuizPage() {
                           </span>
                         </div>
 
-                        {/* Gambar isyarat tangan BISINDO */}
                         <div
                           className={`w-full flex-1 mx-auto my-2 rounded-2xl flex items-center justify-center p-2 ${
                             isSelected ? 'bg-white/95' : 'bg-gray-50'
@@ -542,9 +724,8 @@ export default function QuizPage() {
                           />
                         </div>
 
-                        {/* Indikator terpilih */}
                         <div className="text-[11px] font-extrabold uppercase tracking-wider">
-                          {isSelected ? 'Terpilih' : 'Pilih'}
+                          {isSelected ? 'Terpilih' : opt.letter || 'Pilih'}
                         </div>
                       </motion.button>
                     )
@@ -553,11 +734,10 @@ export default function QuizPage() {
               )}
 
               {/* ----------------------------------------------------- */}
-              {/* TIPE 3: 'tebak_huruf' (Gambar Isyarat + Pilihan Tombol Huruf) */}
+              {/* TIPE 3: 'tebak_huruf' / Pilihan Kata */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'tebak_huruf' && (
                 <div className="w-full max-w-xl flex flex-col items-center">
-                  {/* Display Isyarat Tangan Utama */}
                   <div className="w-48 h-48 sm:w-56 sm:h-56 bg-white rounded-3xl border-3 border-gray-200 shadow-lg p-4 flex items-center justify-center mb-6 relative">
                     <img
                       src={currentQuestion.signImg}
@@ -569,24 +749,23 @@ export default function QuizPage() {
                     </div>
                   </div>
 
-                  {/* 4 Pilihan Tombol Huruf */}
-                  <div className="w-full grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {currentQuestion.options.map((letter, idx) => {
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {currentQuestion.options.map((optionText, idx) => {
                       const isSelected = selectedIndex === idx
                       return (
                         <motion.button
                           key={idx}
-                          whileHover={!isAnswerChecked ? { scale: 1.03 } : {}}
-                          whileTap={!isAnswerChecked ? { scale: 0.95 } : {}}
+                          whileHover={!isAnswerChecked ? { scale: 1.02 } : {}}
+                          whileTap={!isAnswerChecked ? { scale: 0.96 } : {}}
                           onClick={() => handleSelectOption(idx)}
                           disabled={isAnswerChecked}
-                          className={`py-4 rounded-2xl font-black text-2xl sm:text-3xl border-b-4 transition cursor-pointer shadow-md ${
+                          className={`py-3.5 px-4 rounded-2xl font-extrabold text-base sm:text-lg border-b-4 transition cursor-pointer shadow-md text-center ${
                             isSelected
                               ? 'bg-[#E02424] text-white border-[#991B1B] shadow-lg'
                               : 'bg-white text-gray-700 border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                           }`}
                         >
-                          {letter}
+                          {optionText}
                         </motion.button>
                       )
                     })}
@@ -599,7 +778,7 @@ export default function QuizPage() {
       </main>
 
       {/* ========================================================= */}
-      {/* 3. BOTTOM FOOTER BAR (DUOLINGO STYLE DRAWER / BUTTONS) */}
+      {/* 3. BOTTOM FOOTER BAR */}
       {/* ========================================================= */}
       {!isQuizCompleted && (
         <footer
@@ -612,7 +791,6 @@ export default function QuizPage() {
           }`}
         >
           <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            {/* Status Pesan Banner saat Jawaban Telah Diperiksa */}
             <div className="flex-1 w-full flex items-center gap-3">
               {isAnswerChecked ? (
                 isCorrect ? (
@@ -627,7 +805,9 @@ export default function QuizPage() {
                     <div>
                       <h4 className="text-xl font-black text-[#58A700]">Luar biasa!</h4>
                       <p className="text-xs font-bold text-[#458500]">
-                        Jawabanmu tepat sekali! Pertahankan fokusmu.
+                        {currentQuestion?.type === 'peragakan'
+                          ? 'Gerakan tanganmu terdeteksi sempurna oleh kamera!'
+                          : 'Jawabanmu tepat sekali! Pertahankan fokusmu.'}
                       </p>
                     </div>
                   </motion.div>
@@ -643,17 +823,14 @@ export default function QuizPage() {
                     <div>
                       <h4 className="text-xl font-black text-[#EA2B2B]">Kurang tepat</h4>
                       <p className="text-xs font-bold text-[#BA1616]">
-                        {currentQuestion?.type === 'pilih_isyarat'
-                          ? `Jawaban yang benar adalah Opsi ke-${currentQuestion.correctIndex + 1}. Soal ini akan diulang di akhir kuis.`
-                          : currentQuestion?.type === 'tebak_huruf'
-                          ? `Jawaban yang benar adalah huruf "${currentQuestion.options[currentQuestion.correctIndex]}". Soal ini akan diulang di akhir kuis.`
-                          : 'Jangan berkecil hati, soal ini akan diulang di akhir kuis.'}
+                        {currentQuestion?.explanation ||
+                          'Jangan berkecil hati, soal ini akan diulang di akhir kuis.'}
                       </p>
                     </div>
                   </motion.div>
                 )
               ) : (
-                /* Tombol LOMPATI di sisi kiri saat belum diperiksa */
+                /* Tombol LOMPATI di sisi kiri */
                 <button
                   onClick={handleSkipQuestion}
                   className="px-5 py-2.5 rounded-2xl border-2 border-gray-300 hover:bg-gray-100 text-gray-500 font-extrabold text-sm uppercase tracking-wider transition cursor-pointer"
@@ -663,7 +840,7 @@ export default function QuizPage() {
               )}
             </div>
 
-            {/* Tombol Aksi Utama (PERIKSA / LANJUTKAN) */}
+            {/* Tombol Aksi Utama: Untuk peragakan otomatis deteksi, saat benar muncul LANJUTKAN */}
             <div className="w-full sm:w-auto shrink-0">
               {isAnswerChecked ? (
                 <motion.button
@@ -678,23 +855,26 @@ export default function QuizPage() {
                 >
                   LANJUTKAN
                 </motion.button>
+              ) : currentQuestion?.type === 'peragakan' ? (
+                /* Pada tipe peragakan, kamera mendeteksi otomatis tanpa tombol CEK manual */
+                <div className="px-5 py-3 rounded-2xl bg-amber-100 border border-amber-300 text-amber-800 font-black text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
+                  <span>MENDETEKSI KAMERA...</span>
+                </div>
               ) : (
+                /* Soal pilihan kartu / tebak huruf: pakai tombol CEK */
                 <motion.button
-                  whileHover={
-                    selectedIndex !== null || currentQuestion?.type === 'peragakan' ? { scale: 1.03 } : {}
-                  }
-                  whileTap={
-                    selectedIndex !== null || currentQuestion?.type === 'peragakan' ? { scale: 0.96 } : {}
-                  }
+                  whileHover={selectedIndex !== null ? { scale: 1.03 } : {}}
+                  whileTap={selectedIndex !== null ? { scale: 0.96 } : {}}
                   onClick={handleCheckAnswer}
-                  disabled={selectedIndex === null && currentQuestion?.type !== 'peragakan'}
+                  disabled={selectedIndex === null}
                   className={`w-full sm:w-44 py-3.5 px-6 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-md transition border-b-4 ${
-                    selectedIndex !== null || currentQuestion?.type === 'peragakan'
+                    selectedIndex !== null
                       ? 'bg-gradient-to-b from-[#FF4754] to-[#E02424] border-[#991B1B] hover:brightness-105 cursor-pointer'
                       : 'bg-gray-300 border-gray-400 text-gray-100 cursor-not-allowed opacity-70'
                   }`}
                 >
-                  {isDetecting ? 'MEMINDAI...' : 'CEK'}
+                  CEK
                 </motion.button>
               )}
             </div>
@@ -717,9 +897,9 @@ export default function QuizPage() {
               <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-3xl mx-auto mb-4 border border-rose-200">
                 ✋
               </div>
-              <h3 className="text-xl font-black text-gray-900 mb-2">Ingin berhenti sekarang?</h3>
+              <h3 className="text-xl font-black text-gray-900 mb-2">Ingin istirahat dulu?</h3>
               <p className="text-sm text-gray-500 font-bold mb-6">
-                Progres kuis pada sesi ini tidak akan tersimpan jika kamu keluar di tengah jalan.
+                Progres soalanmu tersimpan otomatis. Kamu bisa melanjutkannya kapan saja!
               </p>
               <div className="flex flex-col gap-2.5">
                 <Button
@@ -734,7 +914,7 @@ export default function QuizPage() {
                   onClick={() => navigate('/belajar')}
                   className="w-full py-2.5 rounded-2xl text-gray-400 hover:text-gray-700 font-extrabold text-sm transition"
                 >
-                  KELUAR DARI KUIS
+                  SIMPAN & KELUAR
                 </button>
               </div>
             </motion.div>
