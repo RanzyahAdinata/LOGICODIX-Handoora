@@ -317,12 +317,43 @@ export const authService = {
   },
 }
 
+const DEFAULT_PROGRESS = {
+  xp: 120,
+  streak: 10,
+  gems: 500,
+  hearts: 5,
+  completedIslands: [1],
+  unlockedIslands: [1, 2],
+  dailyQuests: {
+    xpEarned: 20,
+    xpEarnedToday: 25,
+    highScoreLessons: 1,
+  },
+}
+
 // ============================================================
 // Layanan Penyimpanan Progres Level Pulau ke Database Supabase
 // ============================================================
 export const progressService = {
+  getProgress() {
+    return { ...DEFAULT_PROGRESS }
+  },
+
+  resetProgress() {
+    return {
+      ...DEFAULT_PROGRESS,
+      xp: 0,
+      completedIslands: [],
+      unlockedIslands: [1],
+    }
+  },
+
+  async syncFromSupabase(userId) {
+    return this.fetchProgressFromSupabase(userId)
+  },
+
   async fetchProgressFromSupabase(userId) {
-    if (!supabase || !userId) return null
+    if (!supabase || !userId) return { ...DEFAULT_PROGRESS }
 
     const { data, error } = await supabase
       .from('profiles')
@@ -333,13 +364,14 @@ export const progressService = {
     if (!error && data) {
       return {
         xp: data.xp ?? 120,
-        streak: data.streak ?? 1,
+        streak: data.streak ?? 10,
         gems: data.gems ?? 500,
         hearts: data.hearts ?? 5,
         completedIslands: Array.isArray(data.completed_lessons) ? data.completed_lessons : [1],
         unlockedIslands: Array.isArray(data.unlocked_islands) ? data.unlocked_islands : [1, 2],
         dailyQuests: {
           xpEarned: Math.min(20, data.xp ?? 20),
+          xpEarnedToday: Math.min(50, data.xp ?? 25),
           highScoreLessons: 1,
         },
       }
@@ -350,13 +382,14 @@ export const progressService = {
     const meta = userData?.user?.user_metadata || {}
     return {
       xp: meta.xp ?? 120,
-      streak: meta.streak ?? 1,
+      streak: meta.streak ?? 10,
       gems: meta.gems ?? 500,
       hearts: meta.hearts ?? 5,
-      completedIslands: meta.completed_lessons || [1],
-      unlockedIslands: meta.unlocked_islands || [1, 2],
+      completedIslands: Array.isArray(meta.completed_lessons) ? meta.completed_lessons : [1],
+      unlockedIslands: Array.isArray(meta.unlocked_islands) ? meta.unlocked_islands : [1, 2],
       dailyQuests: {
         xpEarned: 20,
+        xpEarnedToday: 25,
         highScoreLessons: 1,
       },
     }
