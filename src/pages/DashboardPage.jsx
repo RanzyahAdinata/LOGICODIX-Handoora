@@ -2436,10 +2436,10 @@ const DashboardPage = () => {
                     const opacityVal = Math.max(0.78, 1 - blurVal * 0.05)
                     const isComingSoon = unit.id >= 3
 
-                    // Filter blur tepi scroll + filter grayscale jika pulau masih tahap konstruksi (coming soon)
+                    // Filter blur tepi scroll + filter abu-abu cerah/soft jika pulau masih tahap konstruksi (coming soon)
                     const filterParts = []
                     if (isComingSoon) {
-                      filterParts.push('grayscale(100%) contrast(92%) brightness(96%)')
+                      filterParts.push('grayscale(100%) brightness(118%) contrast(88%)')
                     }
                     if (blurVal > 0.12) {
                       filterParts.push(`blur(${blurVal}px)`)
