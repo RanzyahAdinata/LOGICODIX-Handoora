@@ -533,6 +533,172 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 // SCENERY FULL-SCREEN DUA MODE (LANGIT CERAH & LANGIT SENJA)
 // ============================================================
 // ============================================================
+// ELEMEN DEKORASI KONSTRUKSI ANIMATIF ISOMETRIK PADA PULAU COMING SOON
+// Menyatu alami dengan grafis pulau (scaffolding kayu bambu, crane/katrol
+// mini berputar pelan, kerucut pembatas, & debu/bintang pengerjaan)
+// ============================================================
+const ConstructionSceneryOnIsland = ({ unitId, isBright }) => {
+  // Posisi proporsional sesuai bentuk kontur masing-masing pulau
+  const configs = {
+    3: { cranePos: { left: '72%', top: '24%' }, conePos: { left: '38%', top: '72%' }, scaffoldPos: { left: '20%', top: '35%' } },
+    4: { cranePos: { left: '26%', top: '22%' }, conePos: { left: '62%', top: '68%' }, scaffoldPos: { left: '68%', top: '28%' } },
+    5: { cranePos: { left: '74%', top: '20%' }, conePos: { left: '28%', top: '66%' }, scaffoldPos: { left: '22%', top: '32%' } },
+    6: { cranePos: { left: '32%', top: '18%' }, conePos: { left: '68%', top: '64%' }, scaffoldPos: { left: '66%', top: '26%' } },
+  }
+
+  const cfg = configs[unitId] || configs[3]
+
+  return (
+    <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
+      {/* 1. Mini Tower Crane / Katrol Kayu Animatif dengan Tali Pengangkut Berayun */}
+      <div
+        style={{ left: cfg.cranePos.left, top: cfg.cranePos.top }}
+        className="absolute -translate-x-1/2 -translate-y-full w-12 sm:w-16 h-14 sm:h-20"
+      >
+        <svg viewBox="0 0 80 100" className="w-full h-full overflow-visible drop-shadow-[0_4px_8px_rgba(0,0,0,0.18)]">
+          {/* Bayangan Dasar di Tanah */}
+          <ellipse cx="40" cy="96" rx="14" ry="4" fill="#000000" fillOpacity="0.2" />
+
+          {/* Tiang Vertikal Truss Menara Crane */}
+          <line x1="36" y1="94" x2="36" y2="28" stroke="#D97706" strokeWidth="2.4" strokeLinecap="round" />
+          <line x1="44" y1="94" x2="44" y2="28" stroke="#F59E0B" strokeWidth="2.4" strokeLinecap="round" />
+          {/* Silang Penguat (Truss Lattice) */}
+          <line x1="36" y1="82" x2="44" y2="72" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="36" y1="72" x2="44" y2="82" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="36" y1="62" x2="44" y2="52" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="36" y1="52" x2="44" y2="62" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="36" y1="42" x2="44" y2="32" stroke="#B45309" strokeWidth="1.5" />
+          <line x1="36" y1="32" x2="44" y2="42" stroke="#B45309" strokeWidth="1.5" />
+
+          {/* Lengan Horizontal Crane (Jib) yang Menoleh Halus */}
+          <motion.g
+            animate={{ rotate: [-6, 12, -6] }}
+            transition={{ duration: 7.5, repeat: Infinity, ease: 'easeInOut' }}
+            style={{ originX: '40px', originY: '26px' }}
+          >
+            {/* Lengan Utama */}
+            <polygon points="12,25 74,25 70,28 14,28" fill="#F59E0B" stroke="#B45309" strokeWidth="1.2" />
+            <line x1="40" y1="12" x2="70" y2="25" stroke="#D97706" strokeWidth="1.4" />
+            <line x1="40" y1="12" x2="16" y2="25" stroke="#D97706" strokeWidth="1.4" />
+            {/* Tiang Puncak & Beban Penyeimbang */}
+            <polygon points="38,25 42,25 40,11" fill="#D97706" />
+            <rect x="14" y="21" width="8" height="7" rx="1.5" fill="#78350F" />
+
+            {/* Kabel Katrol & Beban Kayu yang Naik Turun Berayun Halus */}
+            <motion.g
+              animate={{ y: [0, 8, 2, 8, 0] }}
+              transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              <line x1="62" y1="26" x2="62" y2="50" stroke="#475569" strokeWidth="1.2" strokeDasharray="3 2" />
+              {/* Balok Material Terangkat */}
+              <rect x="56" y="50" width="12" height="7" rx="1" fill="#EA580C" stroke="#C2410C" strokeWidth="1" />
+              <line x1="56" y1="53.5" x2="68" y2="53.5" stroke="#FED7AA" strokeWidth="1" />
+            </motion.g>
+          </motion.g>
+        </svg>
+      </div>
+
+      {/* 2. Kerangka Scaffolding Bambu / Kayu dengan Terpal Pelindung */}
+      <div
+        style={{ left: cfg.scaffoldPos.left, top: cfg.scaffoldPos.top }}
+        className="absolute -translate-x-1/2 -translate-y-1/2 w-11 sm:w-14 h-11 sm:h-14"
+      >
+        <svg viewBox="0 0 60 60" className="w-full h-full overflow-visible drop-shadow-xs">
+          {/* Bayangan */}
+          <ellipse cx="30" cy="54" rx="18" ry="4" fill="#000000" fillOpacity="0.18" />
+          {/* Tiang Scaffolding */}
+          <rect x="14" y="16" width="3.5" height="38" rx="1" fill="#B45309" />
+          <rect x="42" y="16" width="3.5" height="38" rx="1" fill="#B45309" />
+          <line x1="14" y1="26" x2="45" y2="26" stroke="#D97706" strokeWidth="2.5" />
+          <line x1="14" y1="40" x2="45" y2="40" stroke="#D97706" strokeWidth="2.5" />
+          <line x1="16" y1="26" x2="43" y2="40" stroke="#92400E" strokeWidth="1.5" />
+          <line x1="16" y1="40" x2="43" y2="26" stroke="#92400E" strokeWidth="1.5" />
+
+          {/* Terpal Strip Kuning-Garis Konstruksi */}
+          <motion.path
+            d="M 17 26 Q 30 29 43 26 L 43 38 Q 30 41 17 38 Z"
+            fill="#FEF08A"
+            stroke="#EAB308"
+            strokeWidth="1.2"
+            animate={{ scaleY: [1, 1.05, 0.98, 1] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
+          />
+          <line x1="23" y1="27" x2="23" y2="38" stroke="#CA8A04" strokeWidth="1.2" />
+          <line x1="30" y1="28" x2="30" y2="39" stroke="#CA8A04" strokeWidth="1.2" />
+          <line x1="37" y1="27" x2="37" y2="38" stroke="#CA8A04" strokeWidth="1.2" />
+        </svg>
+      </div>
+
+      {/* 3. Kerucut Pembatas Proyek Konstruksi (Safety Traffic Cones) Isometrik */}
+      <div
+        style={{ left: cfg.conePos.left, top: cfg.conePos.top }}
+        className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1.5"
+      >
+        <motion.div
+          animate={{ y: [0, -2, 0] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-5 h-6 sm:w-6 sm:h-7"
+        >
+          <svg viewBox="0 0 32 38" className="w-full h-full drop-shadow-xs">
+            {/* Dasar Kerucut Oranye */}
+            <ellipse cx="16" cy="33" rx="13" ry="4" fill="#000000" fillOpacity="0.22" />
+            <polygon points="16,4 7,32 25,32" fill="#EA580C" stroke="#C2410C" strokeWidth="1" />
+            {/* Garis Reflektif Putih */}
+            <polygon points="16,14 11,23 21,23" fill="#FFFFFF" opacity="0.95" />
+            <polygon points="16,4 14,9 18,9" fill="#EA580C" />
+          </svg>
+        </motion.div>
+
+        {/* Papan Palang Garis Konstruksi Oranye-Kuning */}
+        <motion.div
+          animate={{ rotate: [-1.5, 1.5, -1.5] }}
+          transition={{ duration: 4.2, repeat: Infinity, ease: 'easeInOut' }}
+          className="w-8 sm:w-10 h-5 sm:h-6"
+        >
+          <svg viewBox="0 0 44 26" className="w-full h-full drop-shadow-xs">
+            <line x1="8" y1="24" x2="8" y2="4" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+            <line x1="36" y1="24" x2="36" y2="4" stroke="#475569" strokeWidth="2" strokeLinecap="round" />
+            {/* Barricade Board dengan strip diagonal */}
+            <rect x="4" y="6" width="36" height="10" rx="1.5" fill="#F59E0B" stroke="#B45309" strokeWidth="1" />
+            <line x1="10" y1="6" x2="16" y2="16" stroke="#FFFFFF" strokeWidth="2.2" />
+            <line x1="20" y1="6" x2="26" y2="16" stroke="#FFFFFF" strokeWidth="2.2" />
+            <line x1="30" y1="6" x2="36" y2="16" stroke="#FFFFFF" strokeWidth="2.2" />
+          </svg>
+        </motion.div>
+      </div>
+
+      {/* 4. Efek Percikan Konstruksi / Sparkle Halus (Pengerjaan Proyek Ramah Lingkungan) */}
+      {[
+        { x: '45%', y: '30%', delay: 0 },
+        { x: '70%', y: '42%', delay: 1.4 },
+        { x: '30%', y: '48%', delay: 2.8 },
+      ].map((sp, i) => (
+        <motion.div
+          key={`spark-${i}`}
+          style={{ left: sp.x, top: sp.y }}
+          animate={{
+            scale: [0, 1.2, 0],
+            opacity: [0, 0.85, 0],
+            rotate: [0, 90],
+          }}
+          transition={{
+            duration: 2.4,
+            repeat: Infinity,
+            delay: sp.delay,
+            ease: 'easeInOut',
+          }}
+          className="absolute w-2 h-2 text-amber-400 pointer-events-none"
+        >
+          <svg viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0L9.5 6.5L16 8L9.5 9.5L8 16L6.5 9.5L0 8L6.5 6.5Z" />
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+// ============================================================
 // KOMPONEN 1–2 AWAN TIPIS HALUS PADA PULAU COMING SOON (LEVEL 3-6)
 // Hanya 1 atau 2 awan tipis melayang lembut di atas pulau, sehingga
 // pulau tetap terlihat jelas dengan atmosfer estetis.
@@ -2194,7 +2360,7 @@ const DashboardPage = () => {
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
-                        {/* KETERANGAN COMING SOON ELEGAN & TIDAK MENGGANGGU PEMANDANGAN (LEVEL 3 - 6) */}
+                        {/* ANIMASI PULAU SEDANG TAHAP KONSTRUKSI (LEVEL 3 - 6) */}
                         {unit.id >= 3 && (
                           <div
                             style={{
@@ -2203,22 +2369,10 @@ const DashboardPage = () => {
                               width: `${box.width}%`,
                               height: `${box.height}%`,
                             }}
-                            className="absolute pointer-events-none z-15 overflow-visible flex items-center justify-center"
+                            className="absolute pointer-events-none z-15 overflow-visible"
                           >
                             <ComingSoonFloatingClouds skyMode={skyMode} />
-
-                            {/* Badge Pill Coming Soon Minimalis & Bersih di Tepi Bawah Pulau */}
-                            <motion.div
-                              initial={{ opacity: 0, y: 4 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.6 }}
-                              className="absolute bottom-2 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md border border-amber-200/80 shadow-[0_4px_14px_rgba(0,0,0,0.08)] flex items-center gap-1.5"
-                            >
-                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                              <span className="text-[10px] font-black uppercase tracking-wider text-amber-900/90 whitespace-nowrap">
-                                Segera Hadir
-                              </span>
-                            </motion.div>
+                            <ConstructionSceneryOnIsland unitId={unit.id} isBright={skyMode === 'bright'} />
                           </div>
                         )}
                       </div>
@@ -2328,7 +2482,7 @@ const DashboardPage = () => {
                                 {unit.id >= 3 ? (
                                   <div className="w-full py-2.5 px-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-2xs">
                                     <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                    <span>Segera Hadir</span>
+                                    <span>Sedang Tahap Konstruksi</span>
                                   </div>
                                 ) : isUnlocked ? (
                                   <motion.button
