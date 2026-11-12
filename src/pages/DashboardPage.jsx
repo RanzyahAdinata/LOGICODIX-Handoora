@@ -103,14 +103,16 @@ const ISLAND_UNITS = [
     dayMascotPos: { x: 62.5, y: 64.8 },
     sunsetMascotPos: { x: 62.2, y: 65.6 },
     dayLayerBox: {
-      src: '/assets/island-day-2.png',
+      src: '/assets/island-day-2-main.png',
+      pathSrc: '/assets/path-day-2-to-3.png',
       left: 46.49,
       top: 57.08,
       width: 48.19,
       height: 21.54,
     },
     sunsetLayerBox: {
-      src: '/assets/island-autumn-2.png',
+      src: '/assets/island-autumn-2-main.png',
+      pathSrc: '/assets/path-autumn-2-to-3.png',
       left: 44.36,
       top: 56.62,
       width: 50.53,
@@ -2467,6 +2469,23 @@ const DashboardPage = () => {
                           className="absolute object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.18)] transition-[filter] duration-500"
                           draggable={false}
                         />
+
+                        {/* JIKA MEMILIKI LAYER BATU LONCATAN JALUR MENUJU LEVEL 3 (DI-ABUKAN KARENA LEVEL 3 MASIH COMING SOON) */}
+                        {box.pathSrc && (
+                          <img
+                            src={box.pathSrc}
+                            alt="Jalur Batu ke Level 3"
+                            style={{
+                              left: `${box.left}%`,
+                              top: `${box.top}%`,
+                              width: `${box.width}%`,
+                              height: `${box.height}%`,
+                              filter: 'grayscale(100%) brightness(118%) contrast(88%)',
+                            }}
+                            className="absolute object-contain drop-shadow-[0_14px_24px_rgba(0,0,0,0.18)] transition-[filter] duration-500 z-5"
+                            draggable={false}
+                          />
+                        )}
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
                         {/* ANIMASI PULAU SEDANG TAHAP KONSTRUKSI (LEVEL 3 - 6) */}
