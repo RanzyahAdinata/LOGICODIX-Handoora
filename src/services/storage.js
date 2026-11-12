@@ -300,6 +300,23 @@ export const authService = {
     )
   },
 
+  // 4.1. UPDATE PASSWORD PENGGUNA
+  async updatePassword(newPassword) {
+    if (!newPassword || newPassword.length < 6) {
+      throw new Error('Password baru minimal 6 karakter.')
+    }
+    if (supabase && isSupabaseConfigured) {
+      const { data, error } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+      if (error) {
+        throw new Error(error.message || 'Gagal mengubah password.')
+      }
+      return data
+    }
+    return true
+  },
+
   // 5. LOGOUT
   async logout() {
     if (supabase) {

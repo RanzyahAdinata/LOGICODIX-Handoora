@@ -1,0 +1,127 @@
+// ============================================================
+// DATA KAMUS LENGKAP BAHASA ISYARAT BISINDO HANDOORA
+// Dikelompokkan berdasarkan 6 Modul / Level Pembelajaran:
+// Modul 1: Abjad A - Z (Lengkap 26 Huruf HD)
+// Modul 2: Salam & Sapaan Hangat
+// Modul 3: Angka & Anggota Keluarga
+// Modul 4: Ekspresi & Perasaan Emosi
+// Modul 5: Ruang Kelas, Sekolah & Alat Tulis
+// Modul 6: Budaya Tuli, ILY (I Love You) & Komunitas
+// ============================================================
+
+export const DICTIONARY_MODULES = [
+  {
+    id: 1,
+    title: 'Modul 1: Abjad Jari A–Z',
+    subtitle: 'Fondasi 26 ejaan abjad jari BISINDO dengan gambar beresolusi tinggi',
+    icon: '🔤',
+    badge: 'Level 1',
+    entries: [
+      { letter: 'A', word: 'Huruf A', signImg: '/assets/signs/A.png', desc: 'Dua tangan bertemu membentuk segitiga rapat seperti huruf A di depan dada.', category: 'Abjad' },
+      { letter: 'B', word: 'Huruf B', signImg: '/assets/signs/B.png', desc: 'Telapak tangan terbuka tegak menghadap lawan bicara dengan empat jari lurus rapat.', category: 'Abjad' },
+      { letter: 'C', word: 'Huruf C', signImg: '/assets/signs/C.png', desc: 'Telapak dan jari-jemari melengkung menyerupai setengah lingkaran huruf C.', category: 'Abjad' },
+      { letter: 'D', word: 'Huruf D', signImg: '/assets/signs/D.png', desc: 'Jari telunjuk tegak ke atas, sementara ibu jari menyentuh ujung jari tengah melingkar.', category: 'Abjad' },
+      { letter: 'E', word: 'Huruf E', signImg: '/assets/signs/E.png', desc: 'Keempat jari melengkung ke bawah rapat menyentuh jempol di depan telapak.', category: 'Abjad' },
+      { letter: 'F', word: 'Huruf F', signImg: '/assets/signs/F.png', desc: 'Ujung telunjuk dan jempol bersentuhan membentuk lingkaran kecil, 3 jari lain tegak.', category: 'Abjad' },
+      { letter: 'G', word: 'Huruf G', signImg: '/assets/signs/G.png', desc: 'Telunjuk dan jempol diposisikan sejajar mendatar mengarah ke samping.', category: 'Abjad' },
+      { letter: 'H', word: 'Huruf H', signImg: '/assets/signs/H.png', desc: 'Jari telunjuk dan jari tengah diluruskan mendatar secara berdampingan.', category: 'Abjad' },
+      { letter: 'I', word: 'Huruf I', signImg: '/assets/signs/I.png', desc: 'Hanya jari kelingking yang diacungkan tegak lurus ke atas.', category: 'Abjad' },
+      { letter: 'J', word: 'Huruf J', signImg: '/assets/signs/J.png', desc: 'Kelingking tegak lalu digerakkan melengkung di udara membentuk kail huruf J.', category: 'Abjad' },
+      { letter: 'K', word: 'Huruf K', signImg: '/assets/signs/K.png', desc: 'Telunjuk dan jari tengah tegak terbuka seperti V dengan jempol di antara keduanya.', category: 'Abjad' },
+      { letter: 'L', word: 'Huruf L', signImg: '/assets/signs/L.png', desc: 'Jempol dan jari telunjuk terbuka tegak lurus membentuk sudut 90 derajat huruf L.', category: 'Abjad' },
+      { letter: 'M', word: 'Huruf M', signImg: '/assets/signs/M.png', desc: 'Tiga jari (telunjuk, tengah, manis) menutupi ibu jari yang terselip di bawahnya.', category: 'Abjad' },
+      { letter: 'N', word: 'Huruf N', signImg: '/assets/signs/N.png', desc: 'Dua jari (telunjuk dan tengah) menutupi ibu jari yang berada di bawahnya.', category: 'Abjad' },
+      { letter: 'O', word: 'Huruf O', signImg: '/assets/signs/O.png', desc: 'Kelima ujung jari bertemu membentuk lingkaran bundar menyerupai huruf O.', category: 'Abjad' },
+      { letter: 'P', word: 'Huruf P', signImg: '/assets/signs/P.png', desc: 'Bentuk huruf K yang diarahkan menunduk 90 derajat ke arah bawah.', category: 'Abjad' },
+      { letter: 'Q', word: 'Huruf Q', signImg: '/assets/signs/Q.png', desc: 'Bentuk huruf G yang diarahkan menukik lurus ke bawah.', category: 'Abjad' },
+      { letter: 'R', word: 'Huruf R', signImg: '/assets/signs/R.png', desc: 'Jari telunjuk dan jari tengah saling disilangkan rapat.', category: 'Abjad' },
+      { letter: 'S', word: 'Huruf S', signImg: '/assets/signs/S.png', desc: 'Tangan mengepal erat dengan ibu jari melintang di depan jari-jari lain.', category: 'Abjad' },
+      { letter: 'T', word: 'Huruf T', signImg: '/assets/signs/T.png', desc: 'Ibu jari diselipkan di antara jari telunjuk dan jari tengah yang mengepal.', category: 'Abjad' },
+      { letter: 'U', word: 'Huruf U', signImg: '/assets/signs/U.png', desc: 'Jari telunjuk dan jari tengah tegak ke atas rapat berdampingan.', category: 'Abjad' },
+      { letter: 'V', word: 'Huruf V', signImg: '/assets/signs/V.png', desc: 'Jari telunjuk dan tengah tegak terbuka membentuk simbol huruf V (Peace).', category: 'Abjad' },
+      { letter: 'W', word: 'Huruf W', signImg: '/assets/signs/W.png', desc: 'Tiga jari tengah (telunjuk, tengah, manis) diacungkan terbuka menyerupai W.', category: 'Abjad' },
+      { letter: 'X', word: 'Huruf X', signImg: '/assets/signs/X.png', desc: 'Jari telunjuk ditekuk melengkung menyerupai kait huruf X.', category: 'Abjad' },
+      { letter: 'Y', word: 'Huruf Y', signImg: '/assets/signs/Y.png', desc: 'Ibu jari dan kelingking terbuka lebar, tiga jari lainnya mengepal rapat.', category: 'Abjad' },
+      { letter: 'Z', word: 'Huruf Z', signImg: '/assets/signs/Z.png', desc: 'Jari telunjuk bergerak di udara menggores pola zig-zag huruf Z.', category: 'Abjad' },
+    ],
+  },
+  {
+    id: 2,
+    title: 'Modul 2: Salam & Sapaan Hangat',
+    subtitle: 'Ungkapan ramah sapaan sehari-hari, terima kasih, dan perkenalan diri',
+    icon: '👋',
+    badge: 'Level 2',
+    entries: [
+      { letter: 'Halo', word: 'Halo / Hai', signImg: '/assets/signs/B.png', desc: 'Telapak tangan terbuka tegak di samping kepala dilambaikan lembut ke arah lawan bicara.', category: 'Sapaan' },
+      { letter: 'Terima Kasih', word: 'Terima Kasih', signImg: '/assets/signs/B.png', desc: 'Ujung jari tangan menyentuh bibir lembut lalu digerakkan terbuka ke depan dengan senyuman tulus.', category: 'Ungkapan' },
+      { letter: 'Sama-sama', word: 'Sama-sama', signImg: '/assets/signs/Y.png', desc: 'Bentuk huruf Y digerakkan mengayun lembut ke depan dan belakang bergantian.', category: 'Ungkapan' },
+      { letter: 'Maaf', word: 'Minta Maaf', signImg: '/assets/signs/A.png', desc: 'Kepalan tangan melingkar memutar lembut di depan dada menunjukkan rasa penyesalan tulus.', category: 'Ungkapan' },
+      { letter: 'Selamat Pagi', word: 'Selamat Pagi', signImg: '/assets/signs/B.png', desc: 'Kombinasi isyarat Bagus/Selamat lalu kedua tangan membuka menyambut datangnya fajar.', category: 'Salam' },
+      { letter: 'Selamat Malam', word: 'Selamat Malam', signImg: '/assets/signs/C.png', desc: 'Satu tangan melengkung turun menutupi lengan lain melambangkan matahari yang telah terbenam.', category: 'Salam' },
+      { letter: 'Nama', word: 'Nama Saya', signImg: '/assets/signs/H.png', desc: 'Dua jari telunjuk dan tengah mengetuk jari tangan kiri secara silang menyiratkan nama.', category: 'Perkenalan' },
+      { letter: 'Sampai Jumpa', word: 'Sampai Jumpa Lagi', signImg: '/assets/signs/B.png', desc: 'Lambaian tangan dua kali ke arah luar disertai kontak mata yang hangat.', category: 'Sapaan' },
+    ],
+  },
+  {
+    id: 3,
+    title: 'Modul 3: Angka & Anggota Keluarga',
+    subtitle: 'Mengenal bilangan angka dan panggilan anggota keluarga tercinta',
+    icon: '👨‍👩‍👧',
+    badge: 'Level 3',
+    entries: [
+      { letter: '1', word: 'Satu (1)', signImg: '/assets/signs/D.png', desc: 'Jari telunjuk tegak satu menghadap ke depan secara tegas.', category: 'Angka' },
+      { letter: '2', word: 'Dua (2)', signImg: '/assets/signs/V.png', desc: 'Jari telunjuk dan jari tengah diacungkan tegak terbuka.', category: 'Angka' },
+      { letter: '3', word: 'Tiga (3)', signImg: '/assets/signs/W.png', desc: 'Tiga jari (jempol, telunjuk, tengah atau telunjuk, tengah, manis) diacungkan bersamaan.', category: 'Angka' },
+      { letter: '4', word: 'Empat (4)', signImg: '/assets/signs/B.png', desc: 'Empat jari tegak terbuka ke atas, sementara ibu jari melipat ke telapak.', category: 'Angka' },
+      { letter: '5', word: 'Lima (5)', signImg: '/assets/signs/B.png', desc: 'Seluruh lima jari terbuka lebar menghadap lawan bicara.', category: 'Angka' },
+      { letter: 'Ayah', word: 'Ayah / Bapak', signImg: '/assets/signs/B.png', desc: 'Ibu jari menyentuh dahi atau samping kening melambangkan figur ayah.', category: 'Keluarga' },
+      { letter: 'Ibu', word: 'Ibu / Mama', signImg: '/assets/signs/B.png', desc: 'Ibu jari menyentuh dagu atau pipi dengan lembut melambangkan kelembutan figur ibu.', category: 'Keluarga' },
+      { letter: 'Kakak / Adik', word: 'Saudara Kandung', signImg: '/assets/signs/L.png', desc: 'Sentuhan jari di dahi/dagu diikuti penandaan tinggi badan saudara.', category: 'Keluarga' },
+    ],
+  },
+  {
+    id: 4,
+    title: 'Modul 4: Ekspresi & Perasaan Emosi',
+    subtitle: 'Mengekspresikan ragam suasana hati, rasa bahagia, sedih, dan semangat',
+    icon: '😊',
+    badge: 'Level 4',
+    entries: [
+      { letter: 'Senang', word: 'Senang / Bahagia', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan mengusap dada ke atas secara bergantian dengan senyum ceria.', category: 'Emosi Positif' },
+      { letter: 'Sedih', word: 'Sedih / Kecewa', signImg: '/assets/signs/Y.png', desc: 'Tangan turun perlahan di depan wajah disertai ekspresi raut wajah murung.', category: 'Emosi Negatif' },
+      { letter: 'Marah', word: 'Marah / Kesal', signImg: '/assets/signs/E.png', desc: 'Jari-jari mencakar di depan dada lalu ditarik cepat ke atas dengan tatapan tajam.', category: 'Emosi' },
+      { letter: 'Kaget', word: 'Terkejut / Kaget', signImg: '/assets/signs/C.png', desc: 'Kedua tangan membuka cepat di depan dada seiring mata yang membelalak.', category: 'Emosi' },
+      { letter: 'Bangga', word: 'Rasa Bangga', signImg: '/assets/signs/A.png', desc: 'Ibu jari bergerak ke atas menyusuri tengah dada dengan kepala terangkat.', category: 'Emosi Positif' },
+      { letter: 'Semangat', word: 'Semangat Pantang Menyerah', signImg: '/assets/signs/S.png', desc: 'Kepalan tangan digetarkan di depan dada dengan tekad yang membara.', category: 'Emosi Positif' },
+    ],
+  },
+  {
+    id: 5,
+    title: 'Modul 5: Kelas, Sekolah & Alat Tulis',
+    subtitle: 'Kosakata aktivitas belajar, lingkungan sekolah, buku, dan membaca',
+    icon: '🏫',
+    badge: 'Level 5',
+    entries: [
+      { letter: 'Belajar', word: 'Belajar / Menuntut Ilmu', signImg: '/assets/signs/B.png', desc: 'Ujung jari mengambil ilmu dari telapak tangan kiri lalu ditempelkan ke kening pikiran.', category: 'Pendidikan' },
+      { letter: 'Buku', word: 'Buku Bacaan', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan dirapatkan lalu dibuka menyerupai lembaran buku yang sedang dibaca.', category: 'Alat Belajar' },
+      { letter: 'Guru', word: 'Guru / Pengajar', signImg: '/assets/signs/O.png', desc: 'Dua tangan di dekat kening bergerak ke depan menyalurkan ilmu, diikuti isyarat orang.', category: 'Pendidikan' },
+      { letter: 'Membaca', word: 'Membaca Kalimat', signImg: '/assets/signs/V.png', desc: 'Dua jari telunjuk dan tengah bergerak mengayun melintasi telapak tangan kiri seperti mata membaca baris buku.', category: 'Aktivitas' },
+      { letter: 'Menulis', word: 'Menulis Catatan', signImg: '/assets/signs/D.png', desc: 'Jempol dan telunjuk memegang pena imajiner lalu menggores di atas telapak tangan kiri.', category: 'Aktivitas' },
+      { letter: 'Sekolah', word: 'Gedung Sekolah', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan bertepuk mendatar perlahan menandakan tempat berkumpulnya murid.', category: 'Tempat' },
+    ],
+  },
+  {
+    id: 6,
+    title: 'Modul 6: ILY, Budaya Tuli & Komunitas',
+    subtitle: 'Simbol kasih sayang ILY, inklusivitas, dan identitas budaya Teman Tuli',
+    icon: '🤟',
+    badge: 'Level 6',
+    entries: [
+      { letter: 'ILY', word: 'I Love You (ILY)', signImg: '/assets/signs/Y.png', desc: 'Ibu jari, telunjuk, dan kelingking terbuka bersamaan membentuk simbol universal cinta kasih (I-L-Y).', category: 'Budaya Tuli' },
+      { letter: 'Tuli', word: 'Teman Tuli / Tuli', signImg: '/assets/signs/D.png', desc: 'Jari telunjuk menyentuh lembut telinga lalu menyentuh mulut melambangkan identitas budaya bahasa visual.', category: 'Budaya Tuli' },
+      { letter: 'Dengar', word: 'Teman Dengar', signImg: '/assets/signs/C.png', desc: 'Jari telunjuk menunjuk telinga menandakan mereka yang menggunakan modalitas pendengaran.', category: 'Komunitas' },
+      { letter: 'Bahasa Isyarat', word: 'Bahasa Isyarat (BISINDO)', signImg: '/assets/signs/B.png', desc: 'Kedua tangan berputar memutar secara harmonis di depan dada melambangkan keindahan tutur gerak tangan.', category: 'Bahasa' },
+      { letter: 'Sahabat', word: 'Teman Akrab / Sahabat', signImg: '/assets/signs/X.png', desc: 'Dua jari telunjuk saling mengait erat satu sama lain melambangkan ikatan persahabatan yang kuat.', category: 'Komunitas' },
+      { letter: 'Inklusif', word: 'Setara & Inklusif', signImg: '/assets/signs/B.png', desc: 'Kedua telapak tangan terbuka merangkul ruang bersama menandakan dunia ramah tanpa batas sekat.', category: 'Nilai Sosial' },
+    ],
+  },
+]

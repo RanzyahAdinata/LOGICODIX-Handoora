@@ -7,6 +7,7 @@ import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { useAuth } from '../context/AuthContext'
 import { progressService } from '../services/storage'
+import { DICTIONARY_MODULES } from '../data/dictionaryData'
 
 // ============================================================
 // DATA 6 PULAU PEMBELAJARAN BISINDO (MULAI DARI LEVEL 1)
@@ -461,6 +462,37 @@ const IconProfil = ({ active }) => (
   >
     <circle cx="14" cy="9.5" r="4.5" />
     <path d="M6 21.5c0-3.6 3.58-6 8-6s8 2.4 8 6v1.25A1.25 1.25 0 0 1 20.75 24H7.25A1.25 1.25 0 0 1 6 22.75V21.5Z" />
+  </svg>
+)
+
+const IconKamus = ({ active }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={`w-6 h-6 shrink-0 transition-colors ${
+      active ? 'text-[#E02424]' : 'text-[#B3B3B3]'
+    }`}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z" />
+    <path d="M6 6h10" />
+    <path d="M6 10h10" />
+    <path d="M6 14h6" />
+  </svg>
+)
+
+const IconLeaderboard = ({ active }) => (
+  <svg
+    viewBox="0 0 24 24"
+    className={`w-6 h-6 shrink-0 transition-colors ${
+      active ? 'text-[#E02424]' : 'text-[#B3B3B3]'
+    }`}
+    fill="currentColor"
+  >
+    <path d="M12 2a1 1 0 0 1 1 1v1h3a2 2 0 0 1 2 2v2a4 4 0 0 1-3.17 3.92A6 6 0 0 1 13 16.92V19h3a1 1 0 1 1 0 2H8a1 1 0 1 1 0-2h3v-2.08A6 6 0 0 1 9.17 11.92A4 4 0 0 1 6 8V6a2 2 0 0 1 2-2h3V3a1 1 0 0 1 1-1Zm-4 4H8v2a2 2 0 0 0 2 2h.2a6.04 6.04 0 0 1-.2-2V6Zm8 2V6h-.2v2c0 .69-.07 1.36-.2 2H16a2 2 0 0 0 2-2Z" />
   </svg>
 )
 
@@ -1434,7 +1466,7 @@ const IsometricLevelNodeButton = ({
 // ============================================================
 const DashboardPage = () => {
   const navigate = useNavigate()
-  const { user, logout, updateProfile } = useAuth()
+  const { user, logout, updateProfile, updatePassword } = useAuth()
   const mapScrollRef = useRef(null)
   const mapStageRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -1452,6 +1484,37 @@ const DashboardPage = () => {
   const [mapZoom, setMapZoom] = useState(1)
   const [skyMode, setSkyMode] = useState('bright')
   const [showStreakPopover, setShowStreakPopover] = useState(false)
+
+  // Submenu tab untuk menu LAINNYA: 'pengaturan' | 'bantuan' | 'faq'
+  const [lainnyaTab, setLainnyaTab] = useState('pengaturan')
+
+  // Search & Filter state untuk menu KAMUS
+  const [dictionarySearch, setDictionarySearch] = useState('')
+  const [selectedDictModuleId, setSelectedDictModuleId] = useState(1)
+
+  // Status sticker untuk LEADERBOARD
+  const [userLeaderboardStatus, setUserLeaderboardStatus] = useState('🔥')
+
+  // Form Ubah Password di menu PROFIL
+  const [passwordForm, setPasswordForm] = useState({
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
+
+  // Settings preferences (Audio, Notifikasi, Mode Langit)
+  const [settingsPref, setSettingsPref] = useState(() => {
+    try {
+      const saved = localStorage.getItem('handoora_user_settings')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      soundEffects: true,
+      hapticFeedback: true,
+      notifications: true,
+      skyTheme: 'bright',
+    }
+  })
 
   // State Blur per Pulau saat pulau benar-benar terpotong batas tepi atas/bawah layar scroll
   const [islandBlurs, setIslandBlurs] = useState({
@@ -1692,6 +1755,41 @@ const DashboardPage = () => {
     }
   }
 
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault()
+    if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
+      toast.error('Password baru minimal 6 karakter')
+      return
+    }
+    if (passwordForm.newPassword !== passwordForm.confirmPassword) {
+      toast.error('Konfirmasi password tidak cocok!')
+      return
+    }
+
+    setIsUpdatingPassword(true)
+    try {
+      await updatePassword(passwordForm.newPassword)
+      toast.success('Password akun Handoora berhasil diubah! 🔐')
+      setPasswordForm({ newPassword: '', confirmPassword: '' })
+    } catch (err) {
+      toast.error(err.message || 'Gagal mengubah password.')
+    } finally {
+      setIsUpdatingPassword(false)
+    }
+  }
+
+  const handleToggleSetting = (key) => {
+    setSettingsPref((prev) => {
+      const updated = { ...prev, [key]: !prev[key] }
+      localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
+      if (key === 'skyTheme') {
+        setSkyMode(updated.skyTheme ? 'bright' : 'sunset')
+      }
+      return updated
+    })
+    toast.success('Pengaturan berhasil diperbarui!')
+  }
+
   const handleLogout = async () => {
     toast.success('Berhasil keluar dari akun')
     await logout()
@@ -1727,11 +1825,13 @@ const DashboardPage = () => {
               />
             </div>
 
-            {/* 3 Menu Utama Sesuai Web - Beranda.png: BERANDA, PROFIL, LAINNYA */}
-            <nav className="space-y-3">
+            {/* Menu Navigasi Utama: BERANDA, PROFIL, KAMUS, LEADERBOARD, LAINNYA */}
+            <nav className="space-y-2">
               {[
                 { id: 'beranda', label: 'BERANDA', Icon: IconBeranda },
                 { id: 'profil', label: 'PROFIL', Icon: IconProfil },
+                { id: 'kamus', label: 'KAMUS', Icon: IconKamus },
+                { id: 'leaderboard', label: 'LEADERBOARD', Icon: IconLeaderboard },
                 { id: 'lainnya', label: 'LAINNYA', Icon: IconLainnya },
               ].map(({ id, label, Icon }) => {
                 const isActive = activeMenu === id
@@ -1741,7 +1841,7 @@ const DashboardPage = () => {
                     whileHover={{ x: 3 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={() => setActiveMenu(id)}
-                    className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-[20px] font-extrabold text-[13px] tracking-wider uppercase transition-all cursor-pointer ${
+                    className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-[18px] font-extrabold text-[12.5px] tracking-wider uppercase transition-all cursor-pointer ${
                       isActive
                         ? 'bg-[#F8EFEF] text-[#E02424] border-2 border-[#E02424] shadow-[0_4px_14px_rgba(224,36,36,0.10)]'
                         : 'bg-transparent text-[#B3B3B3] hover:bg-[#EFEFEF]/70 hover:text-[#7A7A7A] border-2 border-transparent'
@@ -2392,160 +2492,629 @@ const DashboardPage = () => {
                       {isSavingProfile ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN'}
                     </Button>
                   </form>
+
+                  {/* Form Set & Ubah Password Akun Handoora */}
+                  <form onSubmit={handleUpdatePassword} className="space-y-4 pt-5 border-t border-[#EEEEEE]">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h2 className="text-base font-extrabold text-[#333333]">
+                          Keamanan & Password Akun
+                        </h2>
+                        <p className="text-xs text-gray-500 font-bold">
+                          Atur atau ubah password baru untuk akun Handoora kamu.
+                        </p>
+                      </div>
+                      <span className="text-lg">🔐</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                          Password Baru
+                        </label>
+                        <Input
+                          type="password"
+                          value={passwordForm.newPassword}
+                          onChange={(e) =>
+                            setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
+                          }
+                          placeholder="Minimal 6 karakter"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                          Konfirmasi Password Baru
+                        </label>
+                        <Input
+                          type="password"
+                          value={passwordForm.confirmPassword}
+                          onChange={(e) =>
+                            setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))
+                          }
+                          placeholder="Ketik ulang password baru"
+                        />
+                      </div>
+                    </div>
+
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      disabled={isUpdatingPassword}
+                      className="bg-[#2B2B2B] hover:bg-[#111111]"
+                    >
+                      {isUpdatingPassword ? 'MENYIMPAN...' : 'PERBARUI PASSWORD'}
+                    </Button>
+                  </form>
                 </motion.div>
               </div>
             </div>
           )}
 
           {/* ========================================================== */}
-          {/* VIEW C: LAINNYA (MISI HARIAN, PAPAN SKOR & PENGATURAN)     */}
+          {/* VIEW C: KAMUS LENGKAP BAHASA ISYARAT BISINDO               */}
           {/* ========================================================== */}
-          {activeMenu === 'lainnya' && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24">
-              <div className="max-w-4xl mx-auto w-full space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-extrabold text-[#2B2B2B]">
-                        🎯 Target Belajar Harian
-                      </h2>
-                      <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-extrabold text-[#E02424]">
-                        Aktif Hari Ini
-                      </span>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div>
-                        <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                          <span>🔥 Jaga Runtunan Belajar Harian</span>
-                          <span className="text-[#E02424]">
-                            {progress.streak} Hari Beruntun
-                          </span>
-                        </div>
-                        <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
-                          <div
-                            style={{
-                              width: `${Math.min(100, (activeStreakDays / 7) * 100)}%`,
-                            }}
-                            className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full transition-all duration-500"
-                          />
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                          <span>🏝️ Selesaikan 6 Pulau Pembelajaran</span>
-                          <span className="text-[#D97706]">
-                            {progress.completedIslands.length} / {ISLAND_UNITS.length} Pulau
-                          </span>
-                        </div>
-                        <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
-                          <div
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                (progress.completedIslands.length / ISLAND_UNITS.length) * 100
-                              )}%`,
-                            }}
-                            className="h-full bg-gradient-to-r from-[#FBBF24] to-[#D97706] rounded-full transition-all duration-500"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
-
-                  <motion.div
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.06 }}
-                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md space-y-4"
-                  >
-                    <div className="flex items-center justify-between">
-                      <h2 className="text-lg font-extrabold text-[#2B2B2B]">
-                        🏆 Peringkat Pembelajar
-                      </h2>
-                      <span className="text-xs font-extrabold text-[#D97706]">
-                        Minggu Ini
-                      </span>
-                    </div>
-
-                    <div className="space-y-2.5">
-                      {[
-                        {
-                          name: user?.nama || 'Kamu (Sobat Handoora)',
-                          completed: progress.completedIslands.length,
-                          isMe: true,
-                        },
-                        { name: 'Alya Putri', completed: 4, isMe: false },
-                        { name: 'Bima Pratama', completed: 2, isMe: false },
-                      ]
-                        .sort((a, b) => b.completed - a.completed)
-                        .map((item, idx) => (
-                          <div
-                            key={idx}
-                            className={`flex items-center justify-between px-4 py-2.5 rounded-2xl border ${
-                              item.isMe
-                                ? 'bg-[#FFF5F5] border-[#FECDD3]'
-                                : 'bg-[#FAFAFA] border-[#EEEEEE]'
-                            }`}
-                          >
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-black text-[#E02424]">
-                                #{idx + 1}
-                              </span>
-                              <span className="text-xs font-extrabold text-[#333333]">
-                                {item.name}
-                              </span>
-                            </div>
-                            <span className="text-xs font-black text-[#D97706]">
-                              🏝️ {item.completed} Level
-                            </span>
-                          </div>
-                        ))}
-                    </div>
-                  </motion.div>
-                </div>
-
+          {activeMenu === 'kamus' && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
+              <div className="max-w-5xl mx-auto w-full space-y-6">
+                {/* Header Banner Kamus */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.12 }}
-                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6"
                 >
-                  <div>
-                    <h3 className="text-base font-extrabold text-[#2B2B2B]">
-                      ⚙️ Pengaturan Akun & Progres Belajar
-                    </h3>
-                    <p className="text-xs font-bold text-[#777777] mt-1">
-                      Kelola progres belajar dan sesi akunmu di sini.
+                  <div className="space-y-2 text-center md:text-left">
+                    <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider">
+                      📖 Ensiklopedia Visual BISINDO
+                    </span>
+                    <h1 className="text-2xl sm:text-3xl font-black text-[#2B2B2B] tracking-tight">
+                      Kamus Bentuk Tangan BISINDO
+                    </h1>
+                    <p className="text-xs sm:text-sm text-gray-500 font-bold max-w-xl">
+                      Kumpulan seluruh gestur dan ejaan bahasa isyarat dari Level 1 hingga Level 6.
+                      Pelajari detail bentuk jari, makna, dan praktikkan langsung ke kamera!
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={async () => {
-                        const reset = progressService.resetProgress(user?.id)
-                        setProgress(reset)
-                        setSelectedUnitId(1)
-                        if (user?.id) {
-                          await progressService.saveProgressToSupabase(user.id, reset)
-                        }
-                        toast.success('Progres pembelajaran direset kembali ke Level 1')
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-[#F5F5F5] hover:bg-[#EAEAEA] text-xs font-extrabold text-[#555555] cursor-pointer transition-colors"
-                    >
-                      ULANGI DARI LEVEL 1
-                    </button>
-
-                    <Button variant="primary" size="md" onClick={handleLogout}>
-                      KELUAR DARI AKUN
-                    </Button>
+                  {/* Input Pencarian Kata / Huruf */}
+                  <div className="w-full md:w-72">
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={dictionarySearch}
+                        onChange={(e) => setDictionarySearch(e.target.value)}
+                        placeholder="Cari huruf atau isyarat..."
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F7F7F7] border-2 border-[#EAEAEA] focus:border-[#E02424] text-xs font-bold text-gray-800 placeholder-gray-400 outline-none transition"
+                      />
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
+                        🔍
+                      </span>
+                    </div>
                   </div>
                 </motion.div>
+
+                {/* Tabs Modul Level 1 - 6 */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                  {DICTIONARY_MODULES.map((mod) => {
+                    const isSelected = selectedDictModuleId === mod.id && !dictionarySearch
+                    return (
+                      <button
+                        key={mod.id}
+                        onClick={() => {
+                          setSelectedDictModuleId(mod.id)
+                          setDictionarySearch('')
+                        }}
+                        className={`px-4 py-2.5 rounded-2xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer border-2 ${
+                          isSelected
+                            ? 'bg-[#E02424] text-white border-[#E02424] shadow-md shadow-red-200'
+                            : 'bg-white/90 text-gray-600 border-[#EAEAEA] hover:border-gray-300'
+                        }`}
+                      >
+                        <span>{mod.icon}</span>
+                        <span>{mod.badge}</span>
+                      </button>
+                    )
+                  })}
+                </div>
+
+                {/* Grid Kartu Isyarat Tangan HD */}
+                {(() => {
+                  let activeEntries = []
+                  if (dictionarySearch.trim()) {
+                    const q = dictionarySearch.toLowerCase().trim()
+                    DICTIONARY_MODULES.forEach((mod) => {
+                      mod.entries.forEach((en) => {
+                        if (
+                          en.letter.toLowerCase().includes(q) ||
+                          en.word.toLowerCase().includes(q) ||
+                          en.desc.toLowerCase().includes(q)
+                        ) {
+                          activeEntries.push({ ...en, moduleBadge: mod.badge })
+                        }
+                      })
+                    })
+                  } else {
+                    const curMod =
+                      DICTIONARY_MODULES.find((m) => m.id === selectedDictModuleId) ||
+                      DICTIONARY_MODULES[0]
+                    activeEntries = curMod.entries.map((en) => ({ ...en, moduleBadge: curMod.badge }))
+                  }
+
+                  if (activeEntries.length === 0) {
+                    return (
+                      <div className="bg-white/90 rounded-3xl p-12 text-center border-2 border-[#EBEBEB]">
+                        <p className="text-4xl mb-3">🔍</p>
+                        <h3 className="text-base font-black text-gray-700">Tidak ada isyarat ditemukan</h3>
+                        <p className="text-xs text-gray-400 font-bold mt-1">
+                          Coba gunakan kata kunci pencarian lain.
+                        </p>
+                      </div>
+                    )
+                  }
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                      {activeEntries.map((item, idx) => (
+                        <motion.div
+                          key={`${item.letter}-${idx}`}
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.02 }}
+                          whileHover={{ y: -4 }}
+                          className="bg-white/95 backdrop-blur-sm border-2 border-[#EBEBEB] hover:border-[#E02424] rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
+                        >
+                          <div>
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                                {item.moduleBadge || item.category}
+                              </span>
+                              <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
+                                BISINDO
+                              </span>
+                            </div>
+
+                            {/* Gambar Isyarat HD Utuh */}
+                            <div className="w-full aspect-square rounded-2xl bg-[#FFF6F6] p-3 flex items-center justify-center border border-rose-100 mb-3 shadow-inner group-hover:bg-[#FFF0F0] transition">
+                              <img
+                                src={item.signImg}
+                                alt={item.word}
+                                className="max-h-full max-w-full object-contain filter drop-shadow group-hover:scale-108 transition-transform duration-300"
+                              />
+                            </div>
+
+                            <h3 className="text-base font-black text-[#2B2B2B] text-center mb-1">
+                              {item.word}
+                            </h3>
+                            <p className="text-[11px] font-bold text-gray-500 text-center leading-relaxed line-clamp-3">
+                              {item.desc}
+                            </p>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              const targetLvl = selectedDictModuleId || 1
+                              navigate(`/quiz/${targetLvl}/1`)
+                            }}
+                            className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-600 hover:text-white text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424]"
+                          >
+                            Latih Isyarat ▶
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  )
+                })()}
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================== */}
+          {/* VIEW D: LEADERBOARD AKTUAL PENGGUNA (SESUAI MOBBIN DUOLINGO) */}
+          {/* ========================================================== */}
+          {activeMenu === 'leaderboard' && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
+              <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+                {/* Kolom Kiri & Tengah: Peringkat 10 Besar */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* Banner Liga Duolingo Style */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 text-center shadow-sm"
+                  >
+                    <div className="flex items-center justify-center gap-2 mb-3">
+                      <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#E59866] to-[#BA4A00] flex items-center justify-center text-white text-2xl shadow-md border-2 border-[#F5B041]">
+                        🪶
+                      </div>
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
+                        🛡️
+                      </div>
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
+                        🛡️
+                      </div>
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
+                        🛡️
+                      </div>
+                    </div>
+                    <h2 className="text-xl font-black text-[#2B2B2B]">Liga Perunggu Handoora</h2>
+                    <p className="text-xs font-bold text-gray-400 mt-0.5">
+                      Top 10 pembelajar bahasa isyarat teraktif minggu ini
+                    </p>
+                    <span className="inline-block mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 font-extrabold text-[11px] border border-amber-200">
+                      ⏱️ 6 Hari Tersisa
+                    </span>
+                  </motion.div>
+
+                  {/* Daftar Top 10 Pengguna */}
+                  <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-3 sm:p-5 shadow-sm divide-y divide-gray-100">
+                    {(() => {
+                      // Data komunitas realistis digabung dengan data aktual user yang sedang login
+                      const currentUserXp = progress.xp || 240
+                      const rawLeaderboard = [
+                        { id: 'u1', name: 'Khai đỗ đình', xp: 228, level: 3, avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60', status: '💯' },
+                        { id: 'u2', name: 'Ishu', xp: 210, level: 3, avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=60', status: '💪' },
+                        { id: 'u3', name: 'Bekhzod Nurmatov', xp: 138, level: 2, avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60', status: '🦜' },
+                        { id: 'u4', name: 'Aleksey', xp: 129, level: 2, avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60', status: '⚡' },
+                        { id: 'u5', name: 'Asmi Dhage', xp: 70, level: 1, avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60', status: '🌸' },
+                        { id: 'u6', name: 'Phương Phạm', xp: 63, level: 1, avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60', status: '👀' },
+                        { id: 'u7', name: 'Lecea', xp: 60, level: 1, avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=60', status: '✨' },
+                        { id: 'u8', name: 'Kristian Panjaitan', xp: 58, level: 1, avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&auto=format&fit=crop&q=60', status: '🍿' },
+                        { id: 'u9', name: 'Solah', xp: 50, level: 1, avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60', status: '🐣' },
+                        { id: 'u10', name: 'Jonathanlimrs', xp: 46, level: 1, avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60', status: '🚀' },
+                      ]
+
+                      // Masukkan user saat ini
+                      const meEntry = {
+                        id: 'me',
+                        name: `${user?.nama || 'Kamu'} (Saya)`,
+                        xp: currentUserXp,
+                        level: currentActiveUnitId,
+                        avatar: currentAvatar,
+                        status: userLeaderboardStatus,
+                        isMe: true,
+                      }
+
+                      const sortedList = [...rawLeaderboard, meEntry]
+                        .sort((a, b) => b.xp - a.xp)
+                        .slice(0, 10)
+
+                      return sortedList.map((entry, idx) => {
+                        const rank = idx + 1
+                        const isMe = entry.isMe
+                        return (
+                          <motion.div
+                            key={entry.id}
+                            initial={{ opacity: 0, x: -8 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: idx * 0.03 }}
+                            className={`flex items-center justify-between py-3 px-3 sm:px-4 rounded-2xl transition ${
+                              isMe ? 'bg-[#FFF0F0] border-2 border-[#E02424] shadow-xs' : 'hover:bg-gray-50'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3 sm:gap-4 min-w-0">
+                              {/* Nomor Rank Icon */}
+                              <div className="w-8 text-center shrink-0">
+                                {rank === 1 ? (
+                                  <span className="w-7 h-7 rounded-full bg-amber-400 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
+                                    🥇
+                                  </span>
+                                ) : rank === 2 ? (
+                                  <span className="w-7 h-7 rounded-full bg-slate-300 text-slate-700 font-black text-xs flex items-center justify-center shadow-xs mx-auto">
+                                    🥈
+                                  </span>
+                                ) : rank === 3 ? (
+                                  <span className="w-7 h-7 rounded-full bg-amber-700 text-white font-black text-xs flex items-center justify-center shadow-xs mx-auto">
+                                    🥉
+                                  </span>
+                                ) : (
+                                  <span className="text-sm font-extrabold text-gray-500">
+                                    {rank}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Avatar & Online Dot */}
+                              <div className="relative shrink-0">
+                                <img
+                                  src={entry.avatar}
+                                  alt={entry.name}
+                                  className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-xs"
+                                />
+                                <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />
+                              </div>
+
+                              {/* Nama Pengguna & Status Emoji */}
+                              <div className="min-w-0 flex items-center gap-2">
+                                <span className={`text-xs sm:text-sm font-black truncate ${isMe ? 'text-[#E02424]' : 'text-gray-800'}`}>
+                                  {entry.name}
+                                </span>
+                                {entry.status && (
+                                  <span className="text-xs bg-gray-100 px-1.5 py-0.5 rounded-full border border-gray-200">
+                                    {entry.status}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Skor XP Duolingo Style */}
+                            <div className="shrink-0 text-right">
+                              <span className="text-xs sm:text-sm font-black text-gray-600">
+                                {entry.xp} XP
+                              </span>
+                            </div>
+                          </motion.div>
+                        )
+                      })
+                    })()}
+                  </div>
+                </div>
+
+                {/* Kolom Kanan: Set Your Status Widget (Sesuai Referensi Mobbin Duolingo) */}
+                <div className="space-y-4">
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-5 shadow-sm"
+                  >
+                    <h3 className="text-sm font-black text-[#2B2B2B] mb-3">Pasang Status Kamu</h3>
+
+                    {/* Preview Avatar with Speech Bubble */}
+                    <div className="flex flex-col items-center justify-center py-4 relative">
+                      <div className="relative">
+                        <img
+                          src={currentAvatar}
+                          alt="Avatar Status"
+                          className="w-16 h-16 rounded-full object-cover border-3 border-[#E02424] shadow-md"
+                        />
+                        <span className="absolute bottom-0 right-0 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full" />
+                        <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-white border-2 border-gray-200 shadow-sm flex items-center justify-center text-sm">
+                          {userLeaderboardStatus}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Grid Pilihan Stiker Status */}
+                    <div className="grid grid-cols-4 gap-2 pt-2 border-t border-gray-100">
+                      {['😎', '🎉', '💪', '👀', '🍿', '🔥', '🦜', '💯', '💩', '🏆', '💰', '🐱'].map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            setUserLeaderboardStatus(emoji)
+                            toast.success(`Status diubah jadi ${emoji}`)
+                          }}
+                          className={`p-2.5 rounded-2xl text-lg flex items-center justify-center transition cursor-pointer border ${
+                            userLeaderboardStatus === emoji
+                              ? 'bg-[#FFF0F0] border-[#E02424] scale-105 shadow-xs'
+                              : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+                          }`}
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ========================================================== */}
+          {/* VIEW E: LAINNYA (PENGATURAN, PUSAT BANTUAN, DAN FAQ)        */}
+          {/* ========================================================== */}
+          {activeMenu === 'lainnya' && (
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
+              <div className="max-w-4xl mx-auto w-full space-y-6">
+                {/* Header Tab Submenu: Pengaturan | Pusat Bantuan | FAQ */}
+                <div className="flex items-center gap-2 p-1.5 bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-2xl shadow-xs">
+                  {[
+                    { id: 'pengaturan', label: '⚙️ Pengaturan' },
+                    { id: 'bantuan', label: '🛟 Pusat Bantuan' },
+                    { id: 'faq', label: '❓ FAQ & Tanya Jawab' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setLainnyaTab(tab.id)}
+                      className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-black uppercase tracking-wider transition cursor-pointer ${
+                        lainnyaTab === tab.id
+                          ? 'bg-[#E02424] text-white shadow-md'
+                          : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* TAB 1: PENGATURAN APLIKASI & SUARA */}
+                {lainnyaTab === 'pengaturan' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4"
+                  >
+                    <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 shadow-sm space-y-5">
+                      <h3 className="text-base font-black text-[#2B2B2B]">
+                        Preferensi Pembelajaran & Efek
+                      </h3>
+
+                      <div className="divide-y divide-gray-100">
+                        <div className="py-3.5 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-extrabold text-gray-800">Efek Suara Kuis</p>
+                            <p className="text-xs text-gray-400 font-bold">Mainkan audio bel & sinyal saat jawaban benar/salah</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSetting('soundEffects')}
+                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
+                              settingsPref.soundEffects ? 'bg-emerald-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.soundEffects ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+
+                        <div className="py-3.5 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-extrabold text-gray-800">Umpan Balik Kamera Real-time</p>
+                            <p className="text-xs text-gray-400 font-bold">Animasi border hijau & merah saat mendeteksi gestur tangan</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSetting('hapticFeedback')}
+                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
+                              settingsPref.hapticFeedback ? 'bg-emerald-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.hapticFeedback ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+
+                        <div className="py-3.5 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-extrabold text-gray-800">Notifikasi Pengingat Belajar</p>
+                            <p className="text-xs text-gray-400 font-bold">Ingatkan latihan harian agar streak tidak padam</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSetting('notifications')}
+                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
+                              settingsPref.notifications ? 'bg-emerald-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.notifications ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+
+                        <div className="py-3.5 flex items-center justify-between">
+                          <div>
+                            <p className="text-sm font-extrabold text-gray-800">Tema Langit Pulau</p>
+                            <p className="text-xs text-gray-400 font-bold">Beralih antara Langit Cerah (Siang) atau Senja (Autumn)</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newMode = skyMode === 'bright' ? 'sunset' : 'bright'
+                              setSkyMode(newMode)
+                              handleToggleSetting('skyTheme')
+                            }}
+                            className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-black text-gray-700 transition cursor-pointer border border-gray-200"
+                          >
+                            {skyMode === 'bright' ? '☀️ Langit Cerah' : '🌅 Langit Senja'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Reset Progres Pembelajaran */}
+                    <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-base font-black text-[#2B2B2B]">Reset Progres Belajar</h3>
+                        <p className="text-xs text-gray-400 font-bold mt-0.5">
+                          Ulangi seluruh modul dari Level 1 dan kosongkan riwayat kuis tersimpan.
+                        </p>
+                      </div>
+                      <button
+                        onClick={async () => {
+                          const reset = progressService.resetProgress(user?.id)
+                          setProgress(reset)
+                          setSelectedUnitId(1)
+                          if (user?.id) {
+                            await progressService.saveProgressToSupabase(user.id, reset)
+                          }
+                          toast.success('Progres pembelajaran direset kembali ke Level 1')
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-600 border border-rose-200 cursor-pointer transition"
+                      >
+                        🔄 RESET KE LEVEL 1
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* TAB 2: PUSAT BANTUAN */}
+                {lainnyaTab === 'bantuan' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 sm:p-8 shadow-sm space-y-6"
+                  >
+                    <div>
+                      <h2 className="text-xl font-black text-[#2B2B2B]">Pusat Bantuan & Dukungan Handoora</h2>
+                      <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1">
+                        Butuh bantuan seputar penggunaan kamera, navigasi kuis, atau akun belajar? Kami siap membantu!
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="p-5 rounded-2xl bg-amber-50 border border-amber-200 space-y-2">
+                        <span className="text-2xl">📹</span>
+                        <h4 className="text-sm font-black text-gray-800">Panduan Kamera Real-time</h4>
+                        <p className="text-xs text-gray-600 font-bold leading-relaxed">
+                          Pastikan ruangan memiliki pencahayaan cukup dan tanganmu berada di dalam bingkai retikel kamera agar deteksi AI berjalan optimal.
+                        </p>
+                      </div>
+
+                      <div className="p-5 rounded-2xl bg-blue-50 border border-blue-200 space-y-2">
+                        <span className="text-2xl">💬</span>
+                        <h4 className="text-sm font-black text-gray-800">Hubungi Tim Handoora</h4>
+                        <p className="text-xs text-gray-600 font-bold leading-relaxed">
+                          Kirim saran dan masukan melalui email halo@handoora.id atau komunitas BISINDO Discord Handoora Indonesia.
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* TAB 3: FREQUENTLY ASKED QUESTIONS (FAQ) */}
+                {lainnyaTab === 'faq' && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 sm:p-8 shadow-sm space-y-4"
+                  >
+                    <div>
+                      <h2 className="text-xl font-black text-[#2B2B2B]">Frequently Asked Questions (FAQ)</h2>
+                      <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1">
+                        Pertanyaan umum yang sering ditanyakan oleh teman-teman pembelajar BISINDO.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3 pt-2">
+                      {[
+                        {
+                          q: 'Apa itu bahasa isyarat BISINDO yang diajarkan di Handoora?',
+                          a: 'BISINDO (Bahasa Isyarat Indonesia) adalah bahasa isyarat alami yang hidup, berkembang, dan digunakan oleh komunitas Teman Tuli di Indonesia dengan kekayaan tata bahasa visual dan budaya lokal.',
+                        },
+                        {
+                          q: 'Apakah saya wajib menyalakan kamera saat belajar?',
+                          a: 'Kamera digunakan pada tipe soal peragaan isyarat langsung. Jika saat ini kamu belum memungkinkan menyalakan kamera, kamu bisa klik tombol "LOMPATI" untuk mendahulukan soal kuis pilihan dan tebak isyarat.',
+                        },
+                        {
+                          q: 'Bagaimana cara membuka kunci Level berikutnya?',
+                          a: 'Selesaikan 3 tahap kuis pada level yang sedang aktif. Setiap selesai menuntaskan 3 tahap kuis, pulau level berikutnya akan terbuka secara otomatis!',
+                        },
+                        {
+                          q: 'Bagaimana sistem penilaian dan XP di Leaderboard?',
+                          a: 'Setiap jawaban kuis yang tepat memberikan perolehan XP. Semakin banyak kamu berlatih dan menjaga streak harian, posisimu di Liga Handoora akan semakin meroket ke 10 besar!',
+                        },
+                      ].map((faq, idx) => (
+                        <div
+                          key={idx}
+                          className="p-4 rounded-2xl bg-gray-50 border border-gray-200 space-y-1.5"
+                        >
+                          <h4 className="text-sm font-black text-[#2B2B2B] flex items-center gap-2">
+                            <span className="text-[#E02424]">Q:</span> {faq.q}
+                          </h4>
+                          <p className="text-xs text-gray-600 font-bold leading-relaxed pl-5">
+                            {faq.a}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             </div>
           )}
@@ -2554,10 +3123,12 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         {/* BOTTOM NAVIGATION BAR MOBILE (< lg)                          */}
         {/* ============================================================ */}
-        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8E8E8] px-4 py-2 flex justify-around items-center">
+        <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-[#E8E8E8] px-2 py-2 flex justify-around items-center">
           {[
             { id: 'beranda', label: 'BERANDA', Icon: IconBeranda },
             { id: 'profil', label: 'PROFIL', Icon: IconProfil },
+            { id: 'kamus', label: 'KAMUS', Icon: IconKamus },
+            { id: 'leaderboard', label: 'PERINGKAT', Icon: IconLeaderboard },
             { id: 'lainnya', label: 'LAINNYA', Icon: IconLainnya },
           ].map(({ id, label, Icon }) => {
             const isActive = activeMenu === id
@@ -2565,7 +3136,7 @@ const DashboardPage = () => {
               <button
                 key={id}
                 onClick={() => setActiveMenu(id)}
-                className={`flex flex-col items-center gap-1 px-4 py-1.5 rounded-2xl text-[10px] font-extrabold tracking-wider uppercase cursor-pointer transition-all ${
+                className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-2xl text-[9px] font-extrabold tracking-wider uppercase cursor-pointer transition-all ${
                   isActive
                     ? 'text-[#E02424] bg-[#FFF0F0]'
                     : 'text-[#999999]'

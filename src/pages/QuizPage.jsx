@@ -176,55 +176,83 @@ export default function QuizPage() {
   // -------------------------------------------------------------
   // REAL-TIME WEBCAM & HAND GESTURE DETECTION LOOP
   // -------------------------------------------------------------
+  const streamRef = useRef(null)
+
+  const stopCameraStream = () => {
+    stopDetectionLoop()
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      } catch (e) {
+        // ignore
+      }
+      streamRef.current = null
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null
+    }
+    setCameraActive(false)
+  }
+
+  const startCameraStream = async () => {
+    stopCameraStream()
+    setVisionStatus('detecting')
+    setVisionFeedback('Membuka kamera & mendeteksi isyarat tangan...')
+    setHandHoldProgress(0)
+    holdCountRef.current = 0
+
+    const constraintsList = [
+      { video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' }, audio: false },
+      { video: { facingMode: 'user' }, audio: false },
+      { video: true, audio: false },
+    ]
+
+    let stream = null
+    for (const constraints of constraintsList) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia(constraints)
+        if (stream) break
+      } catch (err) {
+        // coba fallback berikutnya
+      }
+    }
+
+    if (!stream) {
+      setCameraActive(false)
+      setCameraPermissionDenied(true)
+      setVisionStatus('idle')
+      setVisionFeedback('Kamera tidak aktif. Klik "Aktifkan Kamera" atau "LOMPATI" di bawah.')
+      return
+    }
+
+    streamRef.current = stream
+    setCameraActive(true)
+    setCameraPermissionDenied(false)
+
+    if (videoRef.current) {
+      videoRef.current.srcObject = stream
+      try {
+        await videoRef.current.play()
+      } catch (err) {
+        console.warn('Autoplay video error, will play on metadata:', err)
+      }
+    }
+
+    startDetectionLoop()
+  }
+
   useEffect(() => {
     if (!currentQuestion) return
 
-    let stream = null
-    let active = true
-
     if (currentQuestion.type === 'peragakan') {
-      setVisionStatus('detecting')
-      setVisionFeedback('Membuka kamera & mendeteksi isyarat tangan...')
-      setHandHoldProgress(0)
-      holdCountRef.current = 0
-
-      navigator.mediaDevices
-        ?.getUserMedia({ video: { width: { ideal: 640 }, height: { ideal: 480 }, facingMode: 'user' } })
-        .then((s) => {
-          if (!active) {
-            s.getTracks().forEach((t) => t.stop())
-            return
-          }
-          stream = s
-          if (videoRef.current) {
-            videoRef.current.srcObject = s
-            videoRef.current.play().catch(() => {})
-          }
-          setCameraActive(true)
-          setCameraPermissionDenied(false)
-
-          // Mulai loop analisis frame visual
-          startDetectionLoop()
-        })
-        .catch((err) => {
-          console.warn('Izin kamera ditolak atau tidak tersedia:', err)
-          setCameraActive(false)
-          setCameraPermissionDenied(true)
-          setVisionStatus('idle')
-          setVisionFeedback('Kamera tidak aktif. Klik "LOMPATI" untuk mengerjakan soal lain dulu.')
-        })
+      startCameraStream()
     } else {
-      setCameraActive(false)
+      stopCameraStream()
       setVisionStatus('idle')
-      stopDetectionLoop()
     }
 
     return () => {
-      active = false
-      stopDetectionLoop()
-      if (stream) {
-        stream.getTracks().forEach((track) => track.stop())
-      }
+      stopCameraStream()
     }
   }, [currentQuestion?.id])
 
@@ -577,21 +605,31 @@ export default function QuizPage() {
                         autoPlay
                         playsInline
                         muted
+                        onLoadedMetadata={(e) => {
+                          e.target.play().catch(() => {})
+                        }}
                         className="absolute inset-0 w-full h-full object-cover transform -scale-x-100"
                       />
                     ) : (
-                      <div className="flex flex-col items-center text-center p-4 text-slate-300">
+                      <div className="flex flex-col items-center text-center p-4 text-slate-300 z-10">
                         <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 text-2xl">
                           📷
                         </div>
                         <p className="font-extrabold text-sm mb-1 text-white">
-                          {cameraPermissionDenied ? 'Izin Kamera Belum Diberikan' : 'Membuka Kamera...'}
+                          {cameraPermissionDenied ? 'Izin Kamera Belum Diberikan' : 'Kamera Sedang Disiapkan...'}
                         </p>
-                        <p className="text-xs text-slate-400 max-w-xs">
+                        <p className="text-xs text-slate-400 max-w-xs mb-3">
                           {cameraPermissionDenied
-                            ? 'Aktifkan izin kamera pada browser, atau klik "LOMPATI" di bawah untuk lanjut dulu.'
+                            ? 'Pastikan kamera diizinkan di browsermu agar Handoora bisa mendeteksi isyarat tangan.'
                             : 'Arahkan tanganmu ke depan kamera sesuai isyarat.'}
                         </p>
+                        <button
+                          type="button"
+                          onClick={startCameraStream}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF4754] to-[#E02424] text-white text-xs font-black shadow-md hover:scale-103 transition cursor-pointer"
+                        >
+                          📹 Buka / Coba Kamera Lagi
+                        </button>
                       </div>
                     )}
 

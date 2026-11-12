@@ -149,6 +149,10 @@ export const AuthProvider = ({ children }) => {
     return updated
   }
 
+  const updatePassword = async (newPassword) => {
+    return await authService.updatePassword(newPassword)
+  }
+
   const logout = async () => {
     localStorage.removeItem(ACTIVITY_KEY)
     try {
@@ -169,6 +173,7 @@ export const AuthProvider = ({ children }) => {
     loginWithGoogle,
     completeGoogleProfile,
     updateProfile,
+    updatePassword,
     logout,
     isAuthenticated: !!user,
     isSupabaseConfigured,
