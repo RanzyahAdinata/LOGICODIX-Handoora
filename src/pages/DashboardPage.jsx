@@ -533,35 +533,53 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 // SCENERY FULL-SCREEN DUA MODE (LANGIT CERAH & LANGIT SENJA)
 // ============================================================
 // ============================================================
-// KOMPONEN AWAN KECIL-KECIL MENGELILINGI PULAU COMING SOON (LEVEL 3-6)
-// Desain selaras dengan awan latar scenery: bentuk kurva bundar organik,
-// layer bertumpuk (cloudBack & cloudFront), dan animasi mengambang lembut.
+// KOMPONEN 1–2 AWAN TIPIS HALUS PADA PULAU COMING SOON (LEVEL 3-6)
+// Hanya 1 atau 2 awan tipis melayang lembut di atas pulau, sehingga
+// pulau tetap terlihat jelas dengan atmosfer estetis.
 // ============================================================
 const ComingSoonFloatingClouds = ({ skyMode }) => {
   const isBright = skyMode === 'bright'
   const backFill = isBright ? '#BAE6FD' : '#FED7AA'
   const frontFill = isBright ? '#FFFFFF' : '#FFEDD5'
 
-  // Posisi kumpulan 5 awan kecil di sekitar pulau
-  const cloudClusters = [
-    { left: '-6%', top: '16%', w: 64, h: 36, delay: 0, duration: 4.6, dx: 7, dy: -4 },
-    { left: '74%', top: '-8%', w: 78, h: 42, delay: 0.8, duration: 5.2, dx: -6, dy: 3 },
-    { left: '80%', top: '56%', w: 66, h: 38, delay: 1.4, duration: 4.8, dx: 6, dy: -3 },
-    { left: '-2%', top: '72%', w: 72, h: 40, delay: 0.5, duration: 5.6, dx: -5, dy: 4 },
-    { left: '42%', top: '88%', w: 60, h: 34, delay: 1.1, duration: 4.4, dx: 5, dy: -2 },
+  // Tepat 2 awan tipis halus (opacity lembut, pulau tetap terlihat jelas)
+  const clouds = [
+    {
+      left: '12%',
+      top: '22%',
+      w: 86,
+      h: 46,
+      opacity: 0.62,
+      duration: 5.4,
+      delay: 0,
+      dx: 6,
+      dy: -3,
+    },
+    {
+      left: '52%',
+      top: '46%',
+      w: 70,
+      h: 38,
+      opacity: 0.52,
+      duration: 6.2,
+      delay: 0.8,
+      dx: -5,
+      dy: 3,
+    },
   ]
 
   return (
     <div className="absolute inset-0 pointer-events-none z-15 overflow-visible">
-      {cloudClusters.map((c, i) => (
+      {clouds.map((c, i) => (
         <motion.div
-          key={`cluster-cloud-${i}`}
+          key={`subtle-cloud-${i}`}
           style={{
             position: 'absolute',
             left: c.left,
             top: c.top,
             width: `${c.w}px`,
             height: `${c.h}px`,
+            opacity: c.opacity,
           }}
           animate={{
             x: [0, c.dx, 0],
@@ -573,20 +591,20 @@ const ComingSoonFloatingClouds = ({ skyMode }) => {
             ease: 'easeInOut',
             delay: c.delay,
           }}
-          className="drop-shadow-[0_4px_8px_rgba(0,0,0,0.08)]"
+          className="drop-shadow-[0_4px_10px_rgba(0,0,0,0.06)]"
         >
           <svg viewBox="0 0 100 56" className="w-full h-full overflow-visible">
             {/* Layer Awan Belakang */}
             <path
               d="M12 44 Q4 44 4 36 Q4 26 16 26 Q20 12 34 12 Q42 12 48 18 Q54 6 70 6 Q86 6 90 22 Q98 24 98 34 Q98 44 88 44 Z"
               fill={backFill}
-              opacity="0.85"
+              opacity="0.75"
             />
             {/* Layer Awan Depan */}
             <path
               d="M16 46 Q10 46 10 39 Q10 30 20 30 Q24 18 36 18 Q43 18 48 24 Q54 14 68 14 Q82 14 86 28 Q94 30 94 38 Q94 46 84 46 Z"
               fill={frontFill}
-              opacity="0.95"
+              opacity="0.88"
             />
           </svg>
         </motion.div>
@@ -1669,13 +1687,14 @@ const DashboardPage = () => {
 
     const nextBlurs = {}
     for (const unit of ISLAND_UNITS) {
+      // Tidak memberikan blur pada pulau teratas (Level 5 & 6) di bagian atas agar pulau utuh menembus sampai batas atas
       const box = skyMode === 'bright' ? unit.dayLayerBox : unit.sunsetLayerBox
       const islTop = stageRect.top + (box.top / 100) * stageRect.height
       const islBottom =
         stageRect.top + ((box.top + box.height) / 100) * stageRect.height
 
       let cutRatio = 0
-      if (islTop < topSafeEdge) {
+      if (unit.id < 5 && islTop < topSafeEdge) {
         cutRatio = Math.max(cutRatio, Math.min(1, (topSafeEdge - islTop) / fadeZone))
       }
       if (islBottom > bottomSafeEdge) {
@@ -2009,12 +2028,13 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         <main className="relative z-10 flex-1 flex flex-col h-full overflow-hidden">
           {/* ========================================================== */}
-          {/* VIEW A: BERANDA (PETA 6 PULAU DENGAN EDGE BLUR PROPORSIONAL) */}
+          {/* VIEW A: BERANDA (PETA 6 PULAU DENGAN SCROLL MENTOK KE ATAS)*/}
           {/* ========================================================== */}
           {activeMenu === 'beranda' && (
-            <div className="relative flex-1 flex flex-col h-full overflow-hidden">
-              {/* FLOATING TOP BAR: Banner Level Aktif + HANYA API STREAK di Kanan Atas */}
-              <div className="relative z-40 px-4 sm:px-7 pt-3 sm:pt-5 pb-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-none">
+            <div className="relative flex-1 h-full w-full overflow-hidden">
+              {/* FLOATING TOP BAR: Banner Level Aktif + API STREAK di Kanan Atas */}
+              {/* Absolute overlay di atas scrollable map agar pulau dapat scroll tembus mentok ke tepi paling atas */}
+              <div className="absolute top-0 left-0 right-0 z-40 px-4 sm:px-7 pt-3 sm:pt-5 pb-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-none">
                 <motion.div
                   key={selectedUnit.id}
                   initial={{ y: -8, opacity: 0 }}
@@ -2124,7 +2144,8 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* SCROLLABLE 6-ISLAND STAGE DENGAN EDGE-BLUR PROPORSIONAL    */}
+              {/* SCROLLABLE 6-ISLAND STAGE DENGAN AKSES PENUH HINGGA PALING ATAS */}
+              {/* Menggunakan absolute inset-0 agar pulau teratas dapat scroll bebas nembus batas atas */}
               {/* ========================================================== */}
               <div
                 ref={mapScrollRef}
@@ -2133,7 +2154,7 @@ const DashboardPage = () => {
                   if (showStreakPopover) setShowStreakPopover(false)
                   if (clickedTooltipUnitId !== null) setClickedTooltipUnitId(null)
                 }}
-                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-4 pb-28 scroll-smooth"
+                className="absolute inset-0 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-20 sm:pt-24 pb-28 scroll-smooth"
               >
                 <motion.div
                   ref={mapStageRef}
