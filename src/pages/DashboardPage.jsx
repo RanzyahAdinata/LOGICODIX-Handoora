@@ -2110,7 +2110,7 @@ const DashboardPage = () => {
                         />
                         <IslandOrnamentForUnit unitId={unit.id} skyMode={skyMode} />
 
-                        {/* EFEK AWAN TIPIS ANIMATIF & BADGE COMING SOON ELEGAN UNTUK PULAU LEVEL 3 - 6 */}
+                        {/* EFEK KABUT AWAN TIPIS HALUS & NATURAL UNTUK PULAU LEVEL 3 - 6 */}
                         {unit.id >= 3 && (
                           <div
                             style={{
@@ -2119,56 +2119,28 @@ const DashboardPage = () => {
                               width: `${box.width}%`,
                               height: `${box.height}%`,
                             }}
-                            className="absolute pointer-events-none z-20 flex items-center justify-center overflow-visible"
+                            className="absolute pointer-events-none z-15 flex items-center justify-center overflow-visible"
                           >
-                            {/* Lapisan kabut awan tipis bergelombang di atas pulau */}
+                            {/* Kabut awan tipis transparan di permukaan pulau */}
                             <motion.div
                               animate={{
-                                opacity: [0.38, 0.58, 0.38],
-                                scale: [0.98, 1.04, 0.98],
+                                opacity: [0.35, 0.52, 0.35],
+                                scale: [0.98, 1.03, 0.98],
                               }}
                               transition={{
-                                duration: 5,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                                delay: (unit.id - 3) * 0.5,
-                              }}
-                              className="absolute inset-0 bg-gradient-to-t from-white/70 via-white/40 to-transparent backdrop-blur-[1.5px] rounded-full filter"
-                            />
-
-                            {/* Animasi Awan Mengambang Halus */}
-                            <motion.div
-                              animate={{
-                                x: [-8, 8, -8],
-                                y: [-3, 3, -3],
-                              }}
-                              transition={{
-                                duration: 6,
-                                repeat: Infinity,
-                                ease: 'easeInOut',
-                              }}
-                              className="absolute -top-3 w-28 sm:w-36 h-10 bg-white/70 backdrop-blur-md rounded-full shadow-inner pointer-events-none filter blur-[1px]"
-                            />
-
-                            {/* Badge Coming Soon Mewah & Profesional */}
-                            <motion.div
-                              animate={{
-                                y: [0, -6, 0],
-                              }}
-                              transition={{
-                                duration: 3.2,
+                                duration: 4.8,
                                 repeat: Infinity,
                                 ease: 'easeInOut',
                                 delay: (unit.id - 3) * 0.4,
                               }}
-                              className="relative px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-2xl bg-white/92 backdrop-blur-md border-2 border-[#FBBF24] text-[#B45309] text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-2 shadow-[0_8px_24px_rgba(217,119,6,0.28)]"
-                            >
-                              <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping shrink-0" />
-                              <span>SEGERA HADIR</span>
-                              <span className="text-[11px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-lg border border-amber-300">
-                                Segera
-                              </span>
-                            </motion.div>
+                              className="absolute inset-0 bg-white/45 backdrop-blur-[1px] rounded-full filter"
+                            />
+                            {/* Awan kecil lembut di tepi atas pulau */}
+                            <motion.div
+                              animate={{ x: [-6, 6, -6], y: [-2, 2, -2] }}
+                              transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+                              className="absolute -top-2 w-24 h-7 bg-white/60 rounded-full blur-[1px]"
+                            />
                           </div>
                         )}
                       </div>
@@ -2358,86 +2330,94 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* FLOATING BOTTOM CONTROLS: Quick Jump 6 Pulau + Mode Langit */}
+              {/* FLOATING BOTTOM CONTROLS: Navigasi Level, Mode Langit & Zoom */}
+              {/* Desain Modern, Bersih & Profesional Sesuai Standar EdTech  */}
               {/* ========================================================== */}
-              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-4 left-0 right-0 z-40 px-4 sm:px-7 flex flex-wrap items-center justify-between gap-3">
-                <div className="pointer-events-auto flex flex-wrap items-center gap-2">
-                  <div className="hidden sm:flex bg-white/92 backdrop-blur-md border-2 border-white/80 px-3.5 py-2 rounded-full items-center gap-2 shadow-md">
-                    <span className="text-[#E02424] text-sm">📍</span>
-                    <span className="text-xs font-extrabold text-[#333333]">
-                      Peta Level
-                    </span>
-                  </div>
+              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-5 left-0 right-0 z-40 px-4 sm:px-8 flex flex-wrap items-center justify-between gap-3">
+                {/* Segmen Kiri: Quick Jump Peta Level (Pill Modern) */}
+                <div className="pointer-events-auto flex items-center bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl p-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
+                  <span className="hidden sm:inline-block px-3 py-1 text-[11px] font-black uppercase tracking-wider text-gray-500 border-r border-gray-200 mr-1.5">
+                    Level
+                  </span>
 
-                  <div className="flex items-center gap-1 bg-white/92 backdrop-blur-md border-2 border-white/80 p-1 rounded-full shadow-md">
+                  <div className="flex items-center gap-1">
                     {ISLAND_UNITS.map((u) => {
-                      const unlocked =
-                        progress.unlockedIslands.includes(u.id) || u.id === 1
+                      const unlocked = progress.unlockedIslands.includes(u.id) || u.id === 1
                       const isCurrent = u.id === currentActiveUnitId
                       const active = selectedUnit.id === u.id
+                      const isSoon = u.id >= 3
+
                       return (
                         <button
                           key={u.id}
                           onClick={() => scrollToIsland(u)}
-                          className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer ${
+                          className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1 ${
                             active
-                              ? 'bg-[#E02424] text-white shadow-2xs'
+                              ? 'bg-[#E02424] text-white shadow-xs'
                               : isCurrent
                               ? 'bg-[#FFF0F0] text-[#E02424]'
+                              : isSoon
+                              ? 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
                               : unlocked
-                              ? 'text-[#444444] hover:bg-[#FFF0F0]'
-                              : 'text-[#999999] hover:bg-[#F5F5F5]'
+                              ? 'text-gray-700 hover:bg-gray-100'
+                              : 'text-gray-400 hover:bg-gray-50'
                           }`}
                         >
-                          {unlocked ? `Level ${u.id}` : `🔒 ${u.id}`}
+                          <span>{u.id}</span>
+                          {isSoon ? (
+                            <span className="text-[9px] text-gray-400 font-bold">•</span>
+                          ) : !unlocked ? (
+                            <svg className="w-2.5 h-2.5 opacity-60" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                          ) : null}
                         </button>
                       )
                     })}
                   </div>
                 </div>
 
-                {/* Pilihan 2 Mode Langit (Langit Cerah & Langit Senja) + Zoom */}
+                {/* Segmen Kanan: Segmented Switch Mode Langit + Zoom Controls */}
                 <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
-                  <div className="bg-white/92 backdrop-blur-md border-2 border-white/80 p-1 rounded-2xl flex items-center gap-1 shadow-md">
+                  {/* Segmented Control Mode Langit Bersih Tanpa Emoticon Besar */}
+                  <div className="bg-white/95 backdrop-blur-md border border-gray-200/90 p-1 rounded-2xl flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                     <button
                       onClick={() => setSkyMode('bright')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'bright'
-                          ? 'bg-[#0D92F4] text-white shadow-2xs'
-                          : 'text-[#666666] hover:bg-[#F3F4F6]'
+                          ? 'bg-[#0A84EC] text-white shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
-                      <span>☀️</span>
-                      <span className="hidden sm:inline">Langit Cerah</span>
+                      <span className="w-2 h-2 rounded-full bg-amber-300" />
+                      <span>Siang</span>
                     </button>
                     <button
                       onClick={() => setSkyMode('sunset')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'sunset'
-                          ? 'bg-[#EA580C] text-white shadow-2xs'
-                          : 'text-[#666666] hover:bg-[#F3F4F6]'
+                          ? 'bg-[#E15814] text-white shadow-xs'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
                       }`}
                     >
-                      <span>🌅</span>
-                      <span className="hidden sm:inline">Langit Senja</span>
+                      <span className="w-2 h-2 rounded-full bg-amber-400" />
+                      <span>Senja</span>
                     </button>
                   </div>
 
-                  <div className="flex flex-col bg-white/95 backdrop-blur-md border-2 border-white/80 rounded-xl overflow-hidden shadow-md">
+                  {/* Kontrol Zoom Minimalis & Ergonomis */}
+                  <div className="flex items-center bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl overflow-hidden p-1 shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                     <button
-                      onClick={() =>
-                        setMapZoom((z) => Math.min(1.2, +(z + 0.08).toFixed(2)))
-                      }
-                      className="w-8 h-8 flex items-center justify-center text-base font-black text-[#333333] hover:bg-[#FFF0F0] hover:text-[#E02424] border-b border-[#EDEDED] cursor-pointer transition-colors"
+                      onClick={() => setMapZoom((z) => Math.min(1.2, +(z + 0.08).toFixed(2)))}
+                      className="w-8 h-8 flex items-center justify-center rounded-xl text-sm font-black text-gray-700 hover:bg-gray-100 hover:text-[#E02424] cursor-pointer transition"
                       title="Perbesar Peta"
                     >
                       +
                     </button>
+                    <div className="w-px h-4 bg-gray-200 mx-0.5" />
                     <button
-                      onClick={() =>
-                        setMapZoom((z) => Math.max(0.84, +(z - 0.08).toFixed(2)))
-                      }
-                      className="w-8 h-8 flex items-center justify-center text-base font-black text-[#333333] hover:bg-[#FFF0F0] hover:text-[#E02424] cursor-pointer transition-colors"
+                      onClick={() => setMapZoom((z) => Math.max(0.84, +(z - 0.08).toFixed(2)))}
+                      className="w-8 h-8 flex items-center justify-center rounded-xl text-sm font-black text-gray-700 hover:bg-gray-100 hover:text-[#E02424] cursor-pointer transition"
                       title="Perkecil Peta"
                     >
                       −
@@ -2719,26 +2699,19 @@ const DashboardPage = () => {
                 {/* Banner Coming Soon Khusus Modul 3 - 6 */}
                 {!dictionarySearch && selectedDictModuleId >= 3 && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.96 }}
+                    initial={{ opacity: 0, scale: 0.98 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="w-full bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-300 rounded-3xl p-6 sm:p-8 text-center shadow-sm relative overflow-hidden"
+                    className="w-full bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl p-6 sm:p-7 text-center shadow-xs"
                   >
-                    <div className="w-16 h-16 rounded-3xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center text-3xl mx-auto mb-3 shadow-inner">
-                      <motion.span
-                        animate={{ rotate: 360 }}
-                        transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                      >
-                        ⏳
-                      </motion.span>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-black text-xs uppercase tracking-wider mb-2">
+                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                      <span>Tahap Pengembangan</span>
                     </div>
-                    <span className="px-3 py-1 rounded-full bg-amber-200 text-amber-900 font-black text-xs uppercase tracking-wider">
-                      Dalam Masa Pengembangan
-                    </span>
-                    <h3 className="text-xl sm:text-2xl font-black text-amber-950 mt-2">
-                      Kamus Modul {selectedDictModuleId} Segera Hadir!
+                    <h3 className="text-lg sm:text-xl font-black text-gray-800">
+                      Materi Modul {selectedDictModuleId} Sedang Disiapkan
                     </h3>
-                    <p className="text-xs sm:text-sm font-bold text-amber-800/90 max-w-lg mx-auto mt-1">
-                      Koleksi isyarat BISINDO untuk modul ini sedang disiapkan tim pengembang dengan video dan visual gerak interaktif. Kamu tetap dapat melihat daftar materi di bawah ini sebagai referensi awal.
+                    <p className="text-xs font-bold text-gray-500 max-w-lg mx-auto mt-1.5 leading-relaxed">
+                      Koleksi gestur tangan interaktif untuk modul ini akan segera dirilis. Kamu dapat melihat daftar kosakata di bawah sebagai referensi awal pembelajaran.
                     </p>
                   </motion.div>
                 )}
@@ -2837,18 +2810,18 @@ const DashboardPage = () => {
                             </div>
 
                             {isSecretComingSoon ? (
-                              <div className="mt-3 w-full py-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black uppercase tracking-wider text-center">
+                              <div className="mt-3 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-wider text-center">
                                 SEGERA DIBUKA
                               </div>
                             ) : (
                               <button
                                 onClick={() => {
-                                  const targetLvl = selectedDictModuleId || 1
-                                  navigate(`/quiz/${targetLvl}/1`)
+                                  navigate(`/training/${item.letter}`)
                                 }}
-                                className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-600 hover:text-white text-[11px] font-extrabold uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424]"
+                                className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-700 hover:text-white text-[11px] font-black uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424] flex items-center justify-center gap-1.5"
                               >
-                                Latih Isyarat ▶
+                                <span>Latih Isyarat</span>
+                                <span className="text-[10px]">▶</span>
                               </button>
                             )}
                           </motion.div>

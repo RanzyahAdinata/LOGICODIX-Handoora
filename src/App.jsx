@@ -7,6 +7,7 @@ import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import QuizPage from './pages/QuizPage'
+import TrainingPage from './pages/TrainingPage'
 
 function App() {
   const location = useLocation()
@@ -34,6 +35,8 @@ function App() {
           <Route path="/belajar" element={<DashboardPage />} />
           <Route path="/quiz/:levelId" element={<QuizPage />} />
           <Route path="/quiz/:levelId/:stageId" element={<QuizPage />} />
+          <Route path="/training" element={<TrainingPage />} />
+          <Route path="/training/:letterParam" element={<TrainingPage />} />
         </Routes>
       </AnimatePresence>
     </AuthProvider>
