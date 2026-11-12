@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -9,21 +9,30 @@ import { useAuth } from '../context/AuthContext'
 import { progressService } from '../services/storage'
 
 // ============================================================
-// DATA 6 PULAU PEMBELAJARAN BISINDO (TERMASUK 2 PULAU TERKUNCI DI ATAS)
-// Koordinat dikalibrasi presisi pada kanvas 6 pulau (1445 x 2020)
+// DATA 6 PULAU PEMBELAJARAN BISINDO (MULAI DARI LEVEL 1)
+// Setiap pulau memiliki layer gambar terpisah agar dapat
+// memberikan efek blur halus saat terpotong batas layar scroll
 // ============================================================
 const ISLAND_UNITS = [
   {
     id: 1,
-    section: 'BAGIAN 1, UNIT 1',
-    unitLabel: 'Unit 1',
+    section: 'BAGIAN 1, LEVEL 1',
+    unitLabel: 'Level 1',
     islandName: 'Pulau Abjad Dasar',
     title: 'Mengenal Abjad Jari BISINDO (A–Z)',
     subtitle: 'Fondasi ejaan jari dua tangan & isyarat huruf dasar',
     xpReward: 25,
     gemReward: 15,
     nodePos: { x: 26.0, y: 83.2 },
-    mascotPos: { x: 15.8, y: 80.5 },
+    mascotPos: { x: 15.2, y: 81.2 },
+    layerBox: {
+      src: '/assets/island-layer-1.png',
+      left: 0.692,
+      top: 73.614,
+      width: 42.491,
+      height: 24.752,
+      centerY: 85.99,
+    },
     guide: [
       {
         sign: '👐',
@@ -73,15 +82,23 @@ const ISLAND_UNITS = [
   },
   {
     id: 2,
-    section: 'BAGIAN 1, UNIT 2',
-    unitLabel: 'Unit 2',
+    section: 'BAGIAN 1, LEVEL 2',
+    unitLabel: 'Level 2',
     islandName: 'Pulau Lembah Sungai',
     title: 'Salam, Sapaan & Perkenalan Diri',
     subtitle: 'Menyapa teman baru dan memperkenalkan nama dengan sopan',
     xpReward: 30,
     gemReward: 20,
     nodePos: { x: 66.5, y: 70.5 },
-    mascotPos: { x: 83.5, y: 68.0 },
+    mascotPos: { x: 83.5, y: 68.2 },
+    layerBox: {
+      src: '/assets/island-layer-2.png',
+      left: 39.931,
+      top: 63.267,
+      width: 56.263,
+      height: 20.644,
+      centerY: 73.59,
+    },
     guide: [
       {
         sign: '👉',
@@ -129,15 +146,23 @@ const ISLAND_UNITS = [
   },
   {
     id: 3,
-    section: 'BAGIAN 1, UNIT 3',
-    unitLabel: 'Unit 3',
+    section: 'BAGIAN 1, LEVEL 3',
+    unitLabel: 'Level 3',
     islandName: 'Pulau Pohon Rindang',
     title: 'Angka, Waktu & Anggota Keluarga',
     subtitle: 'Menghitung angka dasar serta mengenal isyarat keluarga',
     xpReward: 35,
     gemReward: 25,
     nodePos: { x: 31.0, y: 56.2 },
-    mascotPos: { x: 20.0, y: 53.5 },
+    mascotPos: { x: 19.5, y: 54.0 },
+    layerBox: {
+      src: '/assets/island-layer-3.png',
+      left: 14.118,
+      top: 38.663,
+      width: 44.36,
+      height: 28.614,
+      centerY: 52.97,
+    },
     guide: [
       {
         sign: '☝️',
@@ -179,15 +204,23 @@ const ISLAND_UNITS = [
   },
   {
     id: 4,
-    section: 'BAGIAN 1, UNIT 4',
-    unitLabel: 'Unit 4',
+    section: 'BAGIAN 1, LEVEL 4',
+    unitLabel: 'Level 4',
     islandName: 'Pulau Kincir Angin',
     title: 'Ekspresi Wajah & Perasaan Harian',
     subtitle: 'Memadukan mimik wajah (non-manual) dengan gerakan tangan',
     xpReward: 40,
     gemReward: 30,
     nodePos: { x: 73.5, y: 43.5 },
-    mascotPos: { x: 61.5, y: 41.2 },
+    mascotPos: { x: 61.2, y: 41.5 },
+    layerBox: {
+      src: '/assets/island-layer-4.png',
+      left: 44.983,
+      top: 36.139,
+      width: 54.464,
+      height: 20.891,
+      centerY: 46.58,
+    },
     guide: [
       {
         sign: '😊',
@@ -223,15 +256,23 @@ const ISLAND_UNITS = [
   },
   {
     id: 5,
-    section: 'BAGIAN 2, UNIT 5',
-    unitLabel: 'Unit 5',
+    section: 'BAGIAN 2, LEVEL 5',
+    unitLabel: 'Level 5',
     islandName: 'Pulau Kristal Sakura',
     title: 'Aktivitas Sekolah, Kampus & Pekerjaan',
     subtitle: 'Kosakata lingkungan pendidikan, diskusi, dan kolaborasi inklusif',
     xpReward: 45,
     gemReward: 35,
     nodePos: { x: 31.5, y: 21.8 },
-    mascotPos: { x: 20.5, y: 19.5 },
+    mascotPos: { x: 20.2, y: 19.8 },
+    layerBox: {
+      src: '/assets/island-layer-5.png',
+      left: 18.27,
+      top: 14.851,
+      width: 46.782,
+      height: 22.97,
+      centerY: 26.34,
+    },
     guide: [
       {
         sign: '📚',
@@ -267,15 +308,23 @@ const ISLAND_UNITS = [
   },
   {
     id: 6,
-    section: 'BAGIAN 2, UNIT 6',
-    unitLabel: 'Unit 6',
+    section: 'BAGIAN 2, LEVEL 6',
+    unitLabel: 'Level 6',
     islandName: 'Pulau Istana Bintang',
     title: 'Percakapan Lancar & Budaya Tuli Indonesia',
     subtitle: 'Etika komunikasi publik, cerita berurutan, dan ekspresi mahir',
     xpReward: 60,
     gemReward: 50,
     nodePos: { x: 73.5, y: 8.8 },
-    mascotPos: { x: 61.5, y: 6.8 },
+    mascotPos: { x: 61.2, y: 7.0 },
+    layerBox: {
+      src: '/assets/island-layer-6.png',
+      left: 50.381,
+      top: 1.485,
+      width: 49.066,
+      height: 20.891,
+      centerY: 11.93,
+    },
     guide: [
       {
         sign: '🤟',
@@ -306,32 +355,57 @@ const ISLAND_UNITS = [
   },
 ]
 
-// Koordinat 15 batu pijakan melayang (Stepping Stones) penghubung Pulau 1 -> 6
 const STEPPING_STONES = [
-  // Pulau 1 -> Pulau 2
-  { fromUnit: 1, toUnit: 2, x: 44.5, y: 80.2, delay: 0 },
-  { fromUnit: 1, toUnit: 2, x: 50.2, y: 78.2, delay: 0.2 },
-  { fromUnit: 1, toUnit: 2, x: 56.2, y: 76.0, delay: 0.4 },
-  // Pulau 2 -> Pulau 3
-  { fromUnit: 2, toUnit: 3, x: 61.4, y: 66.3, delay: 0.1 },
-  { fromUnit: 2, toUnit: 3, x: 54.0, y: 64.3, delay: 0.3 },
-  { fromUnit: 2, toUnit: 3, x: 48.5, y: 62.2, delay: 0.5 },
-  { fromUnit: 2, toUnit: 3, x: 42.6, y: 59.8, delay: 0.7 },
-  // Pulau 3 -> Pulau 4
-  { fromUnit: 3, toUnit: 4, x: 49.2, y: 52.3, delay: 0.15 },
-  { fromUnit: 3, toUnit: 4, x: 54.8, y: 50.1, delay: 0.35 },
-  { fromUnit: 3, toUnit: 4, x: 60.6, y: 47.9, delay: 0.55 },
-  // Pulau 4 -> Pulau 5
-  { fromUnit: 4, toUnit: 5, x: 60.5, y: 36.0, delay: 0.1 },
-  { fromUnit: 4, toUnit: 5, x: 54.5, y: 31.8, delay: 0.3 },
-  { fromUnit: 4, toUnit: 5, x: 49.5, y: 29.5, delay: 0.5 },
-  // Pulau 5 -> Pulau 6
-  { fromUnit: 5, toUnit: 6, x: 49.0, y: 17.2, delay: 0.2 },
-  { fromUnit: 5, toUnit: 6, x: 54.6, y: 15.1, delay: 0.4 },
-  { fromUnit: 5, toUnit: 6, x: 60.5, y: 12.6, delay: 0.6 },
+  { fromUnit: 1, toUnit: 2, x: 44.5, y: 80.2 },
+  { fromUnit: 1, toUnit: 2, x: 50.2, y: 78.2 },
+  { fromUnit: 1, toUnit: 2, x: 56.2, y: 76.0 },
+  { fromUnit: 2, toUnit: 3, x: 61.4, y: 66.3 },
+  { fromUnit: 2, toUnit: 3, x: 54.0, y: 64.3 },
+  { fromUnit: 2, toUnit: 3, x: 48.5, y: 62.2 },
+  { fromUnit: 2, toUnit: 3, x: 42.6, y: 59.8 },
+  { fromUnit: 3, toUnit: 4, x: 49.2, y: 52.3 },
+  { fromUnit: 3, toUnit: 4, x: 54.8, y: 50.1 },
+  { fromUnit: 3, toUnit: 4, x: 60.6, y: 47.9 },
+  { fromUnit: 4, toUnit: 5, x: 60.5, y: 36.0 },
+  { fromUnit: 4, toUnit: 5, x: 54.5, y: 31.8 },
+  { fromUnit: 4, toUnit: 5, x: 49.5, y: 29.5 },
+  { fromUnit: 5, toUnit: 6, x: 49.0, y: 17.2 },
+  { fromUnit: 5, toUnit: 6, x: 54.6, y: 15.1 },
+  { fromUnit: 5, toUnit: 6, x: 60.5, y: 12.6 },
 ]
 
 const DAYS_STREAK = ['S', 'S', 'R', 'K', 'J', 'S', 'M']
+
+const AVATAR_PRESETS = [
+  { id: 'orangutan', label: 'Doora', src: '/assets/avatar-orangutan.png' },
+  { id: 'tiger', label: 'Rimba', src: '/assets/avatar-tiger.png' },
+  { id: 'komodo', label: 'Modo', src: '/assets/avatar-komodo.png' },
+]
+
+// Helper: Resize foto yang di-upload user menjadi 240x240 JPEG agar ringan & cepat disimpan
+function resizeImageFileToDataUrl(file, maxSize = 240) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        canvas.width = maxSize
+        canvas.height = maxSize
+        const ctx = canvas.getContext('2d')
+        const minSide = Math.min(img.width, img.height)
+        const sx = (img.width - minSide) / 2
+        const sy = (img.height - minSide) / 2
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, maxSize, maxSize)
+        resolve(canvas.toDataURL('image/jpeg', 0.85))
+      }
+      img.onerror = reject
+      img.src = e.target.result
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}
 
 // ============================================================
 // IKON SVG SIDEBAR & STREAK (Sesuai Desain UI 4)
@@ -395,9 +469,7 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 )
 
 // ============================================================
-// SCENERY FULL-SCREEN DUA MODE:
-// 1. LANGIT CERAH (Anime Blue Sky + Hexagonal Sun Lens Flare sesuai referensi baru)
-// 2. LANGIT SENJA (Golden Peach Sunset + Terracotta Clouds sesuai LEVEL.png)
+// SCENERY FULL-SCREEN DUA MODE (LANGIT CERAH & LANGIT SENJA)
 // ============================================================
 const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) => (
   <motion.div
@@ -442,10 +514,6 @@ const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) =
 
 const FullScreenSkyScenery = ({ skyMode }) => {
   const isBright = skyMode === 'bright'
-
-  // Palet Awan berdasarkan Mode Langit
-  // Langit Cerah: Putih bersih (#FFFFFF) + Bayangan Biru Muda (#BBE0FC) sesuai referensi gambar baru
-  // Langit Senja: Peach Muda (#FED8AC) + Coral Terracotta (#F3A174) sesuai LEVEL.png
   const cloudBack = isBright ? '#C4E4FD' : '#FED8AC'
   const cloudFront = isBright ? '#FFFFFF' : '#F3A174'
 
@@ -457,12 +525,8 @@ const FullScreenSkyScenery = ({ skyMode }) => {
           : 'bg-gradient-to-b from-[#FFE3B0] via-[#FCD496] to-[#F8BA80]'
       }`}
     >
-      {/* ========================================================== */}
-      {/* ELEMEN KHUSUS LANGIT CERAH (Sesuai Gambar Referensi Baru)   */}
-      {/* ========================================================== */}
       {isBright && (
         <>
-          {/* 1. Sinar Cahaya Diagonal (Sunbeam Ray) dari Atas ke Bawah */}
           <div
             style={{
               background:
@@ -472,41 +536,33 @@ const FullScreenSkyScenery = ({ skyMode }) => {
             className="absolute inset-0"
           />
 
-          {/* 2. Hexagonal Sun Lens Flare di Tengah Atas (Persis Gambar Referensi) */}
           <motion.div
             animate={{ scale: [1, 1.05, 1], rotate: [0, 4, 0] }}
             transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
             className="absolute left-1/2 -translate-x-1/2 -top-14 w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center"
           >
             <svg viewBox="0 0 260 260" className="w-full h-full">
-              {/* Segi Delapan / Hexagon Luar */}
               <polygon
                 points="130,10 205,38 242,110 218,188 148,232 68,215 20,148 38,65"
                 fill="#FFFFFF"
                 fillOpacity="0.28"
               />
-              {/* Hexagon Tengah */}
               <polygon
                 points="130,36 188,58 214,114 196,172 142,204 82,190 48,140 62,80"
                 fill="#FFFFFF"
                 fillOpacity="0.42"
               />
-              {/* Hexagon Dalam */}
               <polygon
                 points="130,64 170,78 188,118 175,156 138,176 96,166 74,132 85,92"
                 fill="#FFFFFF"
                 fillOpacity="0.65"
               />
-              {/* Inti Matahari Putih Bersinar */}
               <circle cx="130" cy="120" r="30" fill="#FFFFFF" />
             </svg>
-
-            {/* Pantulan Hexagon Biru Muda (Lens Flare Bokéh) */}
             <div className="absolute top-[74%] left-[32%] w-16 h-16 rotate-12 bg-[#7DD3FC]/35 backdrop-blur-[1px] [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]" />
             <div className="absolute top-[96%] left-[22%] w-11 h-11 rotate-45 bg-[#38BDF8]/30 [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]" />
           </motion.div>
 
-          {/* 3. Garis Contrail / Angin Diagonal di Langit Biru (Sesuai Referensi) */}
           <svg viewBox="0 0 1440 900" className="absolute inset-0 w-full h-full opacity-75">
             <line
               x1="280"
@@ -537,7 +593,6 @@ const FullScreenSkyScenery = ({ skyMode }) => {
             />
           </svg>
 
-          {/* 4. Kelopak Sakura Pink Melayang di Sisi Kanan (Sesuai Gambar Referensi) */}
           {[
             { right: '18%', top: '26%', delay: 0 },
             { right: '14%', top: '31%', delay: 0.8 },
@@ -567,9 +622,6 @@ const FullScreenSkyScenery = ({ skyMode }) => {
         </>
       )}
 
-      {/* ========================================================== */}
-      {/* ELEMEN KHUSUS LANGIT SENJA (Matahari Senja Hangat)          */}
-      {/* ========================================================== */}
       {!isBright && (
         <motion.div
           animate={{ scale: [1, 1.04, 1], opacity: [0.75, 0.92, 0.75] }}
@@ -578,9 +630,6 @@ const FullScreenSkyScenery = ({ skyMode }) => {
         />
       )}
 
-      {/* ========================================================== */}
-      {/* ALIRAN ANGIN / UDARA BERGERAK (WIND RIBBONS)               */}
-      {/* ========================================================== */}
       <svg
         viewBox="0 0 1440 900"
         preserveAspectRatio="none"
@@ -618,9 +667,6 @@ const FullScreenSkyScenery = ({ skyMode }) => {
         />
       </svg>
 
-      {/* ========================================================== */}
-      {/* AWAN CUMULUS BERLAPIS KIRI, KANAN, DAN HORIZON BAWAH       */}
-      {/* ========================================================== */}
       {/* Awan Kiri Atas */}
       <motion.div
         animate={{ x: [-14, 16, -14], y: [0, -5, 0] }}
@@ -710,7 +756,6 @@ const FullScreenSkyScenery = ({ skyMode }) => {
         </svg>
       </motion.div>
 
-      {/* Kawanan Burung Terbang */}
       <AnimatedBirdFlock className="absolute left-[18%] top-[22%]" delay={0} duration={16} scale={0.95} />
       <AnimatedBirdFlock className="absolute right-[16%] top-[10%]" delay={1.2} duration={19} scale={0.9} />
       <AnimatedBirdFlock className="absolute right-[12%] top-[48%]" delay={2.4} duration={17} scale={0.88} />
@@ -720,161 +765,174 @@ const FullScreenSkyScenery = ({ skyMode }) => {
 }
 
 // ============================================================
-// LANDMARK KREATIF & INTERAKTIF DI TIAP PULAU (PULAU 1 – 6)
+// ORNAMEN SPESIFIK TIAP PULAU (DI-RENDER MENGIKUTI BLUR PULAU)
 // ============================================================
-const IslandCreativeLandmarks = () => (
-  <div className="absolute inset-0 pointer-events-none select-none z-10">
-    {/* PULAU 1 (Bawah Kiri): Kupu-kupu & Bunga Berkilau di Dekat Papan A */}
-    <motion.div
-      style={{ left: '11.5%', top: '76.5%' }}
-      animate={{ x: [0, 12, -4, 0], y: [0, -10, -4, 0], rotate: [-8, 10, -8] }}
-      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute text-base sm:text-xl drop-shadow-xs"
-    >
-      🦋
-    </motion.div>
-
-    {/* PULAU 2 (Bawah Kanan): Riak Air Sungai Berkilau & Bunga Teratai */}
-    {[
-      { x: '73%', y: '69.0%', delay: 0 },
-      { x: '75.5%', y: '71.4%', delay: 0.7 },
-      { x: '78%', y: '73.5%', delay: 1.4 },
-    ].map((w, idx) => (
+const IslandOrnamentForUnit = ({ unitId }) => {
+  if (unitId === 1) {
+    return (
       <motion.div
-        key={`water-${idx}`}
-        style={{ left: w.x, top: w.y }}
-        animate={{ opacity: [0.35, 1, 0.35], scale: [0.85, 1.25, 0.85], x: [0, 4, 0] }}
-        transition={{ duration: 2.2, repeat: Infinity, delay: w.delay }}
-        className="absolute w-3.5 h-1.5 rounded-full bg-white/95 shadow-[0_0_8px_#FFFFFF]"
-      />
-    ))}
-
-    {/* PULAU 3 (Tengah Kiri): Daun Gugur & Lentera Hangat di Pohon Rindang */}
-    {[
-      { x: '36%', y: '46%', delay: 0 },
-      { x: '42%', y: '47.5%', delay: 1.8 },
-      { x: '32%', y: '49%', delay: 3.2 },
-    ].map((leaf, idx) => (
-      <motion.div
-        key={`leaf-${idx}`}
-        style={{ left: leaf.x, top: leaf.y }}
-        animate={{
-          y: [0, 28, 52],
-          x: [0, -10, 6],
-          rotate: [0, 45, -25],
-          opacity: [0, 0.95, 0],
-        }}
-        transition={{ duration: 5.2, repeat: Infinity, delay: leaf.delay, ease: 'easeInOut' }}
-        className="absolute text-xs sm:text-sm"
+        style={{ left: '11.5%', top: '76.5%' }}
+        animate={{ x: [0, 12, -4, 0], y: [0, -10, -4, 0], rotate: [-8, 10, -8] }}
+        transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute text-base sm:text-xl drop-shadow-xs pointer-events-none"
       >
-        🍃
+        🦋
       </motion.div>
-    ))}
-
-    {/* PULAU 4 (Tengah Kanan): Kincir Angin Handoora yang Baling-Balingnya Berputar */}
-    <div
-      style={{ left: '84.5%', top: '36.8%' }}
-      className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-20 sm:h-28 flex flex-col items-center"
-    >
-      <svg viewBox="0 0 100 130" className="w-full h-full overflow-visible drop-shadow-md">
-        {/* Menara Kayu/Batu Kincir */}
-        <polygon points="36,125 64,125 56,52 44,52" fill="#9E5847" stroke="#6E382C" strokeWidth="3" />
-        <polygon points="41,52 59,52 50,36" fill="#EB2B36" stroke="#991B1B" strokeWidth="2.5" />
-        <rect x="45" y="95" width="10" height="30" rx="5" fill="#5C2D23" />
-      </svg>
-      {/* Baling-Baling Kincir Berputar */}
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
-        className="absolute top-[22%] w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"
+    )
+  }
+  if (unitId === 2) {
+    return (
+      <>
+        {[
+          { x: '73%', y: '69.0%', delay: 0 },
+          { x: '75.5%', y: '71.4%', delay: 0.7 },
+          { x: '78%', y: '73.5%', delay: 1.4 },
+        ].map((w, idx) => (
+          <motion.div
+            key={`water-${idx}`}
+            style={{ left: w.x, top: w.y }}
+            animate={{ opacity: [0.35, 1, 0.35], scale: [0.85, 1.25, 0.85], x: [0, 4, 0] }}
+            transition={{ duration: 2.2, repeat: Infinity, delay: w.delay }}
+            className="absolute w-3.5 h-1.5 rounded-full bg-white/95 shadow-[0_0_8px_#FFFFFF] pointer-events-none"
+          />
+        ))}
+      </>
+    )
+  }
+  if (unitId === 3) {
+    return (
+      <>
+        {[
+          { x: '36%', y: '46%', delay: 0 },
+          { x: '42%', y: '47.5%', delay: 1.8 },
+          { x: '32%', y: '49%', delay: 3.2 },
+        ].map((leaf, idx) => (
+          <motion.div
+            key={`leaf-${idx}`}
+            style={{ left: leaf.x, top: leaf.y }}
+            animate={{
+              y: [0, 28, 52],
+              x: [0, -10, 6],
+              rotate: [0, 45, -25],
+              opacity: [0, 0.95, 0],
+            }}
+            transition={{ duration: 5.2, repeat: Infinity, delay: leaf.delay, ease: 'easeInOut' }}
+            className="absolute text-xs sm:text-sm pointer-events-none"
+          >
+            🍃
+          </motion.div>
+        ))}
+      </>
+    )
+  }
+  if (unitId === 4) {
+    return (
+      <div
+        style={{ left: '84.5%', top: '36.8%' }}
+        className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-20 sm:h-28 flex flex-col items-center pointer-events-none"
       >
-        <svg viewBox="0 0 100 100" className="w-full h-full">
-          <g stroke="#7C2D12" strokeWidth="2">
-            <polygon points="50,50 43,6 57,6" fill="#FFFBEB" />
-            <polygon points="50,50 94,43 94,57" fill="#FCA5A5" />
-            <polygon points="50,50 57,94 43,94" fill="#FFFBEB" />
-            <polygon points="50,50 6,57 6,43" fill="#FCA5A5" />
-          </g>
-          <circle cx="50" cy="50" r="7" fill="#EB2B36" stroke="#FFFFFF" strokeWidth="2.5" />
+        <svg viewBox="0 0 100 130" className="w-full h-full overflow-visible drop-shadow-md">
+          <polygon points="36,125 64,125 56,52 44,52" fill="#9E5847" stroke="#6E382C" strokeWidth="3" />
+          <polygon points="41,52 59,52 50,36" fill="#EB2B36" stroke="#991B1B" strokeWidth="2.5" />
+          <rect x="45" y="95" width="10" height="30" rx="5" fill="#5C2D23" />
+        </svg>
+        <motion.div
+          animate={{ rotate: 360 }}
+          transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
+          className="absolute top-[22%] w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"
+        >
+          <svg viewBox="0 0 100 100" className="w-full h-full">
+            <g stroke="#7C2D12" strokeWidth="2">
+              <polygon points="50,50 43,6 57,6" fill="#FFFBEB" />
+              <polygon points="50,50 94,43 94,57" fill="#FCA5A5" />
+              <polygon points="50,50 57,94 43,94" fill="#FFFBEB" />
+              <polygon points="50,50 6,57 6,43" fill="#FCA5A5" />
+            </g>
+            <circle cx="50" cy="50" r="7" fill="#EB2B36" stroke="#FFFFFF" strokeWidth="2.5" />
+          </svg>
+        </motion.div>
+      </div>
+    )
+  }
+  if (unitId === 5) {
+    return (
+      <motion.div
+        style={{ left: '43.5%', top: '18.2%' }}
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-16 sm:h-24 pointer-events-none"
+      >
+        <svg viewBox="0 0 110 120" className="w-full h-full drop-shadow-[0_8px_16px_rgba(236,72,153,0.4)]">
+          <polygon points="28,105 14,62 28,38 42,62" fill="#F472B6" stroke="#FFFFFF" strokeWidth="2" />
+          <polygon points="28,105 28,38 42,62" fill="#EC4899" />
+          <polygon points="55,108 36,48 55,12 74,48" fill="#A78BFA" stroke="#FFFFFF" strokeWidth="2.5" />
+          <polygon points="55,108 55,12 74,48" fill="#7C3AED" />
+          <polygon points="82,105 68,64 82,42 96,64" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="2" />
+          <polygon points="82,105 82,42 96,64" fill="#0284C7" />
+          <circle cx="55" cy="26" r="4" fill="#FFFFFF" />
         </svg>
       </motion.div>
-    </div>
-
-    {/* PULAU 5 (Atas Kiri - Locked Planet Level): Kristal Prisma & Sakura Berkilau */}
-    <motion.div
-      style={{ left: '43.5%', top: '18.2%' }}
-      animate={{ y: [0, -6, 0] }}
-      transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-16 sm:h-24"
-    >
-      <svg viewBox="0 0 110 120" className="w-full h-full drop-shadow-[0_8px_16px_rgba(236,72,153,0.4)]">
-        {/* Kristal Kiri */}
-        <polygon points="28,105 14,62 28,38 42,62" fill="#F472B6" stroke="#FFFFFF" strokeWidth="2" />
-        <polygon points="28,105 28,38 42,62" fill="#EC4899" />
-        {/* Kristal Utama Tengah */}
-        <polygon points="55,108 36,48 55,12 74,48" fill="#A78BFA" stroke="#FFFFFF" strokeWidth="2.5" />
-        <polygon points="55,108 55,12 74,48" fill="#7C3AED" />
-        {/* Kristal Kanan */}
-        <polygon points="82,105 68,64 82,42 96,64" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="2" />
-        <polygon points="82,105 82,42 96,64" fill="#0284C7" />
-        <circle cx="55" cy="26" r="4" fill="#FFFFFF" />
-      </svg>
-    </motion.div>
-
-    {/* PULAU 6 (Puncak Kanan Atas - Locked Final Level): Monumen Istana Bintang & Mahkota Emas */}
-    <motion.div
-      style={{ left: '84.5%', top: '6.2%' }}
-      animate={{ y: [0, -5, 0], scale: [1, 1.03, 1] }}
-      transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
-      className="absolute -translate-x-1/2 -translate-y-full w-16 sm:w-22 h-16 sm:h-22"
-    >
-      <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-[0_10px_20px_rgba(245,158,11,0.5)]">
-        {/* Pilar Kuil Puncak */}
-        <rect x="22" y="96" width="76" height="14" rx="5" fill="#FDE68A" stroke="#B45309" strokeWidth="2.5" />
-        <rect x="30" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
-        <rect x="78" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
-        <path d="M20 56 L60 26 L100 56 Z" fill="#F59E0B" stroke="#92400E" strokeWidth="3" />
-        {/* Bintang Mahkota Puncak */}
-        <polygon
-          points="60,4 66,18 81,18 69,27 73,41 60,33 47,41 51,27 39,18 54,18"
-          fill="#FEF08A"
-          stroke="#D97706"
-          strokeWidth="2.5"
-        />
-      </svg>
-    </motion.div>
-  </div>
-)
+    )
+  }
+  if (unitId === 6) {
+    return (
+      <motion.div
+        style={{ left: '84.5%', top: '6.2%' }}
+        animate={{ y: [0, -5, 0], scale: [1, 1.03, 1] }}
+        transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -translate-x-1/2 -translate-y-full w-16 sm:w-22 h-16 sm:h-22 pointer-events-none"
+      >
+        <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-[0_10px_20px_rgba(245,158,11,0.5)]">
+          <rect x="22" y="96" width="76" height="14" rx="5" fill="#FDE68A" stroke="#B45309" strokeWidth="2.5" />
+          <rect x="30" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
+          <rect x="78" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
+          <path d="M20 56 L60 26 L100 56 Z" fill="#F59E0B" stroke="#92400E" strokeWidth="3" />
+          <polygon
+            points="60,4 66,18 81,18 69,27 73,41 60,33 47,41 51,27 39,18 54,18"
+            fill="#FEF08A"
+            stroke="#D97706"
+            strokeWidth="2.5"
+          />
+        </svg>
+      </motion.div>
+    )
+  }
+  return null
+}
 
 // ============================================================
 // KOMPONEN UTAMA DASHBOARD / BERANDA (/belajar)
 // ============================================================
 const DashboardPage = () => {
   const navigate = useNavigate()
-  const { user, logout, updateProfile, completeGoogleOnboarding } = useAuth()
+  const { user, logout, updateProfile } = useAuth()
   const mapScrollRef = useRef(null)
+  const mapStageRef = useRef(null)
+  const fileInputRef = useRef(null)
 
-  // Navigasi Sidebar sesuai Web - Beranda.png: 'beranda' | 'profil' | 'lainnya'
   const [activeMenu, setActiveMenu] = useState('beranda')
 
-  // State Progres Pengguna (Tersinkronisasi dengan Database Supabase)
   const [progress, setProgress] = useState(() =>
     progressService.getProgress(user?.id)
   )
 
-  // Pulau yang sedang dipilih untuk banner atas & posisi mascot
   const [selectedUnitId, setSelectedUnitId] = useState(1)
-
-  // Keterangan Level (Popover) HANYA muncul saat node di-hover atau di-klik!
   const [hoveredUnitId, setHoveredUnitId] = useState(null)
   const [clickedTooltipUnitId, setClickedTooltipUnitId] = useState(null)
 
   const [mapZoom, setMapZoom] = useState(1)
-  // Mode Langit: 'bright' (Langit Cerah sesuai referensi baru) | 'sunset' (Langit Senja LEVEL.png)
   const [skyMode, setSkyMode] = useState('bright')
-
-  // Popover "10 hari beruntun" sesuai Web - Beranda-1.png
   const [showStreakPopover, setShowStreakPopover] = useState(false)
+
+  // State Blur per Pulau (0..10px) saat pulau terpotong batas atas/bawah layar scroll
+  const [islandBlurs, setIslandBlurs] = useState({
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+    6: 0,
+  })
 
   // Modal Buku Panduan & Kuis Interaktif
   const [guideUnit, setGuideUnit] = useState(null)
@@ -884,36 +942,21 @@ const DashboardPage = () => {
   const [isAnswerChecked, setIsAnswerChecked] = useState(false)
   const [isAnswerCorrect, setIsAnswerCorrect] = useState(false)
 
-  // Form Profil Pengguna
+  // Form Profil Pengguna + Ganti Foto Profil
   const [profileForm, setProfileForm] = useState({
     nama: user?.nama || 'Sobat Handoora',
     umur: user?.umur || 20,
+    avatar_url: user?.avatar_url || '/assets/avatar-orangutan.png',
   })
-
-  // Modal Onboarding Google OAuth
-  const [showGoogleOnboarding, setShowGoogleOnboarding] = useState(false)
-  const [onboardingForm, setOnboardingForm] = useState({
-    nama: user?.nama || '',
-    umur: user?.umur || '',
-    password: '',
-  })
-  const [isSavingOnboarding, setIsSavingOnboarding] = useState(false)
+  const [isSavingProfile, setIsSavingProfile] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
       setProfileForm({
         nama: user.nama || 'Sobat Handoora',
         umur: user.umur || 20,
+        avatar_url: user.avatar_url || '/assets/avatar-orangutan.png',
       })
-
-      if (user.auth_provider === 'google' && (user.umur === null || user.umur === undefined)) {
-        setOnboardingForm({
-          nama: user.nama || '',
-          umur: '',
-          password: '',
-        })
-        setShowGoogleOnboarding(true)
-      }
 
       progressService.syncFromSupabase(user.id).then((remote) => {
         if (remote) {
@@ -923,7 +966,7 @@ const DashboardPage = () => {
     }
   }, [user])
 
-  // Tentukan SATU node level yang sedang aktif saat ini (unlocked tertinggi yang belum selesai, atau pulau tertinggi yang terbuka)
+  // Tentukan SATU node level yang sedang ter-unlock saat ini (mulai dari Level 1)
   const unlockedIds = ISLAND_UNITS.filter(
     (u) => progress.unlockedIslands.includes(u.id) || u.id === 1
   ).map((u) => u.id)
@@ -935,7 +978,40 @@ const DashboardPage = () => {
       ? Math.min(...uncompletedUnlockedIds)
       : Math.max(1, ...unlockedIds)
 
-  // Scroll otomatis ke pulau aktif bawah saat pertama kali halaman Beranda dibuka
+  // Hitung secara halus tingkat blur tiap pulau yang terpotong batas atas/bawah viewport saat scroll
+  const updateIslandScrollBlurs = useCallback(() => {
+    const scrollEl = mapScrollRef.current
+    const stageEl = mapStageRef.current
+    if (!scrollEl || !stageEl) return
+
+    const viewRect = scrollEl.getBoundingClientRect()
+    const stageRect = stageEl.getBoundingClientRect()
+
+    // Zona transisi halus di tepi atas (90px) & bawah (90px) layar
+    const topSafeEdge = viewRect.top + 85
+    const bottomSafeEdge = viewRect.bottom - 75
+    const fadeZone = 135
+
+    const nextBlurs = {}
+    for (const unit of ISLAND_UNITS) {
+      const islTop = stageRect.top + (unit.layerBox.top / 100) * stageRect.height
+      const islBottom =
+        stageRect.top +
+        ((unit.layerBox.top + unit.layerBox.height) / 100) * stageRect.height
+
+      let cutRatio = 0
+      if (islTop < topSafeEdge) {
+        cutRatio = Math.max(cutRatio, Math.min(1, (topSafeEdge - islTop) / fadeZone))
+      }
+      if (islBottom > bottomSafeEdge) {
+        cutRatio = Math.max(cutRatio, Math.min(1, (islBottom - bottomSafeEdge) / fadeZone))
+      }
+
+      nextBlurs[unit.id] = +(cutRatio * 7.5).toFixed(2)
+    }
+    setIslandBlurs(nextBlurs)
+  }, [])
+
   useEffect(() => {
     if (activeMenu === 'beranda' && mapScrollRef.current) {
       const el = mapScrollRef.current
@@ -943,18 +1019,25 @@ const DashboardPage = () => {
         ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
       const targetY = (targetUnit.nodePos.y / 100) * el.scrollHeight
       el.scrollTo({
-        top: Math.max(0, targetY - el.clientHeight * 0.55),
+        top: Math.max(0, targetY - el.clientHeight * 0.54),
         behavior: 'smooth',
       })
+      setTimeout(updateIslandScrollBlurs, 120)
+      setTimeout(updateIslandScrollBlurs, 450)
     }
-  }, [activeMenu, currentActiveUnitId])
+  }, [activeMenu, currentActiveUnitId, updateIslandScrollBlurs])
+
+  useEffect(() => {
+    window.addEventListener('resize', updateIslandScrollBlurs)
+    return () => window.removeEventListener('resize', updateIslandScrollBlurs)
+  }, [updateIslandScrollBlurs])
 
   const selectedUnit =
     ISLAND_UNITS.find((u) => u.id === selectedUnitId) ||
     ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) ||
     ISLAND_UNITS[0]
 
-  // Mascot berdiri di pulau aktif saat ini (atau pulau yang sedang dipilih jika sudah terbuka)
+  // Mascot berdiri pada pulau level saat ini (atau pulau yang sedang dipilih jika sudah terbuka)
   const mascotUnit =
     progress.unlockedIslands.includes(selectedUnit.id) || selectedUnit.id === 1
       ? selectedUnit
@@ -983,7 +1066,7 @@ const DashboardPage = () => {
     const isUnlocked = progress.unlockedIslands.includes(unit.id) || unit.id === 1
     if (!isUnlocked) {
       toast.error(
-        `Selesaikan Pulau ${unit.id - 1} terlebih dahulu untuk membuka ${unit.unitLabel}! 🔒`
+        `Selesaikan Level ${unit.id - 1} terlebih dahulu untuk membuka ${unit.unitLabel}! 🔒`
       )
       return
     }
@@ -1002,17 +1085,6 @@ const DashboardPage = () => {
     const correct = selectedOption === currentQ.correctIndex
     setIsAnswerCorrect(correct)
     setIsAnswerChecked(true)
-
-    if (!correct) {
-      const updated = {
-        ...progress,
-        hearts: Math.max(1, progress.hearts - 1),
-      }
-      setProgress(updated)
-      if (user?.id) {
-        progressService.saveProgressToSupabase(user.id, updated)
-      }
-    }
   }
 
   const handleNextQuestion = async () => {
@@ -1040,7 +1112,7 @@ const DashboardPage = () => {
         dailyQuests: {
           ...progress.dailyQuests,
           xpEarnedToday: (progress.dailyQuests?.xpEarnedToday || 0) + quizUnit.xpReward,
-          highScoreLessons: (progress.dailyQuests?.highScoreLessons || 0) + 1,
+          highScoreLessons: completedIslands.length,
         },
       }
       setProgress(updated)
@@ -1051,44 +1123,41 @@ const DashboardPage = () => {
         await progressService.saveProgressToSupabase(user.id, updated)
       }
       toast.success(
-        `Selamat! ${quizUnit.unitLabel} selesai! +${quizUnit.xpReward} XP disimpan ke Supabase! 🎉`
+        `Selamat! ${quizUnit.unitLabel} selesai! Level berikutnya telah terbuka! 🎉`
       )
+    }
+  }
+
+  const handlePhotoUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    if (!file.type.startsWith('image/')) {
+      toast.error('Pilih file gambar (JPG, PNG, atau WEBP)')
+      return
+    }
+    try {
+      const dataUrl = await resizeImageFileToDataUrl(file, 240)
+      setProfileForm((p) => ({ ...p, avatar_url: dataUrl }))
+      toast.success('Foto profil dipilih! Klik Simpan Perubahan untuk menerapkan.')
+    } catch {
+      toast.error('Gagal memuat gambar, silakan coba foto lain.')
     }
   }
 
   const handleSaveProfile = async (e) => {
     e.preventDefault()
-    await updateProfile({
-      nama: profileForm.nama,
-      umur: parseInt(profileForm.umur, 10) || 20,
-    })
-    toast.success('Profil berhasil diperbarui di Supabase! ✨')
-  }
-
-  const handleCompleteOnboarding = async (e) => {
-    e.preventDefault()
-    const parsedAge = parseInt(onboardingForm.umur, 10)
-    if (!parsedAge || parsedAge < 4 || parsedAge > 100) {
-      toast.error('Masukkan umur yang valid (4 - 100 tahun)')
-      return
-    }
-    if (onboardingForm.password && onboardingForm.password.length < 6) {
-      toast.error('Password minimal 6 karakter')
-      return
-    }
-    setIsSavingOnboarding(true)
+    setIsSavingProfile(true)
     try {
-      await completeGoogleOnboarding({
-        nama: onboardingForm.nama.trim() || user?.nama || 'Sobat Handoora',
-        umur: parsedAge,
-        password: onboardingForm.password,
+      await updateProfile({
+        nama: profileForm.nama.trim() || 'Sobat Handoora',
+        umur: parseInt(profileForm.umur, 10) || 20,
+        avatar_url: profileForm.avatar_url,
       })
-      setShowGoogleOnboarding(false)
-      toast.success('Data profil & keamanan akun berhasil disimpan ke Supabase! 🎉')
-    } catch (err) {
-      toast.error(err.message || 'Gagal menyimpan profil ke Supabase')
+      toast.success('Informasi profil berhasil diperbarui! ✨')
+    } catch {
+      toast.error('Gagal memperbarui profil, silakan coba lagi.')
     } finally {
-      setIsSavingOnboarding(false)
+      setIsSavingProfile(false)
     }
   }
 
@@ -1099,6 +1168,8 @@ const DashboardPage = () => {
   }
 
   const activeStreakDays = Math.min(7, Math.max(1, progress.streak % 8 || 1))
+  const currentAvatar =
+    profileForm.avatar_url || user?.avatar_url || '/assets/avatar-orangutan.png'
 
   return (
     <PageTransition>
@@ -1160,23 +1231,17 @@ const DashboardPage = () => {
               onClick={() => setActiveMenu('profil')}
               className="bg-white border-2 border-[#ECECEC] hover:border-[#FCA5A5] rounded-2xl p-3.5 flex items-center gap-3 cursor-pointer transition-all shadow-2xs"
             >
-              {user?.avatar_url ? (
-                <img
-                  src={user.avatar_url}
-                  alt={user.nama}
-                  className="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-[#EB2B36]"
-                />
-              ) : (
-                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#EB2B36] to-[#B91C1C] flex items-center justify-center font-extrabold text-sm text-white shrink-0 shadow-xs">
-                  {(user?.nama || 'S')[0].toUpperCase()}
-                </div>
-              )}
+              <img
+                src={currentAvatar}
+                alt={user?.nama || 'Profil'}
+                className="w-10 h-10 rounded-full object-cover shrink-0 border-2 border-[#EB2B36] bg-[#FFF1F2]"
+              />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-extrabold text-[#333333] truncate">
                   {user?.nama || 'Sobat Handoora'}
                 </p>
                 <p className="text-[11px] font-bold text-[#E02424] truncate">
-                  ⭐ {progress.xp} XP • 🏝️ {progress.completedIslands.length}/{ISLAND_UNITS.length} Pulau
+                  Level {currentActiveUnitId} • {progress.completedIslands.length}/{ISLAND_UNITS.length} Selesai
                 </p>
               </div>
             </div>
@@ -1191,7 +1256,7 @@ const DashboardPage = () => {
         </aside>
 
         {/* ============================================================ */}
-        {/* HEADER MOBILE (< lg)                                         */}
+        {/* HEADER MOBILE (< lg) — HANYA LOGO & API STREAK               */}
         {/* ============================================================ */}
         <header className="lg:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-white/60 px-4 py-2.5 flex items-center justify-between shadow-xs">
           <div
@@ -1206,21 +1271,13 @@ const DashboardPage = () => {
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="px-2.5 py-1 rounded-xl bg-[#FFF6E5] border border-[#FDE0A6] text-[11px] font-extrabold text-[#D97706] flex items-center gap-1">
-              ⭐ {progress.xp}
-            </div>
-            <div className="px-2.5 py-1 rounded-xl bg-[#EEF8FF] border border-[#BAE6FD] text-[11px] font-extrabold text-[#0284C7] flex items-center gap-1">
-              💎 {progress.gems}
-            </div>
-            <button
-              onClick={() => setShowStreakPopover((v) => !v)}
-              className="px-3 py-1 rounded-xl bg-[#F8EFEF] border border-[#F5D0D0] flex items-center gap-1.5 cursor-pointer"
-            >
-              <IconFlame className="w-4 h-4" />
-              <span className="text-xs font-black text-[#E02424]">{progress.streak}</span>
-            </button>
-          </div>
+          <button
+            onClick={() => setShowStreakPopover((v) => !v)}
+            className="px-3.5 py-1.5 rounded-xl bg-[#F8EFEF] border border-[#F5D0D0] flex items-center gap-1.5 cursor-pointer"
+          >
+            <IconFlame className="w-4 h-5" />
+            <span className="text-xs font-black text-[#E02424]">{progress.streak}</span>
+          </button>
         </header>
 
         {/* ============================================================ */}
@@ -1228,13 +1285,12 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         <main className="relative z-10 flex-1 flex flex-col h-full overflow-hidden">
           {/* ========================================================== */}
-          {/* VIEW A: BERANDA (SCROLLABLE 6-ISLAND MAP DI ATAS SCENERY)  */}
+          {/* VIEW A: BERANDA (PETA 6 PULAU DENGAN EDGE BLUR SMOOTH)     */}
           {/* ========================================================== */}
           {activeMenu === 'beranda' && (
             <div className="relative flex-1 flex flex-col h-full overflow-hidden">
-              {/* FLOATING TOP BAR: Banner Unit Aktif + Tombol Streak UI 4 */}
+              {/* FLOATING TOP BAR: Banner Level Aktif + HANYA API STREAK di Kanan Atas */}
               <div className="relative z-40 px-4 sm:px-7 pt-3 sm:pt-5 pb-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-none">
-                {/* Banner Unit Aktif */}
                 <motion.div
                   key={selectedUnit.id}
                   initial={{ y: -8, opacity: 0 }}
@@ -1266,24 +1322,8 @@ const DashboardPage = () => {
                   </motion.button>
                 </motion.div>
 
-                {/* Status Bar Kanan Atas + Tombol Streak & Popover "10 hari beruntun" */}
-                <div className="pointer-events-auto relative flex items-center justify-end gap-2.5 self-end md:self-auto">
-                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
-                    <span className="text-sm">⭐</span>
-                    <span className="text-xs font-black text-[#D97706]">{progress.xp} XP</span>
-                  </div>
-
-                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
-                    <span className="text-sm">💎</span>
-                    <span className="text-xs font-black text-[#0284C7]">{progress.gems}</span>
-                  </div>
-
-                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
-                    <span className="text-sm">❤️</span>
-                    <span className="text-xs font-black text-[#E02424]">{progress.hearts}</span>
-                  </div>
-
-                  {/* Tombol Streak Utama (Sesuai Web - Beranda.png & Web - Beranda-1.png) */}
+                {/* Kanan Atas: HANYA Api Streak (Sesuai Web - Beranda.png & Web - Beranda-1.png) */}
+                <div className="pointer-events-auto relative flex items-center justify-end self-end md:self-auto">
                   <motion.button
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
@@ -1300,7 +1340,7 @@ const DashboardPage = () => {
                     </span>
                   </motion.button>
 
-                  {/* POPOVER "10 hari beruntun" (Sesuai Desain Web - Beranda-1.png) */}
+                  {/* POPOVER "X hari beruntun" (Sesuai Desain Web - Beranda-1.png) */}
                   <AnimatePresence>
                     {showStreakPopover && (
                       <motion.div
@@ -1367,17 +1407,25 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* SCROLLABLE 6-ISLAND STAGE (DENGAN PADDING ATAS & BAWAH LEGA) */}
+              {/* SCROLLABLE 6-ISLAND STAGE DENGAN EDGE-BLUR MASK HALUS       */}
               {/* ========================================================== */}
               <div
                 ref={mapScrollRef}
+                onScroll={updateIslandScrollBlurs}
                 onClick={() => {
                   if (showStreakPopover) setShowStreakPopover(false)
                   if (clickedTooltipUnitId !== null) setClickedTooltipUnitId(null)
                 }}
+                style={{
+                  WebkitMaskImage:
+                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.22) 4%, rgba(0,0,0,0.78) 10%, #000000 16%, #000000 84%, rgba(0,0,0,0.78) 90%, rgba(0,0,0,0.22) 96%, transparent 100%)',
+                  maskImage:
+                    'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.22) 4%, rgba(0,0,0,0.78) 10%, #000000 16%, #000000 84%, rgba(0,0,0,0.78) 90%, rgba(0,0,0,0.22) 96%, transparent 100%)',
+                }}
                 className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-44 pb-36 scroll-smooth"
               >
                 <motion.div
+                  ref={mapStageRef}
                   animate={{ scale: mapZoom, y: [0, -5, 0] }}
                   transition={{
                     scale: { type: 'spring', stiffness: 260, damping: 24 },
@@ -1385,27 +1433,51 @@ const DashboardPage = () => {
                   }}
                   className="relative w-full max-w-[760px] aspect-[1445/2020] mx-auto select-none"
                 >
-                  {/* 1. Gambar Utama 6 Pulau & Jembatan Batu Melayang */}
-                  <img
-                    src="/assets/islands-map.png"
-                    alt="Peta 6 Pulau Pembelajaran Handoora"
-                    className="w-full h-full object-contain pointer-events-none drop-shadow-[0_20px_32px_rgba(0,0,0,0.22)]"
-                    draggable={false}
-                  />
+                  {/* 1. RENDER TIAP PULAU SEBAGAI LAYER MANDIRI DENGAN SMOOTH EDGE-BLUR SAAT TERPOTONG */}
+                  {ISLAND_UNITS.map((unit) => {
+                    const blurVal = islandBlurs[unit.id] || 0
+                    const opacityVal = Math.max(0.55, 1 - blurVal * 0.045)
+                    return (
+                      <div
+                        key={`island-layer-${unit.id}`}
+                        style={{
+                          filter: blurVal > 0.15 ? `blur(${blurVal}px)` : 'none',
+                          opacity: opacityVal,
+                        }}
+                        className="absolute inset-0 pointer-events-none transition-[filter,opacity] duration-300 ease-out"
+                      >
+                        <img
+                          src={unit.layerBox.src}
+                          alt={unit.islandName}
+                          style={{
+                            left: `${unit.layerBox.left}%`,
+                            top: `${unit.layerBox.top}%`,
+                            width: `${unit.layerBox.width}%`,
+                            height: `${unit.layerBox.height}%`,
+                          }}
+                          className="absolute object-contain drop-shadow-[0_18px_28px_rgba(0,0,0,0.22)]"
+                          draggable={false}
+                        />
+                        <IslandOrnamentForUnit unitId={unit.id} />
+                      </div>
+                    )
+                  })}
 
-                  {/* 2. Landmark Kreatif & Animasi Alam di Tiap Pulau (Pulau 1 - 6) */}
-                  <IslandCreativeLandmarks />
-
-                  {/* 3. Indikator Cahaya pada 16 Batu Pijakan (Stepping Stones) */}
+                  {/* 2. Indikator Cahaya pada 16 Batu Pijakan (Stepping Stones) */}
                   {STEPPING_STONES.map((stone, idx) => {
                     const isPathUnlocked =
                       progress.unlockedIslands.includes(stone.toUnit) ||
                       progress.completedIslands.includes(stone.fromUnit)
+                    const stoneBlur = islandBlurs[stone.toUnit] || 0
                     return (
                       <div
                         key={`stone-${idx}`}
-                        style={{ left: `${stone.x}%`, top: `${stone.y}%` }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
+                        style={{
+                          left: `${stone.x}%`,
+                          top: `${stone.y}%`,
+                          filter: stoneBlur > 0.2 ? `blur(${stoneBlur * 0.7}px)` : 'none',
+                        }}
+                        className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10 transition-[filter] duration-300"
                       >
                         <div
                           className={`w-2.5 h-2 sm:w-3.5 sm:h-2.5 rounded-full border transition-all ${
@@ -1418,7 +1490,7 @@ const DashboardPage = () => {
                     )
                   })}
 
-                  {/* 4. MASCOT DOORA BERDIRI DI PULAU AKTIF (TIDAK TERTUTUP POPOVER) */}
+                  {/* 3. MASCOT ORANG UTAN HD (SESUAI LANDING PAGE) DI PULAU LEVEL AKTIF */}
                   <motion.div
                     layout
                     initial={false}
@@ -1431,16 +1503,22 @@ const DashboardPage = () => {
                       stiffness: 170,
                       damping: 20,
                     }}
+                    style={{
+                      filter:
+                        (islandBlurs[mascotUnit.id] || 0) > 0.2
+                          ? `blur(${islandBlurs[mascotUnit.id]}px)`
+                          : 'none',
+                    }}
                     onClick={(e) => {
                       e.stopPropagation()
                       startQuiz(mascotUnit)
                     }}
-                    className="absolute -translate-x-1/2 -translate-y-[82%] z-20 cursor-pointer group"
+                    className="absolute -translate-x-1/2 -translate-y-[84%] z-20 cursor-pointer group transition-[filter] duration-300"
                   >
                     {/* Bayangan Elips di Rumput Bawah Kaki Maskot */}
-                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 sm:w-16 h-3 sm:h-4 rounded-full bg-black/25 blur-[2px]" />
+                    <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-14 sm:w-20 h-3.5 sm:h-4 rounded-full bg-black/28 blur-[2px]" />
 
-                    {/* Karakter Maskot Doora (Group 13.png) */}
+                    {/* Karakter Maskot Orang Utan HD (Dari Landing Page) */}
                     <motion.img
                       src="/assets/mascot-standing.png"
                       alt="Maskot Doora"
@@ -1454,20 +1532,20 @@ const DashboardPage = () => {
                         ease: 'easeInOut',
                       }}
                       whileHover={{ scale: 1.08 }}
-                      className="w-14 sm:w-20 md:w-24 h-auto object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.3)]"
+                      className="w-16 sm:w-24 md:w-28 h-auto object-contain drop-shadow-[0_12px_18px_rgba(0,0,0,0.34)]"
                       draggable={false}
                     />
                   </motion.div>
 
-                  {/* 5. NODE LEVEL 3D PADA 6 PULAU + KETERANGAN LEVEL HANYA SAAT HOVER/KLIK */}
+                  {/* 4. NODE LEVEL 3D PADA 6 PULAU + KETERANGAN LEVEL SAAT HOVER/KLIK */}
                   {ISLAND_UNITS.map((unit) => {
                     const isCompleted = progress.completedIslands.includes(unit.id)
                     const isUnlocked =
                       progress.unlockedIslands.includes(unit.id) || unit.id === 1
-                    // HANYA menyala pada node level yang ter-unlock saat ini (level yang sudah terlewati tidak menyala!)
                     const isCurrentActiveNode = unit.id === currentActiveUnitId
                     const isTooltipVisible =
                       hoveredUnitId === unit.id || clickedTooltipUnitId === unit.id
+                    const nodeBlur = islandBlurs[unit.id] || 0
 
                     return (
                       <div
@@ -1475,12 +1553,16 @@ const DashboardPage = () => {
                         style={{
                           left: `${unit.nodePos.x}%`,
                           top: `${unit.nodePos.y}%`,
+                          filter:
+                            !isTooltipVisible && nodeBlur > 0.2
+                              ? `blur(${nodeBlur * 0.85}px)`
+                              : 'none',
                         }}
                         onMouseEnter={() => setHoveredUnitId(unit.id)}
                         onMouseLeave={() =>
                           setHoveredUnitId((prev) => (prev === unit.id ? null : prev))
                         }
-                        className={`absolute -translate-x-1/2 -translate-y-1/2 ${
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 transition-[filter] duration-300 ${
                           isTooltipVisible ? 'z-[80]' : 'z-30'
                         }`}
                       >
@@ -1496,18 +1578,14 @@ const DashboardPage = () => {
                               className="absolute bottom-[calc(100%+18px)] left-1/2 -translate-x-1/2 w-52 sm:w-60 z-[90]"
                             >
                               <div className="bg-white/98 backdrop-blur-md border-2 border-[#EB2B36] rounded-2xl p-3.5 text-center shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
-                                <div className="flex items-center justify-center gap-1.5 mb-1">
-                                  <span className="px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[10px] font-black text-[#E02424] uppercase tracking-wider">
+                                <div className="flex items-center justify-center gap-1.5 mb-1.5">
+                                  <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0F0] text-[10px] font-black text-[#E02424] uppercase tracking-wider">
                                     {unit.unitLabel} • {unit.islandName}
                                   </span>
                                 </div>
 
-                                <p className="text-xs sm:text-[13px] font-extrabold text-[#2B2B2B] leading-snug mb-1">
+                                <p className="text-xs sm:text-[13px] font-extrabold text-[#2B2B2B] leading-snug mb-3">
                                   {unit.title}
-                                </p>
-
-                                <p className="text-[11px] font-bold text-[#D97706] mb-2.5">
-                                  Hadiah: +{unit.xpReward} XP • +{unit.gemReward} 💎
                                 </p>
 
                                 {isUnlocked ? (
@@ -1531,12 +1609,11 @@ const DashboardPage = () => {
                                     }}
                                     className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider cursor-pointer"
                                   >
-                                    🔒 LIHAT PANDUAN UNIT
+                                    🔒 LIHAT PANDUAN LEVEL
                                   </button>
                                 )}
                               </div>
 
-                              {/* Panah Bawah Popover */}
                               <div className="w-3.5 h-3.5 bg-white border-r-2 border-b-2 border-[#EB2B36] rotate-45 mx-auto -mt-2" />
                             </motion.div>
                           )}
@@ -1588,7 +1665,6 @@ const DashboardPage = () => {
                               : 'bg-gradient-to-b from-[#8C827A] to-[#6B625B] border-[#D6CFC7] border-b-[6px] border-b-[#47403B] shadow-[0_6px_14px_rgba(0,0,0,0.28)]'
                           }`}
                         >
-                          {/* Kilau Highlight Atas Node */}
                           <div className="absolute top-1 left-1/2 -translate-x-1/2 w-7 sm:w-9 h-2 rounded-full bg-white/30 pointer-events-none" />
 
                           {isCompleted ? (
@@ -1623,12 +1699,11 @@ const DashboardPage = () => {
               {/* FLOATING BOTTOM CONTROLS: Quick Jump 6 Pulau + Mode Langit */}
               {/* ========================================================== */}
               <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-4 left-0 right-0 z-40 px-4 sm:px-7 flex flex-wrap items-center justify-between gap-3">
-                {/* Kiri Bawah: Navigasi Cepat Pulau 1 - 6 */}
                 <div className="pointer-events-auto flex flex-wrap items-center gap-2">
                   <div className="hidden sm:flex bg-white/92 backdrop-blur-md border-2 border-white/80 px-3.5 py-2 rounded-full items-center gap-2 shadow-md">
                     <span className="text-[#E02424] text-sm">📍</span>
                     <span className="text-xs font-extrabold text-[#333333]">
-                      6 Pulau BISINDO
+                      Peta Level
                     </span>
                   </div>
 
@@ -1652,14 +1727,14 @@ const DashboardPage = () => {
                               : 'text-[#999999] hover:bg-[#F5F5F5]'
                           }`}
                         >
-                          {unlocked ? `Pulau ${u.id}` : `🔒 ${u.id}`}
+                          {unlocked ? `Level ${u.id}` : `🔒 ${u.id}`}
                         </button>
                       )
                     })}
                   </div>
                 </div>
 
-                {/* Kanan Bawah: Pilihan 2 Mode Langit (Langit Cerah & Langit Senja) + Zoom */}
+                {/* Pilihan 2 Mode Langit (Langit Cerah & Langit Senja) + Zoom */}
                 <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
                   <div className="bg-white/92 backdrop-blur-md border-2 border-white/80 p-1 rounded-2xl flex items-center gap-1 shadow-md">
                     <button
@@ -1712,7 +1787,7 @@ const DashboardPage = () => {
           )}
 
           {/* ========================================================== */}
-          {/* VIEW B: PROFIL PENGGUNA                                    */}
+          {/* VIEW B: PROFIL PENGGUNA (DENGAN FITUR GANTI FOTO PROFIL)   */}
           {/* ========================================================== */}
           {activeMenu === 'profil' && (
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24">
@@ -1722,61 +1797,97 @@ const DashboardPage = () => {
                   animate={{ opacity: 1, y: 0 }}
                   className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 space-y-6 shadow-[0_16px_44px_rgba(0,0,0,0.10)]"
                 >
-                  <div className="flex flex-col sm:flex-row items-center gap-5 pb-6 border-b border-[#EEEEEE]">
-                    {user?.avatar_url ? (
+                  {/* Header Foto Profil & Informasi Akun */}
+                  <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-[#EEEEEE]">
+                    <div className="relative group shrink-0">
                       <img
-                        src={user.avatar_url}
-                        alt={user.nama}
-                        className="w-20 h-20 rounded-3xl object-cover border-3 border-[#EB2B36] shadow-md"
+                        src={currentAvatar}
+                        alt={user?.nama || 'Foto Profil'}
+                        className="w-24 h-24 rounded-3xl object-cover border-3 border-[#EB2B36] shadow-md bg-[#FFF1F2]"
                       />
-                    ) : (
-                      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#EB2B36] to-[#B91C1C] flex items-center justify-center text-3xl font-black text-white shadow-md">
-                        {(user?.nama || 'S')[0].toUpperCase()}
-                      </div>
-                    )}
-                    <div className="text-center sm:text-left">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="absolute -bottom-2 -right-2 bg-[#EB2B36] hover:bg-[#D91E2A] text-white text-[11px] font-extrabold px-2.5 py-1 rounded-xl border-2 border-white shadow-md cursor-pointer transition-transform hover:scale-105"
+                      >
+                        📷 Ubah
+                      </button>
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+                    </div>
+
+                    <div className="text-center sm:text-left flex-1">
                       <h1 className="text-2xl font-extrabold text-[#2B2B2B]">
                         {user?.nama || 'Sobat Handoora'}
                       </h1>
                       <p className="text-xs sm:text-sm text-[#777777] font-bold mt-0.5">
-                        {user?.email || 'sobat@handoora.id'} • Umur {user?.umur || 20} Tahun
+                        {user?.email || 'sobat@handoora.id'} • {user?.umur || 20} Tahun
                       </p>
-                      <span className="inline-block mt-2 px-3 py-1 rounded-full bg-[#FFF0F0] border border-[#FECDD3] text-[11px] font-extrabold text-[#E02424]">
-                        Metode Login: {(user?.auth_provider || 'email').toUpperCase()} • Tersimpan di Supabase 🤟
-                      </span>
+                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
+                        <span className="px-3 py-1 rounded-full bg-[#FFF0F0] border border-[#FECDD3] text-[11px] font-extrabold text-[#E02424]">
+                          🔥 {progress.streak} Hari Beruntun
+                        </span>
+                        <span className="px-3 py-1 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[11px] font-extrabold text-[#059669]">
+                          🏝️ {progress.completedIslands.length} dari {ISLAND_UNITS.length} Level Selesai
+                        </span>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                    <div className="bg-[#FFF9EB] border-2 border-[#FDE68A] rounded-2xl p-4">
-                      <p className="text-xs text-[#92400E] font-bold">Total XP</p>
-                      <p className="text-xl font-extrabold text-[#D97706] mt-1">
-                        ⭐ {progress.xp}
-                      </p>
+                  {/* Pilihan Foto Profil / Avatar */}
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h2 className="text-sm font-extrabold text-[#333333]">
+                        Pilih Foto Profil
+                      </h2>
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="text-xs font-extrabold text-[#E02424] hover:underline cursor-pointer"
+                      >
+                        + Unggah Foto dari Perangkat
+                      </button>
                     </div>
-                    <div className="bg-[#FFF1F2] border-2 border-[#FECDD3] rounded-2xl p-4">
-                      <p className="text-xs text-[#9F1239] font-bold">Hari Beruntun</p>
-                      <p className="text-xl font-extrabold text-[#E02424] mt-1">
-                        🔥 {progress.streak} Hari
-                      </p>
-                    </div>
-                    <div className="bg-[#ECFDF5] border-2 border-[#A7F3D0] rounded-2xl p-4">
-                      <p className="text-xs text-[#065F46] font-bold">Pulau Selesai</p>
-                      <p className="text-xl font-extrabold text-[#059669] mt-1">
-                        🏝️ {progress.completedIslands.length} / {ISLAND_UNITS.length}
-                      </p>
-                    </div>
-                    <div className="bg-[#F0F9FF] border-2 border-[#BAE6FD] rounded-2xl p-4">
-                      <p className="text-xs text-[#075985] font-bold">Permata</p>
-                      <p className="text-xl font-extrabold text-[#0284C7] mt-1">
-                        💎 {progress.gems}
-                      </p>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      {AVATAR_PRESETS.map((av) => {
+                        const isSelected = profileForm.avatar_url === av.src
+                        return (
+                          <button
+                            key={av.id}
+                            type="button"
+                            onClick={() =>
+                              setProfileForm((p) => ({ ...p, avatar_url: av.src }))
+                            }
+                            className={`flex items-center gap-2.5 p-2 pr-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
+                              isSelected
+                                ? 'bg-[#FFF0F0] border-[#E02424] shadow-2xs'
+                                : 'bg-[#FAFAFA] border-[#E6E6E6] hover:border-[#CCCCCC]'
+                            }`}
+                          >
+                            <img
+                              src={av.src}
+                              alt={av.label}
+                              className="w-10 h-10 rounded-xl object-cover"
+                            />
+                            <span className="text-xs font-extrabold text-[#333333]">
+                              {av.label}
+                            </span>
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
 
-                  <form onSubmit={handleSaveProfile} className="space-y-4 pt-2">
+                  {/* Form Perbarui Informasi Profil */}
+                  <form onSubmit={handleSaveProfile} className="space-y-4 pt-2 border-t border-[#EEEEEE]">
                     <h2 className="text-base font-extrabold text-[#333333]">
-                      Perbarui Informasi Profil (Database Supabase)
+                      Perbarui Informasi Profil
                     </h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
@@ -1805,8 +1916,13 @@ const DashboardPage = () => {
                         />
                       </div>
                     </div>
-                    <Button type="submit" variant="primary" size="md">
-                      SIMPAN KE SUPABASE
+                    <Button
+                      type="submit"
+                      variant="primary"
+                      size="md"
+                      disabled={isSavingProfile}
+                    >
+                      {isSavingProfile ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN'}
                     </Button>
                   </form>
                 </motion.div>
@@ -1828,7 +1944,7 @@ const DashboardPage = () => {
                   >
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-extrabold text-[#2B2B2B]">
-                        🎯 Misi Harian BISINDO
+                        🎯 Target Belajar Harian
                       </h2>
                       <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-extrabold text-[#E02424]">
                         Aktif Hari Ini
@@ -1838,18 +1954,15 @@ const DashboardPage = () => {
                     <div className="space-y-4">
                       <div>
                         <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                          <span>⚡ Dapatkan 50 XP Belajar</span>
+                          <span>🔥 Jaga Runtunan Belajar Harian</span>
                           <span className="text-[#E02424]">
-                            {Math.min(50, progress.dailyQuests?.xpEarnedToday || 25)} / 50 XP
+                            {progress.streak} Hari Beruntun
                           </span>
                         </div>
                         <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
                           <div
                             style={{
-                              width: `${Math.min(
-                                100,
-                                ((progress.dailyQuests?.xpEarnedToday || 25) / 50) * 100
-                              )}%`,
+                              width: `${Math.min(100, (activeStreakDays / 7) * 100)}%`,
                             }}
                             className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full transition-all duration-500"
                           />
@@ -1858,7 +1971,7 @@ const DashboardPage = () => {
 
                       <div>
                         <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                          <span>🏝️ Selesaikan Pulau Pembelajaran</span>
+                          <span>🏝️ Selesaikan 6 Pulau Pembelajaran</span>
                           <span className="text-[#D97706]">
                             {progress.completedIslands.length} / {ISLAND_UNITS.length} Pulau
                           </span>
@@ -1886,20 +1999,24 @@ const DashboardPage = () => {
                   >
                     <div className="flex items-center justify-between">
                       <h2 className="text-lg font-extrabold text-[#2B2B2B]">
-                        🏆 Papan Skor Sobat Handoora
+                        🏆 Peringkat Pembelajar
                       </h2>
                       <span className="text-xs font-extrabold text-[#D97706]">
-                        Liga Berlian
+                        Minggu Ini
                       </span>
                     </div>
 
                     <div className="space-y-2.5">
                       {[
-                        { name: user?.nama || 'Kamu (Sobat Handoora)', xp: progress.xp, isMe: true },
-                        { name: 'Alya Putri', xp: 145, isMe: false },
-                        { name: 'Bima Pratama', xp: 120, isMe: false },
+                        {
+                          name: user?.nama || 'Kamu (Sobat Handoora)',
+                          completed: progress.completedIslands.length,
+                          isMe: true,
+                        },
+                        { name: 'Alya Putri', completed: 4, isMe: false },
+                        { name: 'Bima Pratama', completed: 2, isMe: false },
                       ]
-                        .sort((a, b) => b.xp - a.xp)
+                        .sort((a, b) => b.completed - a.completed)
                         .map((item, idx) => (
                           <div
                             key={idx}
@@ -1918,7 +2035,7 @@ const DashboardPage = () => {
                               </span>
                             </div>
                             <span className="text-xs font-black text-[#D97706]">
-                              ⭐ {item.xp} XP
+                              🏝️ {item.completed} Level
                             </span>
                           </div>
                         ))}
@@ -1934,10 +2051,10 @@ const DashboardPage = () => {
                 >
                   <div>
                     <h3 className="text-base font-extrabold text-[#2B2B2B]">
-                      ⚙️ Pengaturan Progres & Sesi Akun
+                      ⚙️ Pengaturan Akun & Progres Belajar
                     </h3>
                     <p className="text-xs font-bold text-[#777777] mt-1">
-                      Seluruh progres 6 pulau, XP, dan rentetan hari otomatis tersinkronisasi ke tabel <code className="text-[#E02424]">public.profiles</code> di Supabase.
+                      Kelola progres belajar dan sesi akunmu di sini.
                     </p>
                   </div>
 
@@ -1950,11 +2067,11 @@ const DashboardPage = () => {
                         if (user?.id) {
                           await progressService.saveProgressToSupabase(user.id, reset)
                         }
-                        toast.success('Progres pembelajaran direset ke Pulau 1')
+                        toast.success('Progres pembelajaran direset kembali ke Level 1')
                       }}
                       className="px-4 py-2.5 rounded-xl bg-[#F5F5F5] hover:bg-[#EAEAEA] text-xs font-extrabold text-[#555555] cursor-pointer transition-colors"
                     >
-                      ULANGI DARI PULAU 1
+                      ULANGI DARI LEVEL 1
                     </button>
 
                     <Button variant="primary" size="md" onClick={handleLogout}>
@@ -2111,8 +2228,8 @@ const DashboardPage = () => {
                       className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full"
                     />
                   </div>
-                  <span className="text-sm font-black text-[#E02424]">
-                    ❤️ {progress.hearts}
+                  <span className="text-xs font-extrabold text-[#E02424]">
+                    {quizStep + 1}/{quizUnit.questions.length}
                   </span>
                 </div>
 
@@ -2199,117 +2316,10 @@ const DashboardPage = () => {
                     <Button variant="primary" size="md" onClick={handleNextQuestion}>
                       {quizStep + 1 < quizUnit.questions.length
                         ? 'SOAL BERIKUTNYA ▶'
-                        : `SELESAIKAN & AMBIL +${quizUnit.xpReward} XP 🎉`}
+                        : 'SELESAIKAN LEVEL 🎉'}
                     </Button>
                   )}
                 </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* ============================================================ */}
-        {/* MODAL 3: LENGKAPI PROFIL GOOGLE OAUTH (UMUR & PASSWORD HASH) */}
-        {/* ============================================================ */}
-        <AnimatePresence>
-          {showGoogleOnboarding && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-black/55 backdrop-blur-xs flex items-center justify-center p-4"
-            >
-              <motion.div
-                initial={{ scale: 0.92, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.92, y: 20 }}
-                className="w-full max-w-md bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl space-y-5"
-              >
-                <div className="flex items-center gap-3.5">
-                  {user?.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt={user.nama}
-                      className="w-12 h-12 rounded-2xl object-cover border-2 border-[#EB2B36]"
-                    />
-                  ) : (
-                    <div className="w-12 h-12 rounded-2xl bg-[#EB2B36] flex items-center justify-center text-xl font-black text-white">
-                      G
-                    </div>
-                  )}
-                  <div>
-                    <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[10px] font-extrabold text-[#059669] uppercase">
-                      Akun Google Terhubung
-                    </span>
-                    <h3 className="text-lg font-extrabold text-[#2B2B2B] mt-0.5">
-                      Lengkapi Profil Handoora
-                    </h3>
-                    <p className="text-xs text-[#777777] font-bold">{user?.email}</p>
-                  </div>
-                </div>
-
-                <form onSubmit={handleCompleteOnboarding} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-extrabold text-[#555555] mb-1.5">
-                      Nama Lengkap (dari Akun Google)
-                    </label>
-                    <Input
-                      type="text"
-                      value={onboardingForm.nama}
-                      onChange={(e) =>
-                        setOnboardingForm((p) => ({ ...p, nama: e.target.value }))
-                      }
-                      placeholder="Nama Lengkap"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-extrabold text-[#555555] mb-1.5">
-                      Umur Pengguna (Wajib)
-                    </label>
-                    <Input
-                      type="number"
-                      value={onboardingForm.umur}
-                      onChange={(e) =>
-                        setOnboardingForm((p) => ({ ...p, umur: e.target.value }))
-                      }
-                      placeholder="Contoh: 20"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-extrabold text-[#555555] mb-1.5">
-                      Buat Password Aplikasi (Di-hash PBKDF2-SHA256 ke Supabase)
-                    </label>
-                    <Input
-                      type="password"
-                      value={onboardingForm.password}
-                      onChange={(e) =>
-                        setOnboardingForm((p) => ({ ...p, password: e.target.value }))
-                      }
-                      placeholder="Minimal 6 karakter"
-                    />
-                  </div>
-
-                  <div className="flex justify-end gap-2.5 pt-2">
-                    <Button
-                      type="button"
-                      variant="secondary"
-                      size="md"
-                      onClick={() => setShowGoogleOnboarding(false)}
-                    >
-                      NANTI SAJA
-                    </Button>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="md"
-                      disabled={isSavingOnboarding}
-                    >
-                      {isSavingOnboarding ? 'MENYIMPAN...' : 'SIMPAN KE SUPABASE'}
-                    </Button>
-                  </div>
-                </form>
               </motion.div>
             </motion.div>
           )}

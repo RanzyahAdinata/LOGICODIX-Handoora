@@ -27,7 +27,6 @@ export async function hashPasswordSecure(password, emailSalt = '') {
   return `pbkdf2_sha256$100000$${hashArray.map((b) => b.toString(16).padStart(2, '0')).join('')}`
 }
 
-// Cek apakah provider Google OAuth di Supabase Dashboard sudah di-enable
 export async function checkIsGoogleOAuthEnabled() {
   if (!isSupabaseConfigured) return false
   try {
@@ -44,9 +43,43 @@ export async function checkIsGoogleOAuthEnabled() {
   }
 }
 
-// Helper: Ambil atau buat baris pengguna di tabel public.profiles Supabase
+// Helper: Normalisasi progres agar akun yang belum pernah bermain mulai dari Level 1
+function normalizeInitialProgress(xp, completedLessons, unlockedIslands, userId) {
+  const migKey = userId ? `handoora_lvl1_init_${userId}` : 'handoora_lvl1_init'
+  const cArr = Array.isArray(completedLessons) ? completedLessons : []
+  const uArr = Array.isArray(unlockedIslands) && unlockedIslands.length > 0 ? unlockedIslands : [1]
+
+  // Jika data masih berupa seed default lama (xp=120, completed=[1], unlocked=[1,2]), reset ke Level 1 murni
+  const isLegacyDefaultSeed =
+    xp === 120 &&
+    cArr.length === 1 &&
+    cArr[0] === 1 &&
+    uArr.length === 2 &&
+    uArr.includes(1) &&
+    uArr.includes(2) &&
+    !localStorage.getItem(migKey)
+
+  if (isLegacyDefaultSeed) {
+    return {
+      xp: 0,
+      completedIslands: [],
+      unlockedIslands: [1],
+      wasNormalized: true,
+    }
+  }
+
+  return {
+    xp: xp ?? 0,
+    completedIslands: cArr,
+    unlockedIslands: uArr.includes(1) ? uArr : [1, ...uArr],
+    wasNormalized: false,
+  }
+}
+
 export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
   if (!supabase || !authUser) return null
+
+  const localAvatar = localStorage.getItem(`handoora_avatar_${authUser.id}`)
 
   const defaultNama =
     extraData.nama ||
@@ -69,11 +102,11 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     'email'
 
   const defaultAvatar =
+    localAvatar ||
     authUser.user_metadata?.avatar_url ||
     authUser.user_metadata?.picture ||
     null
 
-  // 1. Coba ambil profil dari tabel public.profiles di Supabase
   const { data: existingProfile, error: selectErr } = await supabase
     .from('profiles')
     .select('*')
@@ -81,10 +114,13 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     .maybeSingle()
 
   if (!selectErr && existingProfile) {
-    return existingProfile
+    return {
+      ...existingProfile,
+      avatar_url: existingProfile.avatar_url || localAvatar || defaultAvatar,
+    }
   }
 
-  // 2. Jika belum ada baris di public.profiles, buat baris baru di Supabase
+  // Baris baru mulai dari Level 1 (completed_lessons: [], unlocked_islands: [1])
   const newProfileRow = {
     id: authUser.id,
     nama: defaultNama,
@@ -93,13 +129,13 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     password_hash: extraData.password_hash || authUser.user_metadata?.password_hash || null,
     auth_provider: defaultProvider,
     avatar_url: defaultAvatar,
-    xp: authUser.user_metadata?.xp ?? 120,
-    streak: authUser.user_metadata?.streak ?? 1,
-    gems: authUser.user_metadata?.gems ?? 500,
-    hearts: authUser.user_metadata?.hearts ?? 5,
+    xp: 0,
+    streak: 1,
+    gems: 500,
+    hearts: 5,
     current_unit: 1,
-    completed_lessons: authUser.user_metadata?.completed_lessons || [1],
-    unlocked_islands: authUser.user_metadata?.unlocked_islands || [1, 2],
+    completed_lessons: [],
+    unlocked_islands: [1],
   }
 
   const { data: insertedProfile, error: insertErr } = await supabase
@@ -112,8 +148,6 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     return insertedProfile
   }
 
-  // Jika tabel public.profiles belum dibuat oleh admin di SQL Editor,
-  // kembalikan objek profil dari Supabase Auth user_metadata
   return {
     ...newProfileRow,
     _tableMissing: Boolean(insertErr || selectErr),
@@ -121,10 +155,10 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
 }
 
 export const authService = {
-  // 1. REGISTER DENGAN EMAIL, NAMA, UMUR, DAN PASSWORD (TERSIMPAN DI SUPABASE)
+  // 1. REGISTER PENGGUNA BARU (MULAI DARI LEVEL 1)
   async register({ nama, umur, email, password }) {
     if (!isSupabaseConfigured || !supabase) {
-      throw new Error('Konfigurasi Supabase belum aktif.')
+      throw new Error('Layanan autentikasi belum aktif.')
     }
 
     const cleanNama = nama.trim()
@@ -142,25 +176,25 @@ export const authService = {
           umur: parsedUmur,
           password_hash: passwordHash,
           auth_provider: 'email',
-          xp: 120,
+          xp: 0,
           streak: 1,
           gems: 500,
           hearts: 5,
-          completed_lessons: [1],
-          unlocked_islands: [1, 2],
+          completed_lessons: [],
+          unlocked_islands: [1],
         },
       },
     })
 
     if (error) {
       if (error.message?.toLowerCase().includes('already registered')) {
-        throw new Error('Email sudah terdaftar di Supabase. Silakan masuk di halaman Login.')
+        throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
       }
       throw new Error(error.message)
     }
 
     if (!data?.user) {
-      throw new Error('Gagal membuat pengguna di Supabase.')
+      throw new Error('Gagal membuat akun pengguna.')
     }
 
     const profile = await fetchOrCreateSupabaseProfile(data.user, {
@@ -172,10 +206,10 @@ export const authService = {
     return profile
   },
 
-  // 2. LOGIN DENGAN EMAIL & PASSWORD (DIVERIFIKASI LANGSUNG OLEH SUPABASE)
+  // 2. LOGIN DENGAN EMAIL & PASSWORD
   async login({ email, password }) {
     if (!isSupabaseConfigured || !supabase) {
-      throw new Error('Konfigurasi Supabase belum aktif.')
+      throw new Error('Layanan autentikasi belum aktif.')
     }
 
     const cleanEmail = email.trim().toLowerCase()
@@ -188,7 +222,7 @@ export const authService = {
     if (error) {
       if (error.message?.toLowerCase().includes('email not confirmed')) {
         throw new Error(
-          'Email kamu belum dikonfirmasi. Silakan cek inbox email kamu atau matikan "Confirm email" di Supabase Dashboard -> Authentication -> Providers -> Email.'
+          'Email kamu belum dikonfirmasi. Silakan cek kotak masuk email kamu.'
         )
       }
       throw new Error('Email atau password salah. Silakan periksa kembali.')
@@ -198,10 +232,10 @@ export const authService = {
     return profile
   },
 
-  // 3. LOGIN / REGISTER DENGAN AKUN GOOGLE REAL PENGGUNA (OAUTH 2.0 SUPABASE)
+  // 3. LOGIN DENGAN GOOGLE OAUTH 2.0
   async loginWithGoogle() {
     if (!isSupabaseConfigured || !supabase) {
-      throw new Error('Konfigurasi Supabase belum aktif.')
+      throw new Error('Layanan autentikasi belum aktif.')
     }
 
     const isGoogleEnabled = await checkIsGoogleOAuthEnabled()
@@ -232,67 +266,21 @@ export const authService = {
     return null
   },
 
-  // 4. LENGKAPI PROFIL AKUN GOOGLE (UMUR & PASSWORD OPSIONAL) KE DATABASE SUPABASE
-  async completeGoogleProfile(userId, email, { nama, umur, password }) {
-    if (!supabase) return null
-
-    const parsedUmur = parseInt(umur, 10)
-    const updates = {
-      nama: nama.trim(),
-      umur: parsedUmur,
-      updated_at: new Date().toISOString(),
-    }
-
-    let passwordHash = null
-    if (password && password.length >= 6) {
-      passwordHash = await hashPasswordSecure(password, email)
-      updates.password_hash = passwordHash
-      // Set password di Supabase Auth juga agar user Google ini bisa login pakai email + password!
-      await supabase.auth.updateUser({
-        password,
-        data: {
-          nama: updates.nama,
-          umur: parsedUmur,
-          password_hash: passwordHash,
-        },
-      })
-    } else {
-      await supabase.auth.updateUser({
-        data: {
-          nama: updates.nama,
-          umur: parsedUmur,
-        },
-      })
-    }
-
-    const { data: updatedRow } = await supabase
-      .from('profiles')
-      .upsert(
-        {
-          id: userId,
-          email,
-          ...updates,
-        },
-        { onConflict: 'id' }
-      )
-      .select('*')
-      .maybeSingle()
-
-    return (
-      updatedRow || {
-        id: userId,
-        email,
-        ...updates,
-      }
-    )
-  },
-
-  // 5. UPDATE PROFIL DI SUPABASE DATABASE
+  // 4. UPDATE PROFIL (NAMA, UMUR, DAN FOTO PROFIL / AVATAR)
   async updateProfile(userId, updates) {
-    if (!supabase) return null
+    if (updates.avatar_url && userId) {
+      localStorage.setItem(`handoora_avatar_${userId}`, updates.avatar_url)
+    }
 
+    if (!supabase || !userId) return updates
+
+    // Simpan ke user_metadata hanya jika avatar_url bukan base64 panjang (agar ukuran JWT tetap kecil)
+    const metaUpdates = { ...updates }
+    if (metaUpdates.avatar_url && metaUpdates.avatar_url.startsWith('data:')) {
+      delete metaUpdates.avatar_url
+    }
     await supabase.auth.updateUser({
-      data: updates,
+      data: metaUpdates,
     })
 
     const { data: updatedRow } = await supabase
@@ -305,10 +293,14 @@ export const authService = {
       .select('*')
       .maybeSingle()
 
-    return updatedRow || updates
+    return (
+      updatedRow || {
+        ...updates,
+      }
+    )
   },
 
-  // 6. LOGOUT DARI SESI SUPABASE
+  // 5. LOGOUT
   async logout() {
     if (supabase) {
       await supabase.auth.signOut()
@@ -317,35 +309,48 @@ export const authService = {
   },
 }
 
+// Semua pengguna mulai dari Level 1 (Pulau 1 terbuka, belum ada pulau yang selesai)
 const DEFAULT_PROGRESS = {
-  xp: 120,
-  streak: 10,
+  xp: 0,
+  streak: 1,
   gems: 500,
   hearts: 5,
-  completedIslands: [1],
-  unlockedIslands: [1, 2],
+  completedIslands: [],
+  unlockedIslands: [1],
   dailyQuests: {
-    xpEarned: 20,
-    xpEarnedToday: 25,
-    highScoreLessons: 1,
+    xpEarned: 0,
+    xpEarnedToday: 0,
+    highScoreLessons: 0,
   },
 }
 
-// ============================================================
-// Layanan Penyimpanan Progres Level Pulau ke Database Supabase
-// ============================================================
 export const progressService = {
-  getProgress() {
+  getProgress(userId) {
+    if (userId) {
+      const cached = localStorage.getItem(`handoora_progress_${userId}`)
+      if (cached) {
+        try {
+          return JSON.parse(cached)
+        } catch {
+          // ignore
+        }
+      }
+    }
     return { ...DEFAULT_PROGRESS }
   },
 
-  resetProgress() {
-    return {
+  resetProgress(userId) {
+    const fresh = {
       ...DEFAULT_PROGRESS,
       xp: 0,
       completedIslands: [],
       unlockedIslands: [1],
     }
+    if (userId) {
+      localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(fresh))
+    }
+    return fresh
   },
 
   async syncFromSupabase(userId) {
@@ -362,43 +367,73 @@ export const progressService = {
       .maybeSingle()
 
     if (!error && data) {
-      return {
-        xp: data.xp ?? 120,
-        streak: data.streak ?? 10,
+      const norm = normalizeInitialProgress(
+        data.xp,
+        data.completed_lessons,
+        data.unlocked_islands,
+        userId
+      )
+
+      const result = {
+        xp: norm.xp,
+        streak: data.streak ?? 1,
         gems: data.gems ?? 500,
         hearts: data.hearts ?? 5,
-        completedIslands: Array.isArray(data.completed_lessons) ? data.completed_lessons : [1],
-        unlockedIslands: Array.isArray(data.unlocked_islands) ? data.unlocked_islands : [1, 2],
+        completedIslands: norm.completedIslands,
+        unlockedIslands: norm.unlockedIslands,
         dailyQuests: {
-          xpEarned: Math.min(20, data.xp ?? 20),
-          xpEarnedToday: Math.min(50, data.xp ?? 25),
-          highScoreLessons: 1,
+          xpEarned: Math.min(20, norm.xp),
+          xpEarnedToday: Math.min(50, norm.xp),
+          highScoreLessons: norm.completedIslands.length,
         },
       }
+
+      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
+
+      // Jika akun masih memiliki seed lama ([1, 2]), perbarui otomatis agar mulai dari Level 1
+      if (norm.wasNormalized) {
+        localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+        await this.saveProgressToSupabase(userId, result)
+      }
+
+      return result
     }
 
-    // Fallback ke user_metadata di Supabase Auth jika tabel profiles belum dieksekusi
     const { data: userData } = await supabase.auth.getUser()
     const meta = userData?.user?.user_metadata || {}
-    return {
-      xp: meta.xp ?? 120,
-      streak: meta.streak ?? 10,
+    const norm = normalizeInitialProgress(
+      meta.xp,
+      meta.completed_lessons,
+      meta.unlocked_islands,
+      userId
+    )
+
+    const fallback = {
+      xp: norm.xp,
+      streak: meta.streak ?? 1,
       gems: meta.gems ?? 500,
       hearts: meta.hearts ?? 5,
-      completedIslands: Array.isArray(meta.completed_lessons) ? meta.completed_lessons : [1],
-      unlockedIslands: Array.isArray(meta.unlocked_islands) ? meta.unlocked_islands : [1, 2],
+      completedIslands: norm.completedIslands,
+      unlockedIslands: norm.unlockedIslands,
       dailyQuests: {
-        xpEarned: 20,
-        xpEarnedToday: 25,
-        highScoreLessons: 1,
+        xpEarned: Math.min(20, norm.xp),
+        xpEarnedToday: Math.min(50, norm.xp),
+        highScoreLessons: norm.completedIslands.length,
       },
     }
+
+    localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(fallback))
+    return fallback
   },
 
   async saveProgressToSupabase(userId, progress) {
+    if (userId) {
+      localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(progress))
+    }
+
     if (!supabase || !userId) return progress
 
-    // Simpan ke user_metadata Supabase Auth
     await supabase.auth.updateUser({
       data: {
         xp: progress.xp,
@@ -410,7 +445,6 @@ export const progressService = {
       },
     })
 
-    // Simpan ke tabel public.profiles di PostgreSQL Supabase
     await supabase
       .from('profiles')
       .update({

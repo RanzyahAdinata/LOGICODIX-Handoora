@@ -86,7 +86,7 @@ const RegisterPage = () => {
     setLoading(true)
     try {
       const user = await register(formData)
-      toast.success(`Pendaftaran berhasil disimpan ke Supabase! Selamat datang, ${user.nama}! 🤟`)
+      toast.success(`Pendaftaran berhasil! Selamat datang, ${user.nama}! 🤟`)
       navigate('/belajar')
     } catch (error) {
       toast.error(error.message)
