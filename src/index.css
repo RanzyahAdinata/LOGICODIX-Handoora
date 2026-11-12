@@ -19,12 +19,17 @@
   --color-handoora-gray: #9CA3AF;
 
   --font-sans: 'Nunito', system-ui, -apple-system, sans-serif;
-  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-display: 'Nunito', system-ui, -apple-system, sans-serif;
 }
 
 @layer base {
   html {
     scroll-behavior: smooth;
+    font-family: var(--font-sans);
+  }
+
+  body, button, input, select, textarea {
+    font-family: var(--font-sans);
   }
 
   body {

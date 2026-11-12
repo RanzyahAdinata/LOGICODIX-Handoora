@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import toast from 'react-hot-toast'
@@ -9,27 +9,26 @@ import { useAuth } from '../context/AuthContext'
 import { progressService } from '../services/storage'
 
 // ============================================================
-// DATA 4 PULAU PEMBELAJARAN BISINDO (SESUAI 4 PULAU DI UI 4)
-// Koordinat (nodePos & mascotPos) dikalibrasi presisi pada
-// kanvas aspect-[1445/1280] (/assets/islands-map.png)
+// DATA 6 PULAU PEMBELAJARAN BISINDO (TERMASUK 2 PULAU TERKUNCI DI ATAS)
+// Koordinat dikalibrasi presisi pada kanvas 6 pulau (1445 x 2020)
 // ============================================================
 const ISLAND_UNITS = [
   {
     id: 1,
     section: 'BAGIAN 1, UNIT 1',
     unitLabel: 'Unit 1',
-    islandName: 'Pulau Abjad Awal',
+    islandName: 'Pulau Abjad Dasar',
     title: 'Mengenal Abjad Jari BISINDO (A–Z)',
     subtitle: 'Fondasi ejaan jari dua tangan & isyarat huruf dasar',
     xpReward: 25,
     gemReward: 15,
-    nodePos: { x: 26.0, y: 73.5 },
-    mascotPos: { x: 16.5, y: 69.5 },
+    nodePos: { x: 26.0, y: 83.2 },
+    mascotPos: { x: 15.8, y: 80.5 },
     guide: [
       {
         sign: '👐',
         word: 'Abjad A',
-        desc: 'Kedua telapak tangan membentuk segitiga rapat di depan dada (sesuai papan tanda pulau 1).',
+        desc: 'Kedua telapak tangan membentuk segitiga rapat di depan dada (sesuai papan tanda Pulau 1).',
       },
       {
         sign: '✋',
@@ -81,8 +80,8 @@ const ISLAND_UNITS = [
     subtitle: 'Menyapa teman baru dan memperkenalkan nama dengan sopan',
     xpReward: 30,
     gemReward: 20,
-    nodePos: { x: 66.5, y: 53.5 },
-    mascotPos: { x: 83.0, y: 49.5 },
+    nodePos: { x: 66.5, y: 70.5 },
+    mascotPos: { x: 83.5, y: 68.0 },
     guide: [
       {
         sign: '👉',
@@ -137,8 +136,8 @@ const ISLAND_UNITS = [
     subtitle: 'Menghitung angka dasar serta mengenal isyarat keluarga',
     xpReward: 35,
     gemReward: 25,
-    nodePos: { x: 31.0, y: 31.0 },
-    mascotPos: { x: 20.5, y: 27.5 },
+    nodePos: { x: 31.0, y: 56.2 },
+    mascotPos: { x: 20.0, y: 53.5 },
     guide: [
       {
         sign: '☝️',
@@ -182,13 +181,13 @@ const ISLAND_UNITS = [
     id: 4,
     section: 'BAGIAN 1, UNIT 4',
     unitLabel: 'Unit 4',
-    islandName: 'Pulau Puncak Mahir',
-    title: 'Ekspresi Wajah & Percakapan Harian',
-    subtitle: 'Memadukan komponen non-manual (mimik wajah) dalam kalimat utuh',
-    xpReward: 50,
-    gemReward: 35,
-    nodePos: { x: 73.5, y: 11.0 },
-    mascotPos: { x: 62.0, y: 8.5 },
+    islandName: 'Pulau Kincir Angin',
+    title: 'Ekspresi Wajah & Perasaan Harian',
+    subtitle: 'Memadukan mimik wajah (non-manual) dengan gerakan tangan',
+    xpReward: 40,
+    gemReward: 30,
+    nodePos: { x: 73.5, y: 43.5 },
+    mascotPos: { x: 61.5, y: 41.2 },
     guide: [
       {
         sign: '😊',
@@ -201,9 +200,9 @@ const ISLAND_UNITS = [
         desc: 'Jari-jari turun di depan wajah diikuti mimik wajah murung.',
       },
       {
-        sign: '🤟',
-        word: 'Aku Cinta Kamu (ILY)',
-        desc: 'Rentangkan ibu jari, telunjuk, dan kelingking secara bersamaan.',
+        sign: '🙏',
+        word: 'Maaf / Permisi',
+        desc: 'Tangkupkan kedua tangan di depan dada atau usap dada melingkar.',
       },
     ],
     questions: [
@@ -220,44 +219,122 @@ const ISLAND_UNITS = [
         explanation:
           'Sangat tepat! Dalam BISINDO, mimik wajah (komponen non-manual) menentukan intonasi, kalimat tanya, dan emosi.',
       },
+    ],
+  },
+  {
+    id: 5,
+    section: 'BAGIAN 2, UNIT 5',
+    unitLabel: 'Unit 5',
+    islandName: 'Pulau Kristal Sakura',
+    title: 'Aktivitas Sekolah, Kampus & Pekerjaan',
+    subtitle: 'Kosakata lingkungan pendidikan, diskusi, dan kolaborasi inklusif',
+    xpReward: 45,
+    gemReward: 35,
+    nodePos: { x: 31.5, y: 21.8 },
+    mascotPos: { x: 20.5, y: 19.5 },
+    guide: [
       {
-        prompt: 'Saat ingin memanggil teman Tuli dari kejauhan, cara yang sopan adalah...',
-        emoji: '✨',
+        sign: '📚',
+        word: 'Belajar / Membaca',
+        desc: 'Buka kedua telapak tangan seperti membuka halaman buku di depan dada.',
+      },
+      {
+        sign: '🏫',
+        word: 'Sekolah / Kampus',
+        desc: 'Ketukkan kedua telapak tangan dua kali secara berhadapan.',
+      },
+      {
+        sign: '💡',
+        word: 'Mengerti / Paham',
+        desc: 'Jentikkan atau buka jari telunjuk di dekat pelipis sambil mengangguk.',
+      },
+    ],
+    questions: [
+      {
+        prompt: 'Gerakan membuka kedua telapak tangan seperti membuka buku melambangkan...',
+        emoji: '📖',
         options: [
-          'Melambaikan tangan dalam jangkauan pandangannya atau mengetuk meja pelan',
-          'Berteriak sekeras mungkin',
-          'Melempar benda ke arahnya',
-          'Menarik bajunya secara tiba-tiba dari belakang',
+          'Membaca / Buku / Belajar',
+          'Berolahraga lari',
+          'Memasak di dapur',
+          'Mengendarai sepeda',
         ],
         correctIndex: 0,
         explanation:
-          'Benar! Isyarat visual seperti lambaian tangan atau tepukan lembut di bahu adalah etika budaya Tuli yang sopan.',
+          'Benar! Gerakan ikonik membuka kedua telapak tangan melambangkan aktivitas membaca atau buku.',
+      },
+    ],
+  },
+  {
+    id: 6,
+    section: 'BAGIAN 2, UNIT 6',
+    unitLabel: 'Unit 6',
+    islandName: 'Pulau Istana Bintang',
+    title: 'Percakapan Lancar & Budaya Tuli Indonesia',
+    subtitle: 'Etika komunikasi publik, cerita berurutan, dan ekspresi mahir',
+    xpReward: 60,
+    gemReward: 50,
+    nodePos: { x: 73.5, y: 8.8 },
+    mascotPos: { x: 61.5, y: 6.8 },
+    guide: [
+      {
+        sign: '🤟',
+        word: 'Aku Cinta Kamu (ILY)',
+        desc: 'Rentangkan ibu jari, telunjuk, dan kelingking secara bersamaan.',
+      },
+      {
+        sign: '👏',
+        word: 'Tepuk Tangan Tuli',
+        desc: 'Angkat kedua tangan setinggi bahu lalu putar pergelangan tangan dengan ceria.',
+      },
+    ],
+    questions: [
+      {
+        prompt: 'Bagaimana cara memberikan apresiasi ("Tepuk Tangan") dalam budaya Tuli?',
+        emoji: '🙌',
+        options: [
+          'Mengangkat kedua tangan ke atas dan menggoyangkan/memutar telapak tangan',
+          'Berbisik pelan',
+          'Menutup telinga',
+          'Mematikan lampu ruangan',
+        ],
+        correctIndex: 0,
+        explanation:
+          'Luar biasa! Mengangkat dan menggoyangkan kedua tangan adalah tepuk tangan visual yang meriah dalam budaya Tuli.',
       },
     ],
   },
 ]
 
-// Koordinat 10 batu pijakan melayang (Stepping Stones) di antara 4 pulau
+// Koordinat 15 batu pijakan melayang (Stepping Stones) penghubung Pulau 1 -> 6
 const STEPPING_STONES = [
-  // Pulau 1 -> Pulau 2 (3 batu)
-  { fromUnit: 1, toUnit: 2, x: 44.5, y: 68.8, delay: 0 },
-  { fromUnit: 1, toUnit: 2, x: 50.2, y: 65.6, delay: 0.2 },
-  { fromUnit: 1, toUnit: 2, x: 56.2, y: 62.1, delay: 0.4 },
-  // Pulau 2 -> Pulau 3 (4 batu)
-  { fromUnit: 2, toUnit: 3, x: 61.4, y: 46.8, delay: 0.1 },
-  { fromUnit: 2, toUnit: 3, x: 54.0, y: 43.8, delay: 0.3 },
-  { fromUnit: 2, toUnit: 3, x: 48.5, y: 40.5, delay: 0.5 },
-  { fromUnit: 2, toUnit: 3, x: 42.6, y: 36.6, delay: 0.7 },
-  // Pulau 3 -> Pulau 4 (3 batu)
-  { fromUnit: 3, toUnit: 4, x: 49.2, y: 24.8, delay: 0.15 },
-  { fromUnit: 3, toUnit: 4, x: 54.8, y: 21.3, delay: 0.35 },
-  { fromUnit: 3, toUnit: 4, x: 60.6, y: 17.8, delay: 0.55 },
+  // Pulau 1 -> Pulau 2
+  { fromUnit: 1, toUnit: 2, x: 44.5, y: 80.2, delay: 0 },
+  { fromUnit: 1, toUnit: 2, x: 50.2, y: 78.2, delay: 0.2 },
+  { fromUnit: 1, toUnit: 2, x: 56.2, y: 76.0, delay: 0.4 },
+  // Pulau 2 -> Pulau 3
+  { fromUnit: 2, toUnit: 3, x: 61.4, y: 66.3, delay: 0.1 },
+  { fromUnit: 2, toUnit: 3, x: 54.0, y: 64.3, delay: 0.3 },
+  { fromUnit: 2, toUnit: 3, x: 48.5, y: 62.2, delay: 0.5 },
+  { fromUnit: 2, toUnit: 3, x: 42.6, y: 59.8, delay: 0.7 },
+  // Pulau 3 -> Pulau 4
+  { fromUnit: 3, toUnit: 4, x: 49.2, y: 52.3, delay: 0.15 },
+  { fromUnit: 3, toUnit: 4, x: 54.8, y: 50.1, delay: 0.35 },
+  { fromUnit: 3, toUnit: 4, x: 60.6, y: 47.9, delay: 0.55 },
+  // Pulau 4 -> Pulau 5
+  { fromUnit: 4, toUnit: 5, x: 60.5, y: 36.0, delay: 0.1 },
+  { fromUnit: 4, toUnit: 5, x: 54.5, y: 31.8, delay: 0.3 },
+  { fromUnit: 4, toUnit: 5, x: 49.5, y: 29.5, delay: 0.5 },
+  // Pulau 5 -> Pulau 6
+  { fromUnit: 5, toUnit: 6, x: 49.0, y: 17.2, delay: 0.2 },
+  { fromUnit: 5, toUnit: 6, x: 54.6, y: 15.1, delay: 0.4 },
+  { fromUnit: 5, toUnit: 6, x: 60.5, y: 12.6, delay: 0.6 },
 ]
 
 const DAYS_STREAK = ['S', 'S', 'R', 'K', 'J', 'S', 'M']
 
 // ============================================================
-// IKON SVG PRESISI SESUAI DESAIN UI 4 (Web - Beranda.png)
+// IKON SVG SIDEBAR & STREAK (Sesuai Desain UI 4)
 // ============================================================
 const IconBeranda = ({ active }) => (
   <svg
@@ -318,14 +395,16 @@ const IconFlame = ({ className = 'w-6 h-6', color = '#E02424', innerColor = '#FF
 )
 
 // ============================================================
-// ORNAMEN LANGIT BERGERAK (AWAN, BURUNG, ANGIN / UDARA)
+// SCENERY FULL-SCREEN DUA MODE:
+// 1. LANGIT CERAH (Anime Blue Sky + Hexagonal Sun Lens Flare sesuai referensi baru)
+// 2. LANGIT SENJA (Golden Peach Sunset + Terracotta Clouds sesuai LEVEL.png)
 // ============================================================
 const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) => (
   <motion.div
     className={`pointer-events-none select-none ${className}`}
     initial={{ x: -30, y: 0 }}
     animate={{
-      x: [-30, 45, -30],
+      x: [-30, 50, -30],
       y: [0, -10, 2, -6, 0],
     }}
     transition={{
@@ -337,22 +416,19 @@ const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) =
     style={{ scale }}
   >
     <svg width="110" height="54" viewBox="0 0 110 54" fill="none">
-      {/* Burung Utama */}
       <motion.path
         d="M18 24 C28 11, 40 12, 48 24 C56 12, 68 11, 78 24 C67 18, 56 19, 48 28 C40 19, 29 18, 18 24 Z"
         fill="#FFFFFF"
-        animate={{ scaleY: [1, 0.72, 1], y: [0, 2, 0] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut', delay }}
+        animate={{ scaleY: [1, 0.7, 1], y: [0, 2, 0] }}
+        transition={{ duration: 1.7, repeat: Infinity, ease: 'easeInOut', delay }}
       />
-      {/* Burung Kedua */}
       <motion.path
         d="M58 38 C65 29, 73 30, 79 38 C85 30, 93 29, 100 38 C92 34, 85 35, 79 41 C73 35, 66 34, 58 38 Z"
         fill="#FFFFFF"
         fillOpacity="0.92"
         animate={{ scaleY: [1, 0.68, 1], y: [0, -2, 0] }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.35 }}
+        transition={{ duration: 1.4, repeat: Infinity, ease: 'easeInOut', delay: delay + 0.35 }}
       />
-      {/* Burung Kecil */}
       <motion.path
         d="M8 40 C13 34, 19 34, 23 40 C27 34, 33 34, 38 40 C32 37, 27 38, 23 42 C19 38, 14 37, 8 40 Z"
         fill="#FFFFFF"
@@ -364,56 +440,192 @@ const AnimatedBirdFlock = ({ className, delay = 0, duration = 18, scale = 1 }) =
   </motion.div>
 )
 
-const AnimatedSkyEnvironment = ({ skyMode }) => {
-  const isSunset = skyMode === 'sunset'
-  const cloudBack = isSunset ? '#FED8AC' : '#FDEBD0'
-  const cloudFront = isSunset ? '#F3A174' : '#F8C4A0'
+const FullScreenSkyScenery = ({ skyMode }) => {
+  const isBright = skyMode === 'bright'
+
+  // Palet Awan berdasarkan Mode Langit
+  // Langit Cerah: Putih bersih (#FFFFFF) + Bayangan Biru Muda (#BBE0FC) sesuai referensi gambar baru
+  // Langit Senja: Peach Muda (#FED8AC) + Coral Terracotta (#F3A174) sesuai LEVEL.png
+  const cloudBack = isBright ? '#C4E4FD' : '#FED8AC'
+  const cloudFront = isBright ? '#FFFFFF' : '#F3A174'
 
   return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none z-0">
-      {/* 1. Hembusan Angin / Aliran Udara Lembut (Animated SVG Wind Streams) */}
+    <div
+      className={`fixed inset-0 w-screen h-screen overflow-hidden pointer-events-none select-none z-0 transition-colors duration-700 ${
+        isBright
+          ? 'bg-gradient-to-b from-[#0A84EC] via-[#22A3F5] to-[#7AD5FF]'
+          : 'bg-gradient-to-b from-[#FFE3B0] via-[#FCD496] to-[#F8BA80]'
+      }`}
+    >
+      {/* ========================================================== */}
+      {/* ELEMEN KHUSUS LANGIT CERAH (Sesuai Gambar Referensi Baru)   */}
+      {/* ========================================================== */}
+      {isBright && (
+        <>
+          {/* 1. Sinar Cahaya Diagonal (Sunbeam Ray) dari Atas ke Bawah */}
+          <div
+            style={{
+              background:
+                'linear-gradient(162deg, rgba(255,255,255,0.34) 0%, rgba(186,230,253,0.16) 55%, rgba(255,255,255,0) 100%)',
+              clipPath: 'polygon(19% 0%, 25% 0%, 46% 100%, 34% 100%)',
+            }}
+            className="absolute inset-0"
+          />
+
+          {/* 2. Hexagonal Sun Lens Flare di Tengah Atas (Persis Gambar Referensi) */}
+          <motion.div
+            animate={{ scale: [1, 1.05, 1], rotate: [0, 4, 0] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            className="absolute left-1/2 -translate-x-1/2 -top-14 w-64 h-64 sm:w-80 sm:h-80 flex items-center justify-center"
+          >
+            <svg viewBox="0 0 260 260" className="w-full h-full">
+              {/* Segi Delapan / Hexagon Luar */}
+              <polygon
+                points="130,10 205,38 242,110 218,188 148,232 68,215 20,148 38,65"
+                fill="#FFFFFF"
+                fillOpacity="0.28"
+              />
+              {/* Hexagon Tengah */}
+              <polygon
+                points="130,36 188,58 214,114 196,172 142,204 82,190 48,140 62,80"
+                fill="#FFFFFF"
+                fillOpacity="0.42"
+              />
+              {/* Hexagon Dalam */}
+              <polygon
+                points="130,64 170,78 188,118 175,156 138,176 96,166 74,132 85,92"
+                fill="#FFFFFF"
+                fillOpacity="0.65"
+              />
+              {/* Inti Matahari Putih Bersinar */}
+              <circle cx="130" cy="120" r="30" fill="#FFFFFF" />
+            </svg>
+
+            {/* Pantulan Hexagon Biru Muda (Lens Flare Bokéh) */}
+            <div className="absolute top-[74%] left-[32%] w-16 h-16 rotate-12 bg-[#7DD3FC]/35 backdrop-blur-[1px] [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]" />
+            <div className="absolute top-[96%] left-[22%] w-11 h-11 rotate-45 bg-[#38BDF8]/30 [clip-path:polygon(25%_0%,75%_0%,100%_50%,75%_100%,25%_100%,0%_50%)]" />
+          </motion.div>
+
+          {/* 3. Garis Contrail / Angin Diagonal di Langit Biru (Sesuai Referensi) */}
+          <svg viewBox="0 0 1440 900" className="absolute inset-0 w-full h-full opacity-75">
+            <line
+              x1="280"
+              y1="280"
+              x2="470"
+              y2="345"
+              stroke="#FFFFFF"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <line
+              x1="1090"
+              y1="265"
+              x2="920"
+              y2="375"
+              stroke="#FFFFFF"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            />
+            <line
+              x1="1140"
+              y1="280"
+              x2="1030"
+              y2="348"
+              stroke="#FFFFFF"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          {/* 4. Kelopak Sakura Pink Melayang di Sisi Kanan (Sesuai Gambar Referensi) */}
+          {[
+            { right: '18%', top: '26%', delay: 0 },
+            { right: '14%', top: '31%', delay: 0.8 },
+            { right: '22%', top: '35%', delay: 1.6 },
+            { right: '11%', top: '23%', delay: 2.2 },
+            { right: '16%', top: '40%', delay: 3.0 },
+            { right: '25%', top: '29%', delay: 1.2 },
+          ].map((petal, i) => (
+            <motion.div
+              key={`petal-${i}`}
+              style={{ right: petal.right, top: petal.top }}
+              animate={{
+                x: [0, -28, -55],
+                y: [0, 18, 42],
+                rotate: [0, 120, 240],
+                opacity: [0, 0.95, 0],
+              }}
+              transition={{
+                duration: 6.5,
+                repeat: Infinity,
+                delay: petal.delay,
+                ease: 'easeInOut',
+              }}
+              className="absolute w-2.5 h-3.5 rounded-full bg-[#FDA4AF] shadow-[0_0_6px_rgba(253,164,175,0.8)]"
+            />
+          ))}
+        </>
+      )}
+
+      {/* ========================================================== */}
+      {/* ELEMEN KHUSUS LANGIT SENJA (Matahari Senja Hangat)          */}
+      {/* ========================================================== */}
+      {!isBright && (
+        <motion.div
+          animate={{ scale: [1, 1.04, 1], opacity: [0.75, 0.92, 0.75] }}
+          transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute left-1/2 -translate-x-1/2 top-8 w-56 h-56 rounded-full bg-gradient-to-b from-[#FFF7DF] to-[#FDBA74]/40 blur-md"
+        />
+      )}
+
+      {/* ========================================================== */}
+      {/* ALIRAN ANGIN / UDARA BERGERAK (WIND RIBBONS)               */}
+      {/* ========================================================== */}
       <svg
         viewBox="0 0 1440 900"
         preserveAspectRatio="none"
         className="absolute inset-0 w-full h-full opacity-55"
       >
         <motion.path
-          d="M -100 210 Q 260 150, 620 220 T 1380 180"
+          d="M -100 190 Q 280 130, 660 200 T 1480 160"
           fill="none"
           stroke="#FFFFFF"
           strokeWidth="2.5"
           strokeLinecap="round"
-          strokeDasharray="120 280"
-          animate={{ strokeDashoffset: [800, -800] }}
+          strokeDasharray="130 290"
+          animate={{ strokeDashoffset: [840, -840] }}
           transition={{ duration: 14, repeat: Infinity, ease: 'linear' }}
         />
         <motion.path
-          d="M -80 480 Q 380 420, 760 490 T 1520 440"
-          fill="none"
-          stroke="#FFFFFF"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeDasharray="90 320"
-          animate={{ strokeDashoffset: [700, -700] }}
-          transition={{ duration: 17, repeat: Infinity, ease: 'linear', delay: 2 }}
-        />
-        <motion.path
-          d="M 120 710 Q 520 650, 920 720 T 1550 670"
+          d="M -80 460 Q 380 400, 760 470 T 1520 420"
           fill="none"
           stroke="#FFFFFF"
           strokeWidth="2.2"
           strokeLinecap="round"
-          strokeDasharray="100 300"
-          animate={{ strokeDashoffset: [750, -750] }}
+          strokeDasharray="100 320"
+          animate={{ strokeDashoffset: [760, -760] }}
+          transition={{ duration: 17, repeat: Infinity, ease: 'linear', delay: 2 }}
+        />
+        <motion.path
+          d="M 100 720 Q 520 660, 940 730 T 1560 680"
+          fill="none"
+          stroke="#FFFFFF"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeDasharray="110 310"
+          animate={{ strokeDashoffset: [800, -800] }}
           transition={{ duration: 15, repeat: Infinity, ease: 'linear', delay: 4 }}
         />
       </svg>
 
-      {/* 2. Awan Kiri Atas (Sesuai LEVEL.png) */}
+      {/* ========================================================== */}
+      {/* AWAN CUMULUS BERLAPIS KIRI, KANAN, DAN HORIZON BAWAH       */}
+      {/* ========================================================== */}
+      {/* Awan Kiri Atas */}
       <motion.div
-        animate={{ x: [-12, 16, -12], y: [0, -4, 0] }}
-        transition={{ duration: 11, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -left-8 top-[4%] w-[38%] max-w-[460px]"
+        animate={{ x: [-14, 16, -14], y: [0, -5, 0] }}
+        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -left-10 top-[6%] w-[42%] max-w-[540px]"
       >
         <svg viewBox="0 0 460 180" className="w-full h-auto">
           <path
@@ -427,29 +639,11 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
         </svg>
       </motion.div>
 
-      {/* 3. Awan Tengah di Belakang Pohon Pulau 3 (Sesuai LEVEL.png) */}
+      {/* Awan Kanan Atas */}
       <motion.div
-        animate={{ x: [-10, 12, -10], y: [0, -5, 0] }}
-        transition={{ duration: 9.5, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
-        className="absolute left-[26%] top-[10%] w-[24%] max-w-[300px] opacity-90"
-      >
-        <svg viewBox="0 0 300 130" className="w-full h-auto">
-          <path
-            d="M15 120 Q45 85 82 98 Q115 55 165 72 Q210 25 255 68 Q282 78 295 120 Z"
-            fill={cloudBack}
-          />
-          <path
-            d="M30 120 Q65 95 100 105 Q140 72 185 88 Q225 58 265 92 Q280 102 288 120 Z"
-            fill={cloudFront}
-          />
-        </svg>
-      </motion.div>
-
-      {/* 4. Awan Kanan Tengah (Sesuai LEVEL.png) */}
-      <motion.div
-        animate={{ x: [14, -14, 14], y: [0, 5, 0] }}
-        transition={{ duration: 12.5, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-        className="absolute -right-8 top-[16%] w-[42%] max-w-[520px]"
+        animate={{ x: [14, -16, 14], y: [0, 5, 0] }}
+        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }}
+        className="absolute -right-10 top-[12%] w-[44%] max-w-[560px]"
       >
         <svg viewBox="0 0 520 230" className="w-full h-auto">
           <path
@@ -463,11 +657,11 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
         </svg>
       </motion.div>
 
-      {/* 5. Awan Kiri Tengah (Sesuai LEVEL.png) */}
+      {/* Awan Kiri Tengah */}
       <motion.div
-        animate={{ x: [-16, 12, -16] }}
-        transition={{ duration: 13, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
-        className="absolute -left-10 top-[34%] w-[36%] max-w-[440px]"
+        animate={{ x: [-16, 14, -16] }}
+        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 1.5 }}
+        className="absolute -left-12 top-[38%] w-[38%] max-w-[480px]"
       >
         <svg viewBox="0 0 440 200" className="w-full h-auto">
           <path
@@ -481,11 +675,11 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
         </svg>
       </motion.div>
 
-      {/* 6. Awan Bawah Kiri & Kanan Berlapis (Sesuai LEVEL.png) */}
+      {/* Awan Horizon Bawah Kiri & Kanan */}
       <motion.div
         animate={{ x: [-10, 14, -10], y: [0, 4, 0] }}
-        transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
-        className="absolute -left-12 -bottom-4 w-[54%] max-w-[680px]"
+        transition={{ duration: 10.5, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute -left-12 -bottom-4 w-[58%] max-w-[780px]"
       >
         <svg viewBox="0 0 680 240" className="w-full h-auto">
           <path
@@ -502,7 +696,7 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
       <motion.div
         animate={{ x: [12, -12, 12], y: [0, 5, 0] }}
         transition={{ duration: 11.5, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-        className="absolute -right-12 -bottom-4 w-[52%] max-w-[650px]"
+        className="absolute -right-12 -bottom-4 w-[56%] max-w-[750px]"
       >
         <svg viewBox="0 0 650 250" className="w-full h-auto">
           <path
@@ -516,31 +710,141 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
         </svg>
       </motion.div>
 
-      {/* 7. Kawanan Burung Putih Terbang (Sesuai Posisi di LEVEL.png) */}
-      <AnimatedBirdFlock className="absolute left-[8%] top-[28%]" delay={0} duration={16} scale={0.95} />
-      <AnimatedBirdFlock className="absolute right-[14%] top-[8%]" delay={1.2} duration={19} scale={0.9} />
-      <AnimatedBirdFlock className="absolute right-[10%] top-[52%]" delay={2.4} duration={17} scale={0.88} />
-      <AnimatedBirdFlock className="absolute left-[43%] bottom-[4%]" delay={0.8} duration={15} scale={0.82} />
-
-      {/* 8. Partikel Udara / Cahaya Melayang */}
-      {[
-        { left: '18%', top: '20%', size: 6, dur: 4.5 },
-        { left: '46%', top: '15%', size: 8, dur: 5.5 },
-        { left: '78%', top: '34%', size: 7, dur: 4.8 },
-        { left: '35%', top: '58%', size: 6, dur: 5.2 },
-        { left: '62%', top: '76%', size: 8, dur: 6.0 },
-      ].map((p, idx) => (
-        <motion.div
-          key={idx}
-          style={{ left: p.left, top: p.top, width: p.size, height: p.size }}
-          animate={{ y: [0, -18, 0], opacity: [0.25, 0.85, 0.25], scale: [0.85, 1.2, 0.85] }}
-          transition={{ duration: p.dur, repeat: Infinity, ease: 'easeInOut', delay: idx * 0.7 }}
-          className="absolute rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.9)]"
-        />
-      ))}
+      {/* Kawanan Burung Terbang */}
+      <AnimatedBirdFlock className="absolute left-[18%] top-[22%]" delay={0} duration={16} scale={0.95} />
+      <AnimatedBirdFlock className="absolute right-[16%] top-[10%]" delay={1.2} duration={19} scale={0.9} />
+      <AnimatedBirdFlock className="absolute right-[12%] top-[48%]" delay={2.4} duration={17} scale={0.88} />
+      <AnimatedBirdFlock className="absolute left-[42%] bottom-[8%]" delay={0.8} duration={15} scale={0.82} />
     </div>
   )
 }
+
+// ============================================================
+// LANDMARK KREATIF & INTERAKTIF DI TIAP PULAU (PULAU 1 – 6)
+// ============================================================
+const IslandCreativeLandmarks = () => (
+  <div className="absolute inset-0 pointer-events-none select-none z-10">
+    {/* PULAU 1 (Bawah Kiri): Kupu-kupu & Bunga Berkilau di Dekat Papan A */}
+    <motion.div
+      style={{ left: '11.5%', top: '76.5%' }}
+      animate={{ x: [0, 12, -4, 0], y: [0, -10, -4, 0], rotate: [-8, 10, -8] }}
+      transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute text-base sm:text-xl drop-shadow-xs"
+    >
+      🦋
+    </motion.div>
+
+    {/* PULAU 2 (Bawah Kanan): Riak Air Sungai Berkilau & Bunga Teratai */}
+    {[
+      { x: '73%', y: '69.0%', delay: 0 },
+      { x: '75.5%', y: '71.4%', delay: 0.7 },
+      { x: '78%', y: '73.5%', delay: 1.4 },
+    ].map((w, idx) => (
+      <motion.div
+        key={`water-${idx}`}
+        style={{ left: w.x, top: w.y }}
+        animate={{ opacity: [0.35, 1, 0.35], scale: [0.85, 1.25, 0.85], x: [0, 4, 0] }}
+        transition={{ duration: 2.2, repeat: Infinity, delay: w.delay }}
+        className="absolute w-3.5 h-1.5 rounded-full bg-white/95 shadow-[0_0_8px_#FFFFFF]"
+      />
+    ))}
+
+    {/* PULAU 3 (Tengah Kiri): Daun Gugur & Lentera Hangat di Pohon Rindang */}
+    {[
+      { x: '36%', y: '46%', delay: 0 },
+      { x: '42%', y: '47.5%', delay: 1.8 },
+      { x: '32%', y: '49%', delay: 3.2 },
+    ].map((leaf, idx) => (
+      <motion.div
+        key={`leaf-${idx}`}
+        style={{ left: leaf.x, top: leaf.y }}
+        animate={{
+          y: [0, 28, 52],
+          x: [0, -10, 6],
+          rotate: [0, 45, -25],
+          opacity: [0, 0.95, 0],
+        }}
+        transition={{ duration: 5.2, repeat: Infinity, delay: leaf.delay, ease: 'easeInOut' }}
+        className="absolute text-xs sm:text-sm"
+      >
+        🍃
+      </motion.div>
+    ))}
+
+    {/* PULAU 4 (Tengah Kanan): Kincir Angin Handoora yang Baling-Balingnya Berputar */}
+    <div
+      style={{ left: '84.5%', top: '36.8%' }}
+      className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-20 sm:h-28 flex flex-col items-center"
+    >
+      <svg viewBox="0 0 100 130" className="w-full h-full overflow-visible drop-shadow-md">
+        {/* Menara Kayu/Batu Kincir */}
+        <polygon points="36,125 64,125 56,52 44,52" fill="#9E5847" stroke="#6E382C" strokeWidth="3" />
+        <polygon points="41,52 59,52 50,36" fill="#EB2B36" stroke="#991B1B" strokeWidth="2.5" />
+        <rect x="45" y="95" width="10" height="30" rx="5" fill="#5C2D23" />
+      </svg>
+      {/* Baling-Baling Kincir Berputar */}
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
+        className="absolute top-[22%] w-14 h-14 sm:w-20 sm:h-20 flex items-center justify-center"
+      >
+        <svg viewBox="0 0 100 100" className="w-full h-full">
+          <g stroke="#7C2D12" strokeWidth="2">
+            <polygon points="50,50 43,6 57,6" fill="#FFFBEB" />
+            <polygon points="50,50 94,43 94,57" fill="#FCA5A5" />
+            <polygon points="50,50 57,94 43,94" fill="#FFFBEB" />
+            <polygon points="50,50 6,57 6,43" fill="#FCA5A5" />
+          </g>
+          <circle cx="50" cy="50" r="7" fill="#EB2B36" stroke="#FFFFFF" strokeWidth="2.5" />
+        </svg>
+      </motion.div>
+    </div>
+
+    {/* PULAU 5 (Atas Kiri - Locked Planet Level): Kristal Prisma & Sakura Berkilau */}
+    <motion.div
+      style={{ left: '43.5%', top: '18.2%' }}
+      animate={{ y: [0, -6, 0] }}
+      transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute -translate-x-1/2 -translate-y-full w-14 sm:w-20 h-16 sm:h-24"
+    >
+      <svg viewBox="0 0 110 120" className="w-full h-full drop-shadow-[0_8px_16px_rgba(236,72,153,0.4)]">
+        {/* Kristal Kiri */}
+        <polygon points="28,105 14,62 28,38 42,62" fill="#F472B6" stroke="#FFFFFF" strokeWidth="2" />
+        <polygon points="28,105 28,38 42,62" fill="#EC4899" />
+        {/* Kristal Utama Tengah */}
+        <polygon points="55,108 36,48 55,12 74,48" fill="#A78BFA" stroke="#FFFFFF" strokeWidth="2.5" />
+        <polygon points="55,108 55,12 74,48" fill="#7C3AED" />
+        {/* Kristal Kanan */}
+        <polygon points="82,105 68,64 82,42 96,64" fill="#38BDF8" stroke="#FFFFFF" strokeWidth="2" />
+        <polygon points="82,105 82,42 96,64" fill="#0284C7" />
+        <circle cx="55" cy="26" r="4" fill="#FFFFFF" />
+      </svg>
+    </motion.div>
+
+    {/* PULAU 6 (Puncak Kanan Atas - Locked Final Level): Monumen Istana Bintang & Mahkota Emas */}
+    <motion.div
+      style={{ left: '84.5%', top: '6.2%' }}
+      animate={{ y: [0, -5, 0], scale: [1, 1.03, 1] }}
+      transition={{ duration: 3.8, repeat: Infinity, ease: 'easeInOut' }}
+      className="absolute -translate-x-1/2 -translate-y-full w-16 sm:w-22 h-16 sm:h-22"
+    >
+      <svg viewBox="0 0 120 120" className="w-full h-full drop-shadow-[0_10px_20px_rgba(245,158,11,0.5)]">
+        {/* Pilar Kuil Puncak */}
+        <rect x="22" y="96" width="76" height="14" rx="5" fill="#FDE68A" stroke="#B45309" strokeWidth="2.5" />
+        <rect x="30" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
+        <rect x="78" y="54" width="12" height="42" rx="3" fill="#FFFBEB" stroke="#D97706" strokeWidth="2.5" />
+        <path d="M20 56 L60 26 L100 56 Z" fill="#F59E0B" stroke="#92400E" strokeWidth="3" />
+        {/* Bintang Mahkota Puncak */}
+        <polygon
+          points="60,4 66,18 81,18 69,27 73,41 60,33 47,41 51,27 39,18 54,18"
+          fill="#FEF08A"
+          stroke="#D97706"
+          strokeWidth="2.5"
+        />
+      </svg>
+    </motion.div>
+  </div>
+)
 
 // ============================================================
 // KOMPONEN UTAMA DASHBOARD / BERANDA (/belajar)
@@ -548,6 +852,7 @@ const AnimatedSkyEnvironment = ({ skyMode }) => {
 const DashboardPage = () => {
   const navigate = useNavigate()
   const { user, logout, updateProfile, completeGoogleOnboarding } = useAuth()
+  const mapScrollRef = useRef(null)
 
   // Navigasi Sidebar sesuai Web - Beranda.png: 'beranda' | 'profil' | 'lainnya'
   const [activeMenu, setActiveMenu] = useState('beranda')
@@ -557,10 +862,16 @@ const DashboardPage = () => {
     progressService.getProgress(user?.id)
   )
 
-  // Pulau yang sedang dipilih pada peta
+  // Pulau yang sedang dipilih untuk banner atas & posisi mascot
   const [selectedUnitId, setSelectedUnitId] = useState(1)
+
+  // Keterangan Level (Popover) HANYA muncul saat node di-hover atau di-klik!
+  const [hoveredUnitId, setHoveredUnitId] = useState(null)
+  const [clickedTooltipUnitId, setClickedTooltipUnitId] = useState(null)
+
   const [mapZoom, setMapZoom] = useState(1)
-  const [skyMode, setSkyMode] = useState('sunset') // 'sunset' (LEVEL.png) | 'bright' (Web - Beranda.png)
+  // Mode Langit: 'bright' (Langit Cerah sesuai referensi baru) | 'sunset' (Langit Senja LEVEL.png)
+  const [skyMode, setSkyMode] = useState('bright')
 
   // Popover "10 hari beruntun" sesuai Web - Beranda-1.png
   const [showStreakPopover, setShowStreakPopover] = useState(false)
@@ -579,7 +890,7 @@ const DashboardPage = () => {
     umur: user?.umur || 20,
   })
 
-  // Modal Onboarding Google OAuth (lengkapi umur & password hash di Supabase)
+  // Modal Onboarding Google OAuth
   const [showGoogleOnboarding, setShowGoogleOnboarding] = useState(false)
   const [onboardingForm, setOnboardingForm] = useState({
     nama: user?.nama || '',
@@ -612,23 +923,60 @@ const DashboardPage = () => {
     }
   }, [user])
 
-  // Tentukan pulau aktif terakhir yang terbuka untuk posisi default mascot Doora
-  const highestUnlockedId = Math.max(
-    1,
-    ...ISLAND_UNITS.filter((u) => progress.unlockedIslands.includes(u.id)).map((u) => u.id)
+  // Tentukan SATU node level yang sedang aktif saat ini (unlocked tertinggi yang belum selesai, atau pulau tertinggi yang terbuka)
+  const unlockedIds = ISLAND_UNITS.filter(
+    (u) => progress.unlockedIslands.includes(u.id) || u.id === 1
+  ).map((u) => u.id)
+  const uncompletedUnlockedIds = unlockedIds.filter(
+    (id) => !progress.completedIslands.includes(id)
   )
+  const currentActiveUnitId =
+    uncompletedUnlockedIds.length > 0
+      ? Math.min(...uncompletedUnlockedIds)
+      : Math.max(1, ...unlockedIds)
+
+  // Scroll otomatis ke pulau aktif bawah saat pertama kali halaman Beranda dibuka
+  useEffect(() => {
+    if (activeMenu === 'beranda' && mapScrollRef.current) {
+      const el = mapScrollRef.current
+      const targetUnit =
+        ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
+      const targetY = (targetUnit.nodePos.y / 100) * el.scrollHeight
+      el.scrollTo({
+        top: Math.max(0, targetY - el.clientHeight * 0.55),
+        behavior: 'smooth',
+      })
+    }
+  }, [activeMenu, currentActiveUnitId])
 
   const selectedUnit =
-    ISLAND_UNITS.find((u) => u.id === selectedUnitId) || ISLAND_UNITS[0]
+    ISLAND_UNITS.find((u) => u.id === selectedUnitId) ||
+    ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) ||
+    ISLAND_UNITS[0]
 
-  // Mascot berada di pulau yang sedang dipilih (jika sudah terbuka), atau di pulau tertinggi yang terbuka
+  // Mascot berdiri di pulau aktif saat ini (atau pulau yang sedang dipilih jika sudah terbuka)
   const mascotUnit =
     progress.unlockedIslands.includes(selectedUnit.id) || selectedUnit.id === 1
       ? selectedUnit
-      : ISLAND_UNITS.find((u) => u.id === highestUnlockedId) || ISLAND_UNITS[0]
+      : ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
 
-  const handleSelectIsland = (unit) => {
+  const scrollToIsland = (unit) => {
     setSelectedUnitId(unit.id)
+    setClickedTooltipUnitId(unit.id)
+    if (mapScrollRef.current) {
+      const el = mapScrollRef.current
+      const targetY = (unit.nodePos.y / 100) * el.scrollHeight
+      el.scrollTo({
+        top: Math.max(0, targetY - el.clientHeight * 0.52),
+        behavior: 'smooth',
+      })
+    }
+  }
+
+  const handleNodeClick = (e, unit) => {
+    e.stopPropagation()
+    setSelectedUnitId(unit.id)
+    setClickedTooltipUnitId((prev) => (prev === unit.id ? null : unit.id))
   }
 
   const startQuiz = (unit) => {
@@ -639,6 +987,8 @@ const DashboardPage = () => {
       )
       return
     }
+    setClickedTooltipUnitId(null)
+    setHoveredUnitId(null)
     setQuizUnit(unit)
     setQuizStep(0)
     setSelectedOption(null)
@@ -752,21 +1102,26 @@ const DashboardPage = () => {
 
   return (
     <PageTransition>
-      <div className="min-h-screen w-full bg-[#FFFDF9] text-[#333333] flex flex-col lg:flex-row p-0 lg:p-5 gap-0 lg:gap-5 overflow-x-hidden select-none">
+      <div className="relative h-screen w-screen overflow-hidden font-sans text-[#333333] flex flex-col lg:flex-row select-none">
         {/* ============================================================ */}
-        {/* 1. LEFT SIDEBAR (Sesuai Desain Web - Beranda.png)            */}
+        {/* FULL-SCREEN SCENERY BACKGROUND (LANGIT CERAH / LANGIT SENJA) */}
         {/* ============================================================ */}
-        <aside className="hidden lg:flex flex-col justify-between w-[260px] xl:w-[276px] shrink-0 bg-[#F7F7F7] border-2 border-[#EBEBEB] rounded-[34px] px-5 py-8 shadow-[0_8px_30px_rgba(0,0,0,0.03)] z-30">
+        <FullScreenSkyScenery skyMode={skyMode} />
+
+        {/* ============================================================ */}
+        {/* 1. LEFT FLOATING SIDEBAR (Sesuai Desain Web - Beranda.png)   */}
+        {/* ============================================================ */}
+        <aside className="hidden lg:flex flex-col justify-between w-[258px] xl:w-[272px] shrink-0 m-4 mr-0 bg-[#F7F7F7]/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[34px] px-5 py-7 shadow-[0_14px_38px_rgba(0,0,0,0.08)] z-30">
           <div>
             {/* Brand Logo Handoora */}
             <div
               onClick={() => setActiveMenu('beranda')}
-              className="px-3 mb-10 cursor-pointer inline-flex items-center group"
+              className="px-3 mb-9 cursor-pointer inline-flex items-center group"
             >
               <img
                 src="/assets/logo-full.png"
                 alt="Handoora"
-                className="h-7 w-auto object-contain group-hover:scale-103 transition-transform"
+                className="h-6 w-auto object-contain group-hover:scale-103 transition-transform"
                 draggable={false}
               />
             </div>
@@ -799,8 +1154,8 @@ const DashboardPage = () => {
             </nav>
           </div>
 
-          {/* Kartu Ringkas Profil Pengguna & Progres di Bawah Sidebar */}
-          <div className="space-y-3 pt-6 border-t border-[#E8E8E8]">
+          {/* Kartu Ringkas Profil Pengguna di Bawah Sidebar */}
+          <div className="space-y-3 pt-5 border-t border-[#E8E8E8]">
             <div
               onClick={() => setActiveMenu('profil')}
               className="bg-white border-2 border-[#ECECEC] hover:border-[#FCA5A5] rounded-2xl p-3.5 flex items-center gap-3 cursor-pointer transition-all shadow-2xs"
@@ -838,7 +1193,7 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         {/* HEADER MOBILE (< lg)                                         */}
         {/* ============================================================ */}
-        <header className="lg:hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-[#EDEDED] px-4 py-3 flex items-center justify-between">
+        <header className="lg:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-white/60 px-4 py-2.5 flex items-center justify-between shadow-xs">
           <div
             onClick={() => setActiveMenu('beranda')}
             className="flex items-center cursor-pointer"
@@ -871,29 +1226,20 @@ const DashboardPage = () => {
         {/* ============================================================ */}
         {/* 2. AREA UTAMA (BERANDA MAP / PROFIL / LAINNYA)               */}
         {/* ============================================================ */}
-        <main className="flex-1 flex flex-col min-h-[calc(100vh-2.5rem)] pb-20 lg:pb-0 relative">
+        <main className="relative z-10 flex-1 flex flex-col h-full overflow-hidden">
           {/* ========================================================== */}
-          {/* VIEW A: BERANDA (PETA PULAU INTERAKTIF UI 4 + LEVEL.PNG)   */}
+          {/* VIEW A: BERANDA (SCROLLABLE 6-ISLAND MAP DI ATAS SCENERY)  */}
           {/* ========================================================== */}
           {activeMenu === 'beranda' && (
-            <div
-              className={`relative flex-1 flex flex-col rounded-none lg:rounded-[36px] overflow-hidden border-0 lg:border-2 lg:border-[#F2D3A0] shadow-[0_12px_40px_rgba(243,161,116,0.15)] transition-colors duration-500 ${
-                skyMode === 'sunset'
-                  ? 'bg-gradient-to-b from-[#FFE6B8] via-[#FCD496] to-[#FCCB82]'
-                  : 'bg-gradient-to-b from-[#FFFFFF] via-[#FFF9EC] to-[#FDE8BE]'
-              }`}
-            >
-              {/* Lapisan Ornamen Langit Bergerak (Awan, Burung, Hembusan Udara) */}
-              <AnimatedSkyEnvironment skyMode={skyMode} />
-
-              {/* TOP BAR: Banner Unit Aktif (Kiri/Tengah) + Streak Popover UI 4 (Kanan) */}
-              <div className="relative z-30 px-4 sm:px-7 pt-4 sm:pt-6 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
-                {/* Banner Keterangan Unit Aktif (Terinspirasi image 8.png dengan Warna Handoora) */}
+            <div className="relative flex-1 flex flex-col h-full overflow-hidden">
+              {/* FLOATING TOP BAR: Banner Unit Aktif + Tombol Streak UI 4 */}
+              <div className="relative z-40 px-4 sm:px-7 pt-3 sm:pt-5 pb-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-none">
+                {/* Banner Unit Aktif */}
                 <motion.div
                   key={selectedUnit.id}
-                  initial={{ y: -10, opacity: 0 }}
+                  initial={{ y: -8, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="flex-1 max-w-xl bg-gradient-to-r from-[#EB2B36] to-[#D91E2A] border-2 border-[#FCA5A5]/60 border-b-[5px] border-b-[#991B1B] rounded-2xl px-4 sm:px-5 py-3 flex items-center justify-between gap-3 shadow-[0_10px_25px_rgba(217,30,42,0.28)]"
+                  className="pointer-events-auto flex-1 max-w-xl bg-gradient-to-r from-[#EB2B36] to-[#D91E2A] border-2 border-[#FCA5A5]/70 border-b-[5px] border-b-[#991B1B] rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 flex items-center justify-between gap-3 shadow-[0_12px_28px_rgba(185,28,28,0.32)]"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -904,7 +1250,7 @@ const DashboardPage = () => {
                         {selectedUnit.islandName}
                       </span>
                     </div>
-                    <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-white font-display truncate mt-0.5">
+                    <h2 className="text-sm sm:text-base md:text-lg font-extrabold text-white truncate mt-0.5">
                       {selectedUnit.title}
                     </h2>
                   </div>
@@ -920,31 +1266,19 @@ const DashboardPage = () => {
                   </motion.button>
                 </motion.div>
 
-                {/* Status Bar Kanan Atas + Tombol Streak & Popover "10 hari beruntun" (Sesuai Web - Beranda-1.png) */}
-                <div className="relative flex items-center justify-end gap-2.5 self-end md:self-auto">
-                  {/* Pill XP */}
-                  <div
-                    title="Total XP Tersimpan di Supabase"
-                    className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-xs border-2 border-[#F3E3C3] shadow-xs"
-                  >
+                {/* Status Bar Kanan Atas + Tombol Streak & Popover "10 hari beruntun" */}
+                <div className="pointer-events-auto relative flex items-center justify-end gap-2.5 self-end md:self-auto">
+                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
                     <span className="text-sm">⭐</span>
                     <span className="text-xs font-black text-[#D97706]">{progress.xp} XP</span>
                   </div>
 
-                  {/* Pill Permata */}
-                  <div
-                    title="Permata Handoora"
-                    className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-xs border-2 border-[#F3E3C3] shadow-xs"
-                  >
+                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
                     <span className="text-sm">💎</span>
                     <span className="text-xs font-black text-[#0284C7]">{progress.gems}</span>
                   </div>
 
-                  {/* Pill Nyawa */}
-                  <div
-                    title="Nyawa Belajar"
-                    className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-xs border-2 border-[#F3E3C3] shadow-xs"
-                  >
+                  <div className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-white/90 backdrop-blur-md border-2 border-white/80 shadow-sm">
                     <span className="text-sm">❤️</span>
                     <span className="text-xs font-black text-[#E02424]">{progress.hearts}</span>
                   </div>
@@ -954,10 +1288,10 @@ const DashboardPage = () => {
                     whileHover={{ scale: 1.04 }}
                     whileTap={{ scale: 0.96 }}
                     onClick={() => setShowStreakPopover((v) => !v)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl border-2 transition-all cursor-pointer shadow-xs ${
+                    className={`flex items-center gap-2 px-4 py-2 rounded-2xl border-2 transition-all cursor-pointer shadow-sm ${
                       showStreakPopover
                         ? 'bg-[#F7EFEF] border-[#E02424]/40'
-                        : 'bg-white/95 hover:bg-[#F7EFEF] border-[#F3E3C3]'
+                        : 'bg-white/95 hover:bg-[#F7EFEF] border-white/80'
                     }`}
                   >
                     <IconFlame className="w-5 h-6" />
@@ -974,13 +1308,12 @@ const DashboardPage = () => {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 8, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute right-0 top-[calc(100%+14px)] w-[300px] sm:w-[340px] bg-[#FAFAFA] border-2 border-[#E6E6E6] rounded-[28px] p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.15)] z-50"
+                        className="absolute right-0 top-[calc(100%+14px)] w-[300px] sm:w-[340px] bg-[#FAFAFA] border-2 border-[#E6E6E6] rounded-[28px] p-5 sm:p-6 shadow-[0_20px_50px_rgba(0,0,0,0.18)] z-50"
                       >
-                        {/* Segitiga Pointer di Kanan Atas Sesuai Web - Beranda-1.png */}
                         <div className="absolute -top-3 right-6 w-5 h-5 bg-[#FAFAFA] border-l-2 border-t-2 border-[#E6E6E6] rotate-45" />
 
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg sm:text-xl font-extrabold text-[#D91E2A] font-display">
+                          <h3 className="text-lg sm:text-xl font-extrabold text-[#D91E2A]">
                             {progress.streak} hari beruntun
                           </h3>
                           <button
@@ -991,7 +1324,6 @@ const DashboardPage = () => {
                           </button>
                         </div>
 
-                        {/* Baris 7 Hari: S S R K J S M (Sesuai Web - Beranda-1.png) */}
                         <div className="grid grid-cols-7 gap-2 text-center">
                           {DAYS_STREAK.map((dayLetter, idx) => {
                             const isDayActive = idx < activeStreakDays
@@ -1035,11 +1367,15 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* STAGE PETA 4 PULAU MELAYANG (ASPECT-LOCKED & RESPONSIVE)   */}
+              {/* SCROLLABLE 6-ISLAND STAGE (DENGAN PADDING ATAS & BAWAH LEGA) */}
               {/* ========================================================== */}
               <div
-                onClick={() => showStreakPopover && setShowStreakPopover(false)}
-                className="relative flex-1 flex items-center justify-center px-2 sm:px-6 py-2 overflow-hidden"
+                ref={mapScrollRef}
+                onClick={() => {
+                  if (showStreakPopover) setShowStreakPopover(false)
+                  if (clickedTooltipUnitId !== null) setClickedTooltipUnitId(null)
+                }}
+                className="relative flex-1 overflow-y-auto overflow-x-hidden px-3 sm:px-8 pt-44 pb-36 scroll-smooth"
               >
                 <motion.div
                   animate={{ scale: mapZoom, y: [0, -5, 0] }}
@@ -1047,96 +1383,42 @@ const DashboardPage = () => {
                     scale: { type: 'spring', stiffness: 260, damping: 24 },
                     y: { duration: 6.5, repeat: Infinity, ease: 'easeInOut' },
                   }}
-                  className="relative w-full max-w-[780px] aspect-[1445/1280] mx-auto select-none"
+                  className="relative w-full max-w-[760px] aspect-[1445/2020] mx-auto select-none"
                 >
-                  {/* 1. Gambar Utama 4 Pulau & Jembatan Batu Melayang (Transparan HD dari UI 4) */}
+                  {/* 1. Gambar Utama 6 Pulau & Jembatan Batu Melayang */}
                   <img
                     src="/assets/islands-map.png"
-                    alt="Peta Pulau Pembelajaran Handoora"
-                    className="w-full h-full object-contain pointer-events-none drop-shadow-[0_18px_28px_rgba(146,74,36,0.22)]"
+                    alt="Peta 6 Pulau Pembelajaran Handoora"
+                    className="w-full h-full object-contain pointer-events-none drop-shadow-[0_20px_32px_rgba(0,0,0,0.22)]"
                     draggable={false}
                   />
 
-                  {/* 2. Animasi Alam Spesifik di Atas Pulau (Sungai Berkilau & Daun Pohon Gugur) */}
-                  {/* Kilau Air Sungai pada Pulau 2 */}
-                  {[
-                    { x: '73%', y: '50.5%', delay: 0 },
-                    { x: '75.5%', y: '54%', delay: 0.7 },
-                    { x: '78%', y: '57.2%', delay: 1.4 },
-                  ].map((w, idx) => (
-                    <motion.div
-                      key={`water-${idx}`}
-                      style={{ left: w.x, top: w.y }}
-                      animate={{ opacity: [0.3, 1, 0.3], scale: [0.85, 1.2, 0.85], x: [0, 4, 0] }}
-                      transition={{ duration: 2.4, repeat: Infinity, delay: w.delay }}
-                      className="absolute w-3 h-1.5 rounded-full bg-white/90 shadow-[0_0_8px_#FFFFFF] pointer-events-none"
-                    />
-                  ))}
+                  {/* 2. Landmark Kreatif & Animasi Alam di Tiap Pulau (Pulau 1 - 6) */}
+                  <IslandCreativeLandmarks />
 
-                  {/* Daun Melayang dari Pohon Rindang pada Pulau 3 */}
-                  {[
-                    { x: '37%', y: '16%', delay: 0 },
-                    { x: '43%', y: '18%', delay: 1.8 },
-                    { x: '33%', y: '20%', delay: 3.2 },
-                  ].map((leaf, idx) => (
-                    <motion.div
-                      key={`leaf-${idx}`}
-                      style={{ left: leaf.x, top: leaf.y }}
-                      animate={{
-                        y: [0, 32, 60],
-                        x: [0, -10, 6],
-                        rotate: [0, 45, -25],
-                        opacity: [0, 0.9, 0],
-                      }}
-                      transition={{
-                        duration: 5.5,
-                        repeat: Infinity,
-                        delay: leaf.delay,
-                        ease: 'easeInOut',
-                      }}
-                      className="absolute text-xs sm:text-sm pointer-events-none"
-                    >
-                      🍃
-                    </motion.div>
-                  ))}
-
-                  {/* 3. Indikator Cahaya pada 10 Batu Pijakan (Stepping Stones) */}
+                  {/* 3. Indikator Cahaya pada 16 Batu Pijakan (Stepping Stones) */}
                   {STEPPING_STONES.map((stone, idx) => {
                     const isPathUnlocked =
                       progress.unlockedIslands.includes(stone.toUnit) ||
                       progress.completedIslands.includes(stone.fromUnit)
                     return (
-                      <motion.div
+                      <div
                         key={`stone-${idx}`}
                         style={{ left: `${stone.x}%`, top: `${stone.y}%` }}
-                        animate={
-                          isPathUnlocked
-                            ? {
-                                scale: [1, 1.3, 1],
-                                opacity: [0.75, 1, 0.75],
-                              }
-                            : { scale: 1, opacity: 0.45 }
-                        }
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          delay: stone.delay,
-                          ease: 'easeInOut',
-                        }}
                         className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-10"
                       >
                         <div
-                          className={`w-2.5 h-2 sm:w-3.5 sm:h-2.5 rounded-full border ${
+                          className={`w-2.5 h-2 sm:w-3.5 sm:h-2.5 rounded-full border transition-all ${
                             isPathUnlocked
-                              ? 'bg-[#FFE066] border-white shadow-[0_0_10px_rgba(255,224,102,0.95)]'
-                              : 'bg-[#D6C7B2] border-white/60'
+                              ? 'bg-[#FFE066] border-white shadow-[0_0_8px_rgba(255,224,102,0.85)]'
+                              : 'bg-[#D6C7B2]/75 border-white/50'
                           }`}
                         />
-                      </motion.div>
+                      </div>
                     )
                   })}
 
-                  {/* 4. MASCOT DOORA BERDIRI DI PULAU AKTIF (Group 13.png / mascot-standing.png) */}
+                  {/* 4. MASCOT DOORA BERDIRI DI PULAU AKTIF (TIDAK TERTUTUP POPOVER) */}
                   <motion.div
                     layout
                     initial={false}
@@ -1146,25 +1428,17 @@ const DashboardPage = () => {
                     }}
                     transition={{
                       type: 'spring',
-                      stiffness: 180,
+                      stiffness: 170,
                       damping: 20,
                     }}
-                    onClick={() => startQuiz(mascotUnit)}
-                    className="absolute -translate-x-1/2 -translate-y-[78%] z-20 cursor-pointer group"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      startQuiz(mascotUnit)
+                    }}
+                    className="absolute -translate-x-1/2 -translate-y-[82%] z-20 cursor-pointer group"
                   >
                     {/* Bayangan Elips di Rumput Bawah Kaki Maskot */}
                     <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-12 sm:w-16 h-3 sm:h-4 rounded-full bg-black/25 blur-[2px]" />
-
-                    {/* Bubble Sapaan Mini saat Hover pada Maskot */}
-                    <motion.div
-                      animate={{ y: [0, -4, 0] }}
-                      transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute -top-7 left-1/2 -translate-x-1/2 bg-white border-2 border-[#EB2B36] px-2.5 py-0.5 rounded-full shadow-md whitespace-nowrap"
-                    >
-                      <span className="text-[9px] sm:text-[10px] font-black text-[#E02424] uppercase tracking-wide">
-                        Ayo Belajar! 🤟
-                      </span>
-                    </motion.div>
 
                     {/* Karakter Maskot Doora (Group 13.png) */}
                     <motion.img
@@ -1180,17 +1454,20 @@ const DashboardPage = () => {
                         ease: 'easeInOut',
                       }}
                       whileHover={{ scale: 1.08 }}
-                      className="w-14 sm:w-20 md:w-24 h-auto object-contain drop-shadow-[0_10px_14px_rgba(0,0,0,0.28)]"
+                      className="w-14 sm:w-20 md:w-24 h-auto object-contain drop-shadow-[0_10px_16px_rgba(0,0,0,0.3)]"
                       draggable={false}
                     />
                   </motion.div>
 
-                  {/* 5. NODE LEVEL 3D PADA SETIAP PULAU + KETERANGAN LEVEL POPOVER */}
+                  {/* 5. NODE LEVEL 3D PADA 6 PULAU + KETERANGAN LEVEL HANYA SAAT HOVER/KLIK */}
                   {ISLAND_UNITS.map((unit) => {
                     const isCompleted = progress.completedIslands.includes(unit.id)
                     const isUnlocked =
                       progress.unlockedIslands.includes(unit.id) || unit.id === 1
-                    const isSelected = selectedUnit.id === unit.id
+                    // HANYA menyala pada node level yang ter-unlock saat ini (level yang sudah terlewati tidak menyala!)
+                    const isCurrentActiveNode = unit.id === currentActiveUnitId
+                    const isTooltipVisible =
+                      hoveredUnitId === unit.id || clickedTooltipUnitId === unit.id
 
                     return (
                       <div
@@ -1199,30 +1476,38 @@ const DashboardPage = () => {
                           left: `${unit.nodePos.x}%`,
                           top: `${unit.nodePos.y}%`,
                         }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 z-30"
+                        onMouseEnter={() => setHoveredUnitId(unit.id)}
+                        onMouseLeave={() =>
+                          setHoveredUnitId((prev) => (prev === unit.id ? null : prev))
+                        }
+                        className={`absolute -translate-x-1/2 -translate-y-1/2 ${
+                          isTooltipVisible ? 'z-[80]' : 'z-30'
+                        }`}
                       >
-                        {/* POPOVER KETERANGAN LEVEL DI ATAS NODE (Sesuai image 8.png) */}
+                        {/* POPOVER KETERANGAN LEVEL: HANYA MUNCUL SAAT HOVER ATAU KLIK */}
                         <AnimatePresence>
-                          {isSelected && (
+                          {isTooltipVisible && (
                             <motion.div
-                              initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                              initial={{ opacity: 0, y: 8, scale: 0.92 }}
                               animate={{ opacity: 1, y: 0, scale: 1 }}
-                              exit={{ opacity: 0, y: 6, scale: 0.9 }}
-                              transition={{ type: 'spring', stiffness: 320, damping: 24 }}
-                              className="absolute bottom-[calc(100%+14px)] left-1/2 -translate-x-1/2 w-48 sm:w-56 z-40"
+                              exit={{ opacity: 0, y: 6, scale: 0.92 }}
+                              transition={{ duration: 0.18, ease: 'easeOut' }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="absolute bottom-[calc(100%+18px)] left-1/2 -translate-x-1/2 w-52 sm:w-60 z-[90]"
                             >
-                              <div className="bg-white/95 backdrop-blur-md border-2 border-[#EB2B36] rounded-2xl p-3 sm:p-3.5 text-center shadow-[0_14px_32px_rgba(217,30,42,0.28)]">
+                              <div className="bg-white/98 backdrop-blur-md border-2 border-[#EB2B36] rounded-2xl p-3.5 text-center shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
                                 <div className="flex items-center justify-center gap-1.5 mb-1">
                                   <span className="px-2 py-0.5 rounded-full bg-[#FFF0F0] text-[10px] font-black text-[#E02424] uppercase tracking-wider">
-                                    {unit.unitLabel}
-                                  </span>
-                                  <span className="text-[10px] font-extrabold text-[#D97706]">
-                                    +{unit.xpReward} XP
+                                    {unit.unitLabel} • {unit.islandName}
                                   </span>
                                 </div>
 
-                                <p className="text-xs sm:text-[13px] font-extrabold text-[#2B2B2B] leading-snug mb-2.5">
+                                <p className="text-xs sm:text-[13px] font-extrabold text-[#2B2B2B] leading-snug mb-1">
                                   {unit.title}
+                                </p>
+
+                                <p className="text-[11px] font-bold text-[#D97706] mb-2.5">
+                                  Hadiah: +{unit.xpReward} XP • +{unit.gemReward} 💎
                                 </p>
 
                                 {isUnlocked ? (
@@ -1235,7 +1520,7 @@ const DashboardPage = () => {
                                     }}
                                     className="w-full py-2 px-4 rounded-xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                                   >
-                                    <span>{isCompleted ? 'ULANGI' : 'MULAI'}</span>
+                                    <span>{isCompleted ? 'LATIH LAGI' : 'MULAI BELAJAR'}</span>
                                     <span className="text-[10px]">▶</span>
                                   </motion.button>
                                 ) : (
@@ -1244,9 +1529,9 @@ const DashboardPage = () => {
                                       e.stopPropagation()
                                       setGuideUnit(unit)
                                     }}
-                                    className="w-full py-1.5 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider cursor-pointer"
+                                    className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider cursor-pointer"
                                   >
-                                    🔒 LIHAT PANDUAN
+                                    🔒 LIHAT PANDUAN UNIT
                                   </button>
                                 )}
                               </div>
@@ -1257,35 +1542,49 @@ const DashboardPage = () => {
                           )}
                         </AnimatePresence>
 
-                        {/* RING GLOW BERDENYUT PADA NODE AKTIF */}
-                        {isUnlocked && (
-                          <motion.div
-                            animate={{
-                              scale: [1, 1.28, 1],
-                              opacity: [0.65, 0.15, 0.65],
-                            }}
-                            transition={{
-                              duration: 2.2,
-                              repeat: Infinity,
-                              ease: 'easeInOut',
-                            }}
-                            className={`absolute -inset-2 sm:-inset-3 rounded-full pointer-events-none ${
-                              isCompleted ? 'bg-[#F59E0B]/50' : 'bg-[#EB2B36]/55'
-                            }`}
-                          />
+                        {/* ANIMASI BLUR SPREAD HANYA PADA NODE LEVEL YANG SEDANG TER-UNLOCK SAAT INI */}
+                        {isCurrentActiveNode && (
+                          <>
+                            <motion.div
+                              animate={{
+                                scale: [1.05, 1.55, 1.05],
+                                opacity: [0.65, 0.18, 0.65],
+                              }}
+                              transition={{
+                                duration: 2.6,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                              className="absolute -inset-4 sm:-inset-5 rounded-full bg-[#FF3B47] blur-xl pointer-events-none"
+                            />
+                            <motion.div
+                              animate={{
+                                scale: [1, 1.22, 1],
+                                opacity: [0.55, 0.2, 0.55],
+                              }}
+                              transition={{
+                                duration: 2.6,
+                                repeat: Infinity,
+                                ease: 'easeInOut',
+                              }}
+                              className="absolute -inset-2 rounded-full bg-[#FDA4AF] blur-md pointer-events-none"
+                            />
+                          </>
                         )}
 
-                        {/* TOMBOL NODE LEVEL 3D ISOMETRIK (Sesuai image 8.png) */}
+                        {/* TOMBOL NODE LEVEL 3D ISOMETRIK */}
                         <motion.button
                           whileHover={{ scale: 1.08, y: -2 }}
                           whileTap={{ scale: 0.94, y: 2 }}
-                          onClick={() => handleSelectIsland(unit)}
+                          onClick={(e) => handleNodeClick(e, unit)}
                           onDoubleClick={() => isUnlocked && startQuiz(unit)}
                           className={`relative w-12 h-11 sm:w-16 sm:h-14 rounded-full flex items-center justify-center border-2 transition-all cursor-pointer ${
-                            isCompleted
-                              ? 'bg-gradient-to-b from-[#FBBF24] to-[#D97706] border-[#FEF08A] border-b-[6px] border-b-[#92400E] shadow-[0_8px_20px_rgba(217,119,6,0.45)]'
+                            isCurrentActiveNode
+                              ? 'bg-gradient-to-b from-[#FF4D58] to-[#E02424] border-white border-b-[6px] border-b-[#88131A] shadow-[0_0_28px_rgba(235,43,54,0.65)]'
+                              : isCompleted
+                              ? 'bg-gradient-to-b from-[#FBBF24] to-[#D97706] border-[#FEF08A] border-b-[6px] border-b-[#92400E] shadow-[0_6px_14px_rgba(0,0,0,0.22)]'
                               : isUnlocked
-                              ? 'bg-gradient-to-b from-[#FF4D58] to-[#E02424] border-[#FECDD3] border-b-[6px] border-b-[#88131A] shadow-[0_8px_22px_rgba(224,36,36,0.5)]'
+                              ? 'bg-gradient-to-b from-[#FF4D58] to-[#E02424] border-[#FECDD3] border-b-[6px] border-b-[#88131A] shadow-[0_6px_14px_rgba(0,0,0,0.22)]'
                               : 'bg-gradient-to-b from-[#8C827A] to-[#6B625B] border-[#D6CFC7] border-b-[6px] border-b-[#47403B] shadow-[0_6px_14px_rgba(0,0,0,0.28)]'
                           }`}
                         >
@@ -1294,7 +1593,7 @@ const DashboardPage = () => {
 
                           {isCompleted ? (
                             <span className="text-lg sm:text-2xl text-white drop-shadow-xs">
-                              ★
+                              ✓
                             </span>
                           ) : isUnlocked ? (
                             <span className="text-lg sm:text-2xl text-white drop-shadow-xs">
@@ -1314,31 +1613,6 @@ const DashboardPage = () => {
                             </svg>
                           )}
                         </motion.button>
-
-                        {/* Label Nama Pulau & Bintang di Bawah Node */}
-                        <div
-                          onClick={() => handleSelectIsland(unit)}
-                          className="mt-1.5 flex flex-col items-center cursor-pointer"
-                        >
-                          <span
-                            className={`px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-black tracking-wide whitespace-nowrap border shadow-2xs ${
-                              isSelected
-                                ? 'bg-[#E02424] text-white border-white'
-                                : isUnlocked
-                                ? 'bg-white/95 text-[#333333] border-[#E6D5B8]'
-                                : 'bg-[#6B625B]/90 text-white/90 border-white/30'
-                            }`}
-                          >
-                            {unit.unitLabel} • {unit.islandName.replace('Pulau ', '')}
-                          </span>
-                          {isCompleted && (
-                            <div className="flex items-center gap-0.5 text-[10px] mt-0.5 drop-shadow-xs">
-                              <span>⭐</span>
-                              <span>⭐</span>
-                              <span>⭐</span>
-                            </div>
-                          )}
-                        </div>
                       </div>
                     )
                   })}
@@ -1346,34 +1620,36 @@ const DashboardPage = () => {
               </div>
 
               {/* ========================================================== */}
-              {/* BOTTOM CONTROLS: Badge Peta + Quick Jump Pulau + Zoom      */}
+              {/* FLOATING BOTTOM CONTROLS: Quick Jump 6 Pulau + Mode Langit */}
               {/* ========================================================== */}
-              <div className="relative z-30 px-4 sm:px-7 pb-4 sm:pb-5 flex flex-wrap items-center justify-between gap-3">
-                {/* Kiri Bawah: Badge Peta Pembelajaran + Pilihan Cepat 4 Pulau */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="bg-white/90 backdrop-blur-md border-2 border-[#E6D5B8] px-3.5 py-2 rounded-full flex items-center gap-2 shadow-sm">
+              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-4 left-0 right-0 z-40 px-4 sm:px-7 flex flex-wrap items-center justify-between gap-3">
+                {/* Kiri Bawah: Navigasi Cepat Pulau 1 - 6 */}
+                <div className="pointer-events-auto flex flex-wrap items-center gap-2">
+                  <div className="hidden sm:flex bg-white/92 backdrop-blur-md border-2 border-white/80 px-3.5 py-2 rounded-full items-center gap-2 shadow-md">
                     <span className="text-[#E02424] text-sm">📍</span>
                     <span className="text-xs font-extrabold text-[#333333]">
-                      Peta Pembelajaran
+                      6 Pulau BISINDO
                     </span>
                   </div>
 
-                  {/* Tombol Pilih Cepat Pulau 1 - 4 (Responsif untuk Web & Mobile) */}
-                  <div className="flex items-center gap-1.5 bg-white/85 backdrop-blur-md border-2 border-[#E6D5B8] p-1 rounded-full shadow-sm">
+                  <div className="flex items-center gap-1 bg-white/92 backdrop-blur-md border-2 border-white/80 p-1 rounded-full shadow-md">
                     {ISLAND_UNITS.map((u) => {
                       const unlocked =
                         progress.unlockedIslands.includes(u.id) || u.id === 1
+                      const isCurrent = u.id === currentActiveUnitId
                       const active = selectedUnit.id === u.id
                       return (
                         <button
                           key={u.id}
-                          onClick={() => handleSelectIsland(u)}
+                          onClick={() => scrollToIsland(u)}
                           className={`px-2.5 py-1 rounded-full text-[11px] font-extrabold transition-all cursor-pointer ${
                             active
                               ? 'bg-[#E02424] text-white shadow-2xs'
+                              : isCurrent
+                              ? 'bg-[#FFF0F0] text-[#E02424]'
                               : unlocked
-                              ? 'text-[#555555] hover:bg-[#FFF0F0]'
-                              : 'text-[#AAAAAA]'
+                              ? 'text-[#444444] hover:bg-[#FFF0F0]'
+                              : 'text-[#999999] hover:bg-[#F5F5F5]'
                           }`}
                         >
                           {unlocked ? `Pulau ${u.id}` : `🔒 ${u.id}`}
@@ -1383,24 +1659,39 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* Kanan Bawah: Toggle Suasana Langit + Tombol Zoom (+/-) sesuai image 8.png */}
-                <div className="flex items-center gap-2.5">
-                  <button
-                    onClick={() =>
-                      setSkyMode((m) => (m === 'sunset' ? 'bright' : 'sunset'))
-                    }
-                    className="bg-white/90 hover:bg-white border-2 border-[#E6D5B8] px-3 py-2 rounded-xl text-xs font-extrabold text-[#555555] shadow-sm cursor-pointer transition-all"
-                    title="Ubah Suasana Langit"
-                  >
-                    {skyMode === 'sunset' ? '🌅 Langit Senja' : '☀️ Mode Cerah'}
-                  </button>
+                {/* Kanan Bawah: Pilihan 2 Mode Langit (Langit Cerah & Langit Senja) + Zoom */}
+                <div className="pointer-events-auto flex items-center gap-2.5 ml-auto">
+                  <div className="bg-white/92 backdrop-blur-md border-2 border-white/80 p-1 rounded-2xl flex items-center gap-1 shadow-md">
+                    <button
+                      onClick={() => setSkyMode('bright')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        skyMode === 'bright'
+                          ? 'bg-[#0D92F4] text-white shadow-2xs'
+                          : 'text-[#666666] hover:bg-[#F3F4F6]'
+                      }`}
+                    >
+                      <span>☀️</span>
+                      <span className="hidden sm:inline">Langit Cerah</span>
+                    </button>
+                    <button
+                      onClick={() => setSkyMode('sunset')}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        skyMode === 'sunset'
+                          ? 'bg-[#EA580C] text-white shadow-2xs'
+                          : 'text-[#666666] hover:bg-[#F3F4F6]'
+                      }`}
+                    >
+                      <span>🌅</span>
+                      <span className="hidden sm:inline">Langit Senja</span>
+                    </button>
+                  </div>
 
-                  <div className="flex flex-col bg-white/95 border-2 border-[#E6D5B8] rounded-xl overflow-hidden shadow-sm">
+                  <div className="flex flex-col bg-white/95 backdrop-blur-md border-2 border-white/80 rounded-xl overflow-hidden shadow-md">
                     <button
                       onClick={() =>
-                        setMapZoom((z) => Math.min(1.22, +(z + 0.08).toFixed(2)))
+                        setMapZoom((z) => Math.min(1.2, +(z + 0.08).toFixed(2)))
                       }
-                      className="w-8 h-8 flex items-center justify-center text-base font-black text-[#333333] hover:bg-[#FFF0F0] hover:text-[#E02424] border-b border-[#E6D5B8] cursor-pointer transition-colors"
+                      className="w-8 h-8 flex items-center justify-center text-base font-black text-[#333333] hover:bg-[#FFF0F0] hover:text-[#E02424] border-b border-[#EDEDED] cursor-pointer transition-colors"
                       title="Perbesar Peta"
                     >
                       +
@@ -1421,105 +1712,105 @@ const DashboardPage = () => {
           )}
 
           {/* ========================================================== */}
-          {/* VIEW B: PROFIL PENGGUNA (KONSISTEN DENGAN TEMA HANDOORA)   */}
+          {/* VIEW B: PROFIL PENGGUNA                                    */}
           {/* ========================================================== */}
           {activeMenu === 'profil' && (
-            <div className="flex-1 p-4 sm:p-8 max-w-3xl mx-auto w-full">
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 space-y-6 shadow-[0_12px_36px_rgba(0,0,0,0.04)]"
-              >
-                <div className="flex flex-col sm:flex-row items-center gap-5 pb-6 border-b border-[#EEEEEE]">
-                  {user?.avatar_url ? (
-                    <img
-                      src={user.avatar_url}
-                      alt={user.nama}
-                      className="w-20 h-20 rounded-3xl object-cover border-3 border-[#EB2B36] shadow-md"
-                    />
-                  ) : (
-                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#EB2B36] to-[#B91C1C] flex items-center justify-center text-3xl font-black text-white shadow-md">
-                      {(user?.nama || 'S')[0].toUpperCase()}
-                    </div>
-                  )}
-                  <div className="text-center sm:text-left">
-                    <h1 className="text-2xl font-extrabold text-[#2B2B2B] font-display">
-                      {user?.nama || 'Sobat Handoora'}
-                    </h1>
-                    <p className="text-xs sm:text-sm text-[#777777] font-bold mt-0.5">
-                      {user?.email || 'sobat@handoora.id'} • Umur {user?.umur || 20} Tahun
-                    </p>
-                    <span className="inline-block mt-2 px-3 py-1 rounded-full bg-[#FFF0F0] border border-[#FECDD3] text-[11px] font-extrabold text-[#E02424]">
-                      Metode Login: {(user?.auth_provider || 'email').toUpperCase()} • Tersimpan di Supabase 🤟
-                    </span>
-                  </div>
-                </div>
-
-                {/* 4 Kartu Statistik */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-                  <div className="bg-[#FFF9EB] border-2 border-[#FDE68A] rounded-2xl p-4">
-                    <p className="text-xs text-[#92400E] font-bold">Total XP</p>
-                    <p className="text-xl font-extrabold text-[#D97706] mt-1">
-                      ⭐ {progress.xp}
-                    </p>
-                  </div>
-                  <div className="bg-[#FFF1F2] border-2 border-[#FECDD3] rounded-2xl p-4">
-                    <p className="text-xs text-[#9F1239] font-bold">Hari Beruntun</p>
-                    <p className="text-xl font-extrabold text-[#E02424] mt-1">
-                      🔥 {progress.streak} Hari
-                    </p>
-                  </div>
-                  <div className="bg-[#ECFDF5] border-2 border-[#A7F3D0] rounded-2xl p-4">
-                    <p className="text-xs text-[#065F46] font-bold">Pulau Selesai</p>
-                    <p className="text-xl font-extrabold text-[#059669] mt-1">
-                      🏝️ {progress.completedIslands.length} / {ISLAND_UNITS.length}
-                    </p>
-                  </div>
-                  <div className="bg-[#F0F9FF] border-2 border-[#BAE6FD] rounded-2xl p-4">
-                    <p className="text-xs text-[#075985] font-bold">Permata</p>
-                    <p className="text-xl font-extrabold text-[#0284C7] mt-1">
-                      💎 {progress.gems}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Form Update Profil ke Supabase */}
-                <form onSubmit={handleSaveProfile} className="space-y-4 pt-2">
-                  <h2 className="text-base font-extrabold text-[#333333]">
-                    Perbarui Informasi Profil (Database Supabase)
-                  </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
-                        Nama Lengkap
-                      </label>
-                      <Input
-                        value={profileForm.nama}
-                        onChange={(e) =>
-                          setProfileForm((p) => ({ ...p, nama: e.target.value }))
-                        }
-                        placeholder="Nama Lengkap"
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24">
+              <div className="max-w-3xl mx-auto w-full">
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 space-y-6 shadow-[0_16px_44px_rgba(0,0,0,0.10)]"
+                >
+                  <div className="flex flex-col sm:flex-row items-center gap-5 pb-6 border-b border-[#EEEEEE]">
+                    {user?.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt={user.nama}
+                        className="w-20 h-20 rounded-3xl object-cover border-3 border-[#EB2B36] shadow-md"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
-                        Umur
-                      </label>
-                      <Input
-                        type="number"
-                        value={profileForm.umur}
-                        onChange={(e) =>
-                          setProfileForm((p) => ({ ...p, umur: e.target.value }))
-                        }
-                        placeholder="Umur"
-                      />
+                    ) : (
+                      <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#EB2B36] to-[#B91C1C] flex items-center justify-center text-3xl font-black text-white shadow-md">
+                        {(user?.nama || 'S')[0].toUpperCase()}
+                      </div>
+                    )}
+                    <div className="text-center sm:text-left">
+                      <h1 className="text-2xl font-extrabold text-[#2B2B2B]">
+                        {user?.nama || 'Sobat Handoora'}
+                      </h1>
+                      <p className="text-xs sm:text-sm text-[#777777] font-bold mt-0.5">
+                        {user?.email || 'sobat@handoora.id'} • Umur {user?.umur || 20} Tahun
+                      </p>
+                      <span className="inline-block mt-2 px-3 py-1 rounded-full bg-[#FFF0F0] border border-[#FECDD3] text-[11px] font-extrabold text-[#E02424]">
+                        Metode Login: {(user?.auth_provider || 'email').toUpperCase()} • Tersimpan di Supabase 🤟
+                      </span>
                     </div>
                   </div>
-                  <Button type="submit" variant="primary" size="md">
-                    SIMPAN KE SUPABASE
-                  </Button>
-                </form>
-              </motion.div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+                    <div className="bg-[#FFF9EB] border-2 border-[#FDE68A] rounded-2xl p-4">
+                      <p className="text-xs text-[#92400E] font-bold">Total XP</p>
+                      <p className="text-xl font-extrabold text-[#D97706] mt-1">
+                        ⭐ {progress.xp}
+                      </p>
+                    </div>
+                    <div className="bg-[#FFF1F2] border-2 border-[#FECDD3] rounded-2xl p-4">
+                      <p className="text-xs text-[#9F1239] font-bold">Hari Beruntun</p>
+                      <p className="text-xl font-extrabold text-[#E02424] mt-1">
+                        🔥 {progress.streak} Hari
+                      </p>
+                    </div>
+                    <div className="bg-[#ECFDF5] border-2 border-[#A7F3D0] rounded-2xl p-4">
+                      <p className="text-xs text-[#065F46] font-bold">Pulau Selesai</p>
+                      <p className="text-xl font-extrabold text-[#059669] mt-1">
+                        🏝️ {progress.completedIslands.length} / {ISLAND_UNITS.length}
+                      </p>
+                    </div>
+                    <div className="bg-[#F0F9FF] border-2 border-[#BAE6FD] rounded-2xl p-4">
+                      <p className="text-xs text-[#075985] font-bold">Permata</p>
+                      <p className="text-xl font-extrabold text-[#0284C7] mt-1">
+                        💎 {progress.gems}
+                      </p>
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleSaveProfile} className="space-y-4 pt-2">
+                    <h2 className="text-base font-extrabold text-[#333333]">
+                      Perbarui Informasi Profil (Database Supabase)
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                          Nama Lengkap
+                        </label>
+                        <Input
+                          value={profileForm.nama}
+                          onChange={(e) =>
+                            setProfileForm((p) => ({ ...p, nama: e.target.value }))
+                          }
+                          placeholder="Nama Lengkap"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                          Umur
+                        </label>
+                        <Input
+                          type="number"
+                          value={profileForm.umur}
+                          onChange={(e) =>
+                            setProfileForm((p) => ({ ...p, umur: e.target.value }))
+                          }
+                          placeholder="Umur"
+                        />
+                      </div>
+                    </div>
+                    <Button type="submit" variant="primary" size="md">
+                      SIMPAN KE SUPABASE
+                    </Button>
+                  </form>
+                </motion.div>
+              </div>
             </div>
           )}
 
@@ -1527,151 +1818,151 @@ const DashboardPage = () => {
           {/* VIEW C: LAINNYA (MISI HARIAN, PAPAN SKOR & PENGATURAN)     */}
           {/* ========================================================== */}
           {activeMenu === 'lainnya' && (
-            <div className="flex-1 p-4 sm:p-8 max-w-4xl mx-auto w-full space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Kartu Misi Harian */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="bg-white border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-xs space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-extrabold text-[#2B2B2B] font-display">
-                      🎯 Misi Harian BISINDO
-                    </h2>
-                    <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-extrabold text-[#E02424]">
-                      Aktif Hari Ini
-                    </span>
-                  </div>
-
-                  <div className="space-y-4">
-                    <div>
-                      <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                        <span>⚡ Dapatkan 50 XP Belajar</span>
-                        <span className="text-[#E02424]">
-                          {Math.min(50, progress.dailyQuests?.xpEarnedToday || 25)} / 50 XP
-                        </span>
-                      </div>
-                      <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
-                        <div
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              ((progress.dailyQuests?.xpEarnedToday || 25) / 50) * 100
-                            )}%`,
-                          }}
-                          className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full transition-all duration-500"
-                        />
-                      </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24">
+              <div className="max-w-4xl mx-auto w-full space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-extrabold text-[#2B2B2B]">
+                        🎯 Misi Harian BISINDO
+                      </h2>
+                      <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-extrabold text-[#E02424]">
+                        Aktif Hari Ini
+                      </span>
                     </div>
 
-                    <div>
-                      <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
-                        <span>🏝️ Selesaikan 2 Pulau Pembelajaran</span>
-                        <span className="text-[#D97706]">
-                          {Math.min(2, progress.completedIslands.length)} / 2 Pulau
-                        </span>
-                      </div>
-                      <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
-                        <div
-                          style={{
-                            width: `${Math.min(
-                              100,
-                              (progress.completedIslands.length / 2) * 100
-                            )}%`,
-                          }}
-                          className="h-full bg-gradient-to-r from-[#FBBF24] to-[#D97706] rounded-full transition-all duration-500"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-
-                {/* Kartu Papan Skor / Liga Pembelajar */}
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.06 }}
-                  className="bg-white border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-xs space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-extrabold text-[#2B2B2B] font-display">
-                      🏆 Papan Skor Sobat Handoora
-                    </h2>
-                    <span className="text-xs font-extrabold text-[#D97706]">
-                      Liga Berlian
-                    </span>
-                  </div>
-
-                  <div className="space-y-2.5">
-                    {[
-                      { name: user?.nama || 'Kamu (Sobat Handoora)', xp: progress.xp, isMe: true },
-                      { name: 'Alya Putri', xp: 145, isMe: false },
-                      { name: 'Bima Pratama', xp: 120, isMe: false },
-                    ]
-                      .sort((a, b) => b.xp - a.xp)
-                      .map((item, idx) => (
-                        <div
-                          key={idx}
-                          className={`flex items-center justify-between px-4 py-2.5 rounded-2xl border ${
-                            item.isMe
-                              ? 'bg-[#FFF5F5] border-[#FECDD3]'
-                              : 'bg-[#FAFAFA] border-[#EEEEEE]'
-                          }`}
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-black text-[#E02424]">
-                              #{idx + 1}
-                            </span>
-                            <span className="text-xs font-extrabold text-[#333333]">
-                              {item.name}
-                            </span>
-                          </div>
-                          <span className="text-xs font-black text-[#D97706]">
-                            ⭐ {item.xp} XP
+                    <div className="space-y-4">
+                      <div>
+                        <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
+                          <span>⚡ Dapatkan 50 XP Belajar</span>
+                          <span className="text-[#E02424]">
+                            {Math.min(50, progress.dailyQuests?.xpEarnedToday || 25)} / 50 XP
                           </span>
                         </div>
-                      ))}
+                        <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
+                          <div
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                ((progress.dailyQuests?.xpEarnedToday || 25) / 50) * 100
+                              )}%`,
+                            }}
+                            className="h-full bg-gradient-to-r from-[#FF4D58] to-[#E02424] rounded-full transition-all duration-500"
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="flex justify-between text-xs font-extrabold text-[#444444] mb-1.5">
+                          <span>🏝️ Selesaikan Pulau Pembelajaran</span>
+                          <span className="text-[#D97706]">
+                            {progress.completedIslands.length} / {ISLAND_UNITS.length} Pulau
+                          </span>
+                        </div>
+                        <div className="w-full h-3.5 bg-[#F2F2F2] rounded-full overflow-hidden">
+                          <div
+                            style={{
+                              width: `${Math.min(
+                                100,
+                                (progress.completedIslands.length / ISLAND_UNITS.length) * 100
+                              )}%`,
+                            }}
+                            className="h-full bg-gradient-to-r from-[#FBBF24] to-[#D97706] rounded-full transition-all duration-500"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.06 }}
+                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h2 className="text-lg font-extrabold text-[#2B2B2B]">
+                        🏆 Papan Skor Sobat Handoora
+                      </h2>
+                      <span className="text-xs font-extrabold text-[#D97706]">
+                        Liga Berlian
+                      </span>
+                    </div>
+
+                    <div className="space-y-2.5">
+                      {[
+                        { name: user?.nama || 'Kamu (Sobat Handoora)', xp: progress.xp, isMe: true },
+                        { name: 'Alya Putri', xp: 145, isMe: false },
+                        { name: 'Bima Pratama', xp: 120, isMe: false },
+                      ]
+                        .sort((a, b) => b.xp - a.xp)
+                        .map((item, idx) => (
+                          <div
+                            key={idx}
+                            className={`flex items-center justify-between px-4 py-2.5 rounded-2xl border ${
+                              item.isMe
+                                ? 'bg-[#FFF5F5] border-[#FECDD3]'
+                                : 'bg-[#FAFAFA] border-[#EEEEEE]'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-black text-[#E02424]">
+                                #{idx + 1}
+                              </span>
+                              <span className="text-xs font-extrabold text-[#333333]">
+                                {item.name}
+                              </span>
+                            </div>
+                            <span className="text-xs font-black text-[#D97706]">
+                              ⭐ {item.xp} XP
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </motion.div>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.12 }}
+                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+                >
+                  <div>
+                    <h3 className="text-base font-extrabold text-[#2B2B2B]">
+                      ⚙️ Pengaturan Progres & Sesi Akun
+                    </h3>
+                    <p className="text-xs font-bold text-[#777777] mt-1">
+                      Seluruh progres 6 pulau, XP, dan rentetan hari otomatis tersinkronisasi ke tabel <code className="text-[#E02424]">public.profiles</code> di Supabase.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={async () => {
+                        const reset = progressService.resetProgress(user?.id)
+                        setProgress(reset)
+                        setSelectedUnitId(1)
+                        if (user?.id) {
+                          await progressService.saveProgressToSupabase(user.id, reset)
+                        }
+                        toast.success('Progres pembelajaran direset ke Pulau 1')
+                      }}
+                      className="px-4 py-2.5 rounded-xl bg-[#F5F5F5] hover:bg-[#EAEAEA] text-xs font-extrabold text-[#555555] cursor-pointer transition-colors"
+                    >
+                      ULANGI DARI PULAU 1
+                    </button>
+
+                    <Button variant="primary" size="md" onClick={handleLogout}>
+                      KELUAR DARI AKUN
+                    </Button>
                   </div>
                 </motion.div>
               </div>
-
-              {/* Kartu Pengaturan & Reset Progres */}
-              <motion.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.12 }}
-                className="bg-white border-2 border-[#EBEBEB] rounded-[28px] p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
-              >
-                <div>
-                  <h3 className="text-base font-extrabold text-[#2B2B2B]">
-                    ⚙️ Pengaturan Progres & Sesi Akun
-                  </h3>
-                  <p className="text-xs font-bold text-[#777777] mt-1">
-                    Seluruh progres belajar pulau, XP, dan rentetan hari otomatis tersinkronisasi ke tabel <code className="text-[#E02424]">public.profiles</code> di Supabase.
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={async () => {
-                      const reset = progressService.resetProgress(user?.id)
-                      setProgress(reset)
-                      if (user?.id) {
-                        await progressService.saveProgressToSupabase(user.id, reset)
-                      }
-                      toast.success('Progres pembelajaran direset ke Pulau 1')
-                    }}
-                    className="px-4 py-2.5 rounded-xl bg-[#F5F5F5] hover:bg-[#EAEAEA] text-xs font-extrabold text-[#555555] cursor-pointer transition-colors"
-                  >
-                    ULANGI DARI PULAU 1
-                  </button>
-
-                  <Button variant="primary" size="md" onClick={handleLogout}>
-                    KELUAR DARI AKUN
-                  </Button>
-                </div>
-              </motion.div>
             </div>
           )}
         </main>
@@ -1727,7 +2018,7 @@ const DashboardPage = () => {
                     <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-black text-[#E02424] uppercase tracking-wider">
                       📖 Buku Panduan • {guideUnit.unitLabel}
                     </span>
-                    <h3 className="text-xl font-extrabold text-[#2B2B2B] font-display mt-2">
+                    <h3 className="text-xl font-extrabold text-[#2B2B2B] mt-2">
                       {guideUnit.title}
                     </h3>
                     <p className="text-xs font-bold text-[#777777] mt-0.5">
@@ -1805,7 +2096,6 @@ const DashboardPage = () => {
                 exit={{ scale: 0.92, y: 20 }}
                 className="w-full max-w-xl bg-white border-2 border-[#EBEBEB] rounded-[34px] p-6 sm:p-8 shadow-2xl space-y-6"
               >
-                {/* Header Progress Kuis */}
                 <div className="flex items-center gap-4">
                   <button
                     onClick={() => setQuizUnit(null)}
@@ -1826,12 +2116,11 @@ const DashboardPage = () => {
                   </span>
                 </div>
 
-                {/* Pertanyaan & Visual Isyarat */}
                 <div className="space-y-4">
                   <span className="inline-block px-3 py-1 rounded-full bg-[#FFF5E5] text-[11px] font-black text-[#D97706] uppercase tracking-wider">
                     {quizUnit.islandName} • Soal {quizStep + 1} dari {quizUnit.questions.length}
                   </span>
-                  <h3 className="text-lg sm:text-xl font-extrabold text-[#2B2B2B] font-display leading-snug">
+                  <h3 className="text-lg sm:text-xl font-extrabold text-[#2B2B2B] leading-snug">
                     {quizUnit.questions[quizStep].prompt}
                   </h3>
 
@@ -1840,7 +2129,6 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                {/* Pilihan Jawaban */}
                 <div className="space-y-2.5">
                   {quizUnit.questions[quizStep].options.map((opt, idx) => {
                     const isSelected = selectedOption === idx
@@ -1878,7 +2166,6 @@ const DashboardPage = () => {
                   })}
                 </div>
 
-                {/* Penjelasan Hasil Jawaban */}
                 {isAnswerChecked && (
                   <motion.div
                     initial={{ opacity: 0, y: 6 }}
@@ -1898,7 +2185,6 @@ const DashboardPage = () => {
                   </motion.div>
                 )}
 
-                {/* Tombol Aksi Kuis */}
                 <div className="flex justify-end">
                   {!isAnswerChecked ? (
                     <Button
@@ -1955,7 +2241,7 @@ const DashboardPage = () => {
                     <span className="px-2.5 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[10px] font-extrabold text-[#059669] uppercase">
                       Akun Google Terhubung
                     </span>
-                    <h3 className="text-lg font-extrabold text-[#2B2B2B] font-display mt-0.5">
+                    <h3 className="text-lg font-extrabold text-[#2B2B2B] mt-0.5">
                       Lengkapi Profil Handoora
                     </h3>
                     <p className="text-xs text-[#777777] font-bold">{user?.email}</p>
