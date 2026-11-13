@@ -848,7 +848,7 @@ export default function QuizPage() {
                         </div>
 
                         <div
-                          className={`w-full flex-1 mx-auto my-2 rounded-2xl flex items-center justify-center p-3 transition ${
+                          className={`w-full flex-1 mx-auto my-2 rounded-2xl flex items-center justify-center p-3 sm:p-4 transition ${
                             isSelected ? 'bg-white border border-rose-100 shadow-xs' : 'bg-gray-50/70'
                           }`}
                         >
@@ -859,8 +859,13 @@ export default function QuizPage() {
                           />
                         </div>
 
-                        <div className="text-xs sm:text-sm font-black uppercase tracking-wider">
-                          {isSelected ? 'Terpilih' : opt.letter || 'Pilih'}
+                        {/* Status Terpilih / Kosong tanpa membocorkan nama isyarat */}
+                        <div className="h-5 flex items-center justify-center">
+                          {isSelected && (
+                            <span className="text-[11px] sm:text-xs font-black uppercase tracking-wider text-[#E02424]">
+                              Terpilih
+                            </span>
+                          )}
                         </div>
                       </motion.button>
                     )
