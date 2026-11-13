@@ -120,7 +120,8 @@ export default function QuizPage() {
 
     // Cek apakah ada saved in-progress session untuk stage ini
     const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
-    const savedData = localStorage.getItem(savedProgressKey)
+    const legacyGuestKey = `handoora_session_progress_guest_L${levelId}_S${currentStageId}`
+    const savedData = localStorage.getItem(savedProgressKey) || localStorage.getItem(legacyGuestKey)
     let initialQueue = [...stage.questions]
     let initialCorrect = new Set()
     let initialWrong = 0
@@ -155,32 +156,42 @@ export default function QuizPage() {
     setVisionFeedback('Posisikan tanganmu di dalam bingkai kamera')
     setHandHoldProgress(0)
     holdCountRef.current = 0
-  }, [levelId, currentStageId, user?.id])
+  }, [levelId, currentStageId])
+
+  // Helper untuk menyimpan state progres kuis saat ini secara sinkron
+  const saveCurrentSessionProgress = (remainingQuestions, solvedSet, wrongNum) => {
+    if (isQuizCompleted) return
+    const activeUserId = user?.id || 'guest'
+    const userKey = `handoora_session_progress_${activeUserId}_L${levelId}_S${currentStageId}`
+    const guestKey = `handoora_session_progress_guest_L${levelId}_S${currentStageId}`
+
+    if (remainingQuestions && remainingQuestions.length > 0) {
+      const payload = JSON.stringify({
+        levelId,
+        stageId: currentStageId,
+        remainingQuestionIds: remainingQuestions.map((q) => q.id),
+        solvedQuestionIds: Array.from(solvedSet),
+        wrongCount: wrongNum,
+        totalOriginal,
+        updatedAt: Date.now(),
+      })
+      localStorage.setItem(userKey, payload)
+      if (activeUserId !== 'guest') {
+        localStorage.setItem(guestKey, payload)
+      }
+    } else {
+      localStorage.removeItem(userKey)
+      localStorage.removeItem(guestKey)
+    }
+  }
 
   // Simpan state progress saat antrean atau daftar soal terjawab berubah
   useEffect(() => {
     if (!currentStage || isQuizCompleted) return
-    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
-    if (queue.length > 0) {
-      // Simpan jika sudah ada soal yang diselesaikan ATAU jumlah soal tersisa lebih sedikit dari aslinya
-      if (correctIds.size > 0 || queue.length < totalOriginal) {
-        localStorage.setItem(
-          savedProgressKey,
-          JSON.stringify({
-            levelId,
-            stageId: currentStageId,
-            remainingQuestionIds: queue.map((q) => q.id),
-            solvedQuestionIds: Array.from(correctIds),
-            wrongCount,
-            totalOriginal,
-            updatedAt: Date.now(),
-          })
-        )
-      }
-    } else if (isQuizCompleted || queue.length === 0) {
-      localStorage.removeItem(savedProgressKey)
+    if (queue.length > 0 && (correctIds.size > 0 || queue.length < totalOriginal)) {
+      saveCurrentSessionProgress(queue, correctIds, wrongCount)
     }
-  }, [queue, correctIds, wrongCount, isQuizCompleted, currentStage, levelId, currentStageId, user?.id, totalOriginal])
+  }, [queue, correctIds, wrongCount, isQuizCompleted, currentStage, levelId, currentStageId, totalOriginal])
 
   // Current question adalah item pertama di antrean
   const currentQuestion = queue.length > 0 ? queue[0] : null
@@ -349,8 +360,10 @@ export default function QuizPage() {
     if (!currentQuestion || isAnswerChecked) return
 
     const remainingQueue = queue.slice(1)
+    const updatedQueue = [...remainingQueue, currentQuestion]
     // Pindahkan soal yang dilewati ke antrean paling belakang tanpa menambah wrongCount
-    setQueue([...remainingQueue, currentQuestion])
+    setQueue(updatedQueue)
+    saveCurrentSessionProgress(updatedQueue, correctIds, wrongCount)
 
     // Reset interaction state
     setSelectedIndex(null)
@@ -380,12 +393,16 @@ export default function QuizPage() {
       }
 
       setQueue(remainingQueue)
+      saveCurrentSessionProgress(remainingQueue, nextCorrectIds, wrongCount)
     } else {
       // JAWABAN SALAH:
       // Masukkan soal ini kembali ke antrean paling akhir (Mistake Recovery)
-      setWrongCount((prev) => prev + 1)
+      const nextWrongCount = wrongCount + 1
+      const updatedQueue = [...remainingQueue, currentQuestion]
+      setWrongCount(nextWrongCount)
       setIsRetryingWrong(true)
-      setQueue([...remainingQueue, currentQuestion])
+      setQueue(updatedQueue)
+      saveCurrentSessionProgress(updatedQueue, correctIds, nextWrongCount)
     }
 
     // Reset interaction state untuk soal berikutnya
@@ -405,8 +422,9 @@ export default function QuizPage() {
     triggerLuxuryConfetti()
 
     // Hapus sesi saved in-progress karena kuis sudah selesai tuntas
-    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
-    localStorage.removeItem(savedProgressKey)
+    const activeUserId = user?.id || 'guest'
+    localStorage.removeItem(`handoora_session_progress_${activeUserId}_L${levelId}_S${currentStageId}`)
+    localStorage.removeItem(`handoora_session_progress_guest_L${levelId}_S${currentStageId}`)
 
     // Setiap kali user menyelesaikan tahapan atau menyelesaikan ulang level ini,
     // berikan reward XP (stage.xpReward = 20 XP; jika menuntaskan Tahap 3, dapat bonus level completion +30 XP)
@@ -506,16 +524,23 @@ export default function QuizPage() {
           </svg>
         </button>
 
-        {/* Dynamic Animated Progress Bar */}
+        {/* Dynamic Animated Progress Bar Modern & Clean */}
         <div className="flex-1 max-w-xl">
-          <div className="w-full h-4 sm:h-4.5 bg-gray-200/90 rounded-full overflow-hidden p-0.5 shadow-inner relative">
+          <div className="w-full h-3.5 sm:h-4 bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-200/70 shadow-xs relative">
             <motion.div
               initial={false}
               animate={{ width: `${progressPercent}%` }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r from-[#FF5C5C] to-[#E02424] rounded-full relative"
+              transition={{ type: 'spring', stiffness: 120, damping: 18 }}
+              className="h-full bg-gradient-to-r from-[#FF5C5C] via-[#F03030] to-[#E02424] rounded-full relative overflow-hidden"
             >
-              <div className="absolute inset-x-1 top-0.5 h-1 bg-white/40 rounded-full" />
+              {/* Animasi shimmer berkilau halus yang berjalan melintasi bar progress */}
+              <motion.div
+                animate={{ x: ['-100%', '200%'] }}
+                transition={{ repeat: Infinity, duration: 2.2, ease: 'easeInOut' }}
+                className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent skew-x-[-20deg]"
+              />
+              {/* Highlight tipis di bagian atas bar untuk kedalaman clean 3D */}
+              <div className="absolute inset-x-1.5 top-0.5 h-[2px] bg-white/40 rounded-full" />
             </motion.div>
           </div>
         </div>
@@ -1027,19 +1052,7 @@ export default function QuizPage() {
                   onClick={() => {
                     // Pastikan state sesi tersimpan langsung saat klik Simpan & Keluar
                     if (queue.length > 0) {
-                      const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
-                      localStorage.setItem(
-                        savedProgressKey,
-                        JSON.stringify({
-                          levelId,
-                          stageId: currentStageId,
-                          remainingQuestionIds: queue.map((q) => q.id),
-                          solvedQuestionIds: Array.from(correctIds),
-                          wrongCount,
-                          totalOriginal,
-                          updatedAt: Date.now(),
-                        })
-                      )
+                      saveCurrentSessionProgress(queue, correctIds, wrongCount)
                     }
                     navigate('/belajar')
                   }}
