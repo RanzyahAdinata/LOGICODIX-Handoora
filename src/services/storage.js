@@ -195,6 +195,78 @@ function getLocalRegisteredUsers() {
   }
 }
 
+// Reset migrasi satu kali agar XP seluruh akun selain akun demo kembali ke 0
+const XP_RESET_VERSION_KEY = 'handoora_xp_reset_all_except_demo_v1'
+export function performGlobalXpResetExceptDemo() {
+  if (typeof window === 'undefined' || !window.localStorage) return
+  if (localStorage.getItem(XP_RESET_VERSION_KEY) === 'done') return
+
+  try {
+    const demoId = DEMO_USER.id
+    const demoEmail = DEMO_USER.email.toLowerCase()
+
+    // 1. Reset user yang sedang aktif jika bukan akun demo
+    const currentUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+    if (currentUser && currentUser.id !== demoId && currentUser.email?.toLowerCase() !== demoEmail) {
+      currentUser.xp = 0
+      currentUser.weekly_xp = 0
+      localStorage.setItem('handoora_user', JSON.stringify(currentUser))
+    }
+
+    // 2. Reset handoora_known_profiles
+    const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+    Object.keys(knownProfiles).forEach((k) => {
+      const p = knownProfiles[k]
+      if (p.id !== demoId && p.email?.toLowerCase() !== demoEmail) {
+        p.xp = 0
+        p.weekly_xp = 0
+      }
+    })
+    localStorage.setItem('handoora_known_profiles', JSON.stringify(knownProfiles))
+
+    // 3. Reset handoora_registered_users
+    const registeredUsers = JSON.parse(localStorage.getItem('handoora_registered_users') || '{}')
+    Object.keys(registeredUsers).forEach((emailKey) => {
+      if (emailKey.toLowerCase() !== demoEmail) {
+        const u = registeredUsers[emailKey]
+        if (u.profile) {
+          u.profile.xp = 0
+          u.profile.weekly_xp = 0
+        }
+        u.xp = 0
+        u.weekly_xp = 0
+      }
+    })
+    localStorage.setItem('handoora_registered_users', JSON.stringify(registeredUsers))
+
+    // 4. Reset seluruh key handoora_progress_* di localStorage kecuali milik demo user
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i)
+      if (key && key.startsWith('handoora_progress_') && !key.includes(demoId)) {
+        try {
+          const prog = JSON.parse(localStorage.getItem(key) || '{}')
+          prog.xp = 0
+          prog.weekly_xp = 0
+          if (prog.dailyQuests) {
+            prog.dailyQuests.xpEarned = 0
+            prog.dailyQuests.xpEarnedToday = 0
+          }
+          localStorage.setItem(key, JSON.stringify(prog))
+        } catch {
+          // ignore
+        }
+      }
+    }
+
+    localStorage.setItem(XP_RESET_VERSION_KEY, 'done')
+  } catch (err) {
+    console.warn('Gagal mereset XP akun lokal:', err)
+  }
+}
+
+// Jalankan otomatis saat inisialisasi modul
+performGlobalXpResetExceptDemo()
+
 function saveLocalRegisteredUser(userRecord) {
   try {
     const users = getLocalRegisteredUsers()
