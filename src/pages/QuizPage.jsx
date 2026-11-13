@@ -638,19 +638,18 @@ export default function QuizPage() {
             </div>
 
             {/* Tombol Lanjut ke Tahap Selanjutnya */}
-            <Button
-              variant="primary"
-              size="lg"
-              className="w-full py-4 text-base font-extrabold uppercase tracking-wider shadow-lg flex items-center justify-center gap-2"
+            <motion.button
+              whileHover={{ scale: 1.015 }}
+              whileTap={{ scale: 0.985 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
               onClick={handleProceedNextStage}
+              className="w-full py-4 px-6 rounded-2xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-black text-base sm:text-lg uppercase tracking-wider shadow-lg hover:brightness-105 active:border-b-0 active:translate-y-1 transition-all cursor-pointer flex items-center justify-center gap-2.5"
             >
-              <span>
-                {currentStageId < 3 ? `LANJUT KE TAHAP ${currentStageId + 1}` : `SELESAIKAN LEVEL ${levelId}`}
-              </span>
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              <span>Lanjut</span>
+              <svg className="w-5 h-5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
-            </Button>
+            </motion.button>
           </motion.div>
         ) : (
           /* ========================================================= */
