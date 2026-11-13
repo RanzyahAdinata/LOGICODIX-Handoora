@@ -3511,13 +3511,10 @@ const DashboardPage = () => {
                               className="bg-white border-2 border-gray-100 hover:border-[#E02424]/40 rounded-3xl p-4 sm:p-4.5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(224,36,36,0.12)] transition-all flex flex-col justify-between group"
                             >
                               <div>
-                                {/* Header Kartu: Badge Level & Huruf Mono Tegas */}
+                                {/* Header Kartu: Badge Kategori */}
                                 <div className="flex items-center justify-between mb-3">
                                   <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-gray-100 text-gray-700">
                                     {item.moduleBadge || item.category}
-                                  </span>
-                                  <span className="w-7 h-7 rounded-lg bg-rose-50 text-[#E02424] font-black text-xs flex items-center justify-center border border-rose-100 group-hover:scale-110 transition-transform">
-                                    {item.letter}
                                   </span>
                                 </div>
 

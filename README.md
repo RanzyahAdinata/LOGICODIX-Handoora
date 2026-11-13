@@ -67,21 +67,25 @@
 - **Peta Bertema Kepulauan**: Desain bertahap (Pulau Abjad Dasar, Pulau Kata Dasar, Pulau Angka & Waktu, dsb.) dengan animasi floating island, awan bergulir, dan transisi pemandangan langit (Langit Cerah, Senja, Malam).
 - **Session Resume Modal**: Menyimpan progres kuis yang sedang berjalan. Jika pengguna sempat beristirahat di tengah tahap, sistem otomatis menawarkan opsi melanjutkan dari titik soal terakhir atau mengulang dari awal.
 
-### 4. Mesin Kuis Cerdas & AI Gesture Recognition (`/quiz`)
+### 4. Mesin Kuis Cerdas & AI Gesture Recognition (`/quiz` & `/training`)
+- **Integrasi MediaPipe Hands Berkecepatan Tinggi**: Menggunakan MediaPipe Hands 21-landmark 3D tracking berpresisi tinggi untuk membaca koordinat sendi tangan pengguna secara instan di peramban tanpa latensi server.
 - **3 Mode Soal Adaptif**:
   - *Peragakan Isyarat*: Membuka kamera depan dan mendeteksi gerakan tangan pengguna secara *real-time* dengan visual retikel dan timer akurasi tahan posisi (*hold progress*).
   - *Pilih Kartu Isyarat*: Memilih kartu visual gerakan tangan yang sesuai tanpa teks pembocor jawaban.
   - *Tebak Huruf*: Mengidentifikasi huruf dari kartu visual isyarat tangan.
+- **Efek Audio Feedback Interaktif (Celesta & Glass Chimes)**: Audio interaktif bertema elegan (correct chime, wrong thud, skip, victory fanfare, & tap) yang dapat dinyalakan/dimatikan pada Pengaturan.
 - **Mistake Recovery & Smart Skip**: Soal yang salah atau dilewati (*Lompati*) otomatis dipindahkan ke antrean paling belakang agar pengguna dapat menuntaskannya kembali sampai benar-benar paham.
 - **Modern Animated Shimmer Progress Bar**: Indikator progres dengan transisi pegas (*spring physics*) dan efek kilau cahaya halus.
 - **Celebration Result Page**: Statistik akurasi belajar, perolehan XP, nyala api streak, selebrasi konfeti partikel mewah, dan tombol *Lanjut* 3D tactile.
 
 ### 5. Liga Papan Skor Mingguan Real-Time (Weekly Reset)
-- **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*).
+- **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*) dan badge Liga Perunggu *Wings of Victory*.
 - **Weekly XP Reset System**: Setiap siklus baru tiba, skor XP liga otomatis di-reset ke 0 XP agar seluruh pengguna dapat bersaing grinding kembali secara adil, sementara total XP profil permanen tetap aman terjaga.
 
 ### 6. Kamus Digital BISINDO Lengkap (`/kamus`)
-- Katalog abjad jari A–Z beresolusi tinggi yang bersih dari watermark, dilengkapi deskripsi fondasi gestur tangan dan pencarian instan.
+- **Katalog Isyarat Resolusi Tinggi Ultra-HD**: Aset visual gerakan isyarat tangan Level 1 (A–Z) dan kosakata Level 2 (Halo, Terima Kasih, Sama-sama, Minta Maaf, Selamat Pagi, Selamat Malam, Nama Saya, Sampai Jumpa Lagi) beresolusi hingga 8.000 px, bersih dari teks berulang dan background abu-abu.
+- **Filter Modul Smooth Scroll & Transisi AnimatePresence**: Filter kategori level yang dapat digulir dengan tombol navigasi halus kiri-kanan serta animasi pergantian kartu yang mulus tanpa kedip (*anti-flicker*).
+- **Pencarian Cepat Cerdas**: Memfilter huruf, kosakata, dan deskripsi gerakan isyarat secara instan.
 
 ---
 

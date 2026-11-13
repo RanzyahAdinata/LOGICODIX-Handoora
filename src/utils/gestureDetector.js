@@ -200,20 +200,20 @@ function evaluateMediaPipeGesture(handsLandmarks, target) {
     return { detected: false, confidence: 0.4, feedback: 'Buka telapak tangan datar dari dekat bibir mengarah ke depan', handPresent: true }
   }
 
-  // Sama-sama: Kedua telapak tangan terbuka bersahabat
+  // Sama-sama: Pose tanduk (jempol + kelingking) atau telapak tangan terbuka bersahabat
   if (upper.includes('SAMA-SAMA') || upper.includes('SAMA')) {
-    if (numHands === 2 || f1.extendedCount >= 3) {
-      return { detected: true, confidence: 0.91, feedback: 'Isyarat Sama-sama terdeteksi!', handPresent: true }
+    if ((f1.thumb && f1.pinky) || numHands === 2 || f1.extendedCount >= 3) {
+      return { detected: true, confidence: 0.93, feedback: 'Isyarat Sama-sama terdeteksi!', handPresent: true }
     }
-    return { detected: false, confidence: 0.4, feedback: 'Tunjukkan telapak tangan terbuka dengan ramah', handPresent: true }
+    return { detected: false, confidence: 0.4, feedback: 'Buka jempol dan kelingking (pose tanduk) atau kedua telapak tangan terbuka', handPresent: true }
   }
 
-  // Maaf: Tangan mengepal di dada memutar perlahan
+  // Minta Maaf: Tangan terbuka menghampiri pose lingkaran atau tangan melingkar
   if (upper.includes('MAAF')) {
-    if (f1.extendedCount <= 2) {
-      return { detected: true, confidence: 0.93, feedback: 'Isyarat Maaf terdeteksi tulus!', handPresent: true }
+    if (numHands === 2 || f1.extendedCount <= 3) {
+      return { detected: true, confidence: 0.93, feedback: 'Isyarat Minta Maaf terdeteksi santun!', handPresent: true }
     }
-    return { detected: false, confidence: 0.4, feedback: 'Kepalkan tanganmu di depan dada untuk isyarat Maaf', handPresent: true }
+    return { detected: false, confidence: 0.4, feedback: 'Buka satu telapak tangan mendekat ke tangan lain yang membentuk pose lingkaran', handPresent: true }
   }
 
   // Sayang / Cinta / I Love You: Menyilangkan tangan atau ILY
