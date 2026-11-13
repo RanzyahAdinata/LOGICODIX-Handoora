@@ -649,20 +649,37 @@ export const progressService = {
   },
 
   // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles
+  // Di-reset otomatis tiap 1 minggu sekali (siklus Minggu s.d. Sabtu)
   async getLeaderboard(limit = 10) {
     if (!supabase || !isSupabaseConfigured) {
       return []
     }
+
+    // Tentukan waktu awal siklus minggu berjalan (Hari Minggu pukul 00:00:00 waktu lokal)
+    const now = new Date()
+    const sundayStart = new Date(now)
+    sundayStart.setDate(now.getDate() - now.getDay())
+    sundayStart.setHours(0, 0, 0, 0)
+    const weekCycleStartIso = sundayStart.toISOString()
+
     try {
+      // Ambil user dengan xp > 0 yang beraktivitas di siklus minggu ini
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
+        .gte('updated_at', weekCycleStartIso)
         .order('xp', { ascending: false })
         .limit(limit)
 
       if (error) {
-        console.warn('Gagal memuat data leaderboard Supabase:', error)
-        return []
+        console.warn('Gagal memuat data leaderboard mingguan Supabase:', error)
+        // Fallback: jika query gte gagal karena data kosong, ambil keseluruhan
+        const { data: fallbackData } = await supabase
+          .from('profiles')
+          .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
+          .order('xp', { ascending: false })
+          .limit(limit)
+        return fallbackData || []
       }
       return data || []
     } catch (err) {

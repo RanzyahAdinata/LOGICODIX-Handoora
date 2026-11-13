@@ -414,6 +414,32 @@ const AVATAR_PRESETS = [
   { id: 'komodo', label: 'Modo', src: '/assets/avatar-komodo.png' },
 ]
 
+// Helper: Menghitung sisa waktu countdown siklus liga mingguan (Mulai Minggu s.d. Sabtu 23:59:59)
+function calculateLeagueCountdown() {
+  const now = new Date()
+  const day = now.getDay() // 0: Minggu, 1: Senin, ..., 6: Sabtu
+
+  // Tentukan waktu akhir siklus: Hari Sabtu minggu berjalan pukul 23:59:59
+  const saturdayEnd = new Date(now)
+  saturdayEnd.setDate(now.getDate() + (6 - day))
+  saturdayEnd.setHours(23, 59, 59, 999)
+
+  const diffMs = saturdayEnd.getTime() - now.getTime()
+  if (diffMs <= 0) {
+    return '0j 0m 0d'
+  }
+
+  const d = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+  const h = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+  const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
+  const s = Math.floor((diffMs % (1000 * 60)) / 1000)
+
+  if (d > 0) {
+    return `${d} Hari ${h} Jam ${m} Menit ${s} Detik`
+  }
+  return `${h} Jam ${m} Menit ${s} Detik`
+}
+
 // Helper: Resize foto yang di-upload user menjadi 240x240 JPEG agar ringan & cepat disimpan
 function resizeImageFileToDataUrl(file, maxSize = 240) {
   return new Promise((resolve, reject) => {
@@ -1828,10 +1854,17 @@ const DashboardPage = () => {
   const [clickedTooltipUnitId, setClickedTooltipUnitId] = useState(null)
 
   // Settings preferences (Preferensi tersimpan di local storage & aktif secara fungsional)
+  // Default selalu Langit Cerah ('bright') saat pertama kali masuk / setelah login
   const [settingsPref, setSettingsPref] = useState(() => {
     try {
       const saved = localStorage.getItem('handoora_user_settings')
-      if (saved) return JSON.parse(saved)
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        return {
+          hapticFeedback: parsed.hapticFeedback ?? true,
+          skyTheme: parsed.skyTheme || 'bright',
+        }
+      }
     } catch {}
     return {
       hapticFeedback: true,
@@ -1845,11 +1878,23 @@ const DashboardPage = () => {
       const saved = localStorage.getItem('handoora_user_settings')
       if (saved) {
         const parsed = JSON.parse(saved)
-        if (parsed.skyTheme) return parsed.skyTheme
+        if (parsed.skyTheme === 'sunset' || parsed.skyTheme === 'bright') {
+          return parsed.skyTheme
+        }
       }
     } catch {}
     return 'bright'
   })
+
+  // Sinkronisasi setter tema langit agar tersimpan konsisten di local storage
+  const handleSetSkyMode = (mode) => {
+    setSkyMode(mode)
+    setSettingsPref((prev) => {
+      const updated = { ...prev, skyTheme: mode }
+      localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
+      return updated
+    })
+  }
   const [showStreakPopover, setShowStreakPopover] = useState(false)
 
   // Submenu tab untuk menu LAINNYA: 'pengaturan' | 'bantuan' | 'faq'
@@ -1861,6 +1906,16 @@ const DashboardPage = () => {
 
   // Status sticker untuk LEADERBOARD
   const [userLeaderboardStatus, setUserLeaderboardStatus] = useState('🔥')
+
+  // Countdown Real-Time untuk Siklus Mingguan Liga Handoora (Mulai Minggu 00:00:00 s.d. Sabtu 23:59:59)
+  const [leagueTimeRemaining, setLeagueTimeRemaining] = useState(() => calculateLeagueCountdown())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setLeagueTimeRemaining(calculateLeagueCountdown())
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [])
 
   // Real-time Leaderboard dari Supabase Profiles
   const [supabaseLeaderboard, setSupabaseLeaderboard] = useState([])
@@ -2839,7 +2894,7 @@ const DashboardPage = () => {
                   {/* Segmented Control Mode Langit Bersih */}
                   <div className="bg-white/95 backdrop-blur-md border border-gray-200/90 p-1 rounded-2xl flex items-center shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                     <button
-                      onClick={() => setSkyMode('bright')}
+                      onClick={() => handleSetSkyMode('bright')}
                       className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'bright'
                           ? 'bg-[#0A84EC] text-white shadow-xs'
@@ -2850,7 +2905,7 @@ const DashboardPage = () => {
                       <span>Siang</span>
                     </button>
                     <button
-                      onClick={() => setSkyMode('sunset')}
+                      onClick={() => handleSetSkyMode('sunset')}
                       className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center gap-1.5 ${
                         skyMode === 'sunset'
                           ? 'bg-[#E15814] text-white shadow-xs'
@@ -3426,14 +3481,14 @@ const DashboardPage = () => {
                     </div>
                     <h2 className="text-xl font-black text-[#2B2B2B]">Liga Perunggu Handoora</h2>
                     <p className="text-xs font-bold text-gray-400 mt-0.5">
-                      Top 10 pembelajar bahasa isyarat teraktif minggu ini
+                      Top 10 pembelajar teraktif minggu ini (Mulai Minggu - Berakhir Sabtu)
                     </p>
-                    <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 font-extrabold text-[11px] border border-amber-200">
-                      <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-700 font-extrabold text-xs border border-amber-200/90 shadow-2xs">
+                      <svg className="w-4 h-4 text-amber-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      <span>6 Hari Tersisa</span>
-                    </span>
+                      <span className="font-mono tracking-tight font-black">{leagueTimeRemaining}</span>
+                    </div>
                   </motion.div>
 
                   {/* Daftar Top 10 Pengguna */}
@@ -3709,12 +3764,7 @@ const DashboardPage = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                setSkyMode('bright')
-                                setSettingsPref((prev) => {
-                                  const updated = { ...prev, skyTheme: 'bright' }
-                                  localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
-                                  return updated
-                                })
+                                handleSetSkyMode('bright')
                                 toast.success('Tema Langit Siang diaktifkan')
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
@@ -3728,12 +3778,7 @@ const DashboardPage = () => {
                             <button
                               type="button"
                               onClick={() => {
-                                setSkyMode('sunset')
-                                setSettingsPref((prev) => {
-                                  const updated = { ...prev, skyTheme: 'sunset' }
-                                  localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
-                                  return updated
-                                })
+                                handleSetSkyMode('sunset')
                                 toast.success('Tema Langit Senja diaktifkan')
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
