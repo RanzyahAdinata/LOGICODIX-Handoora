@@ -62,8 +62,17 @@ export default function QuizPage() {
   const levelId = parseInt(paramLevelId || '1', 10)
   const initialStageId = parseInt(paramStageId || '1', 10)
 
-  // Stage state
+  // Stage state - sinkronkan dengan paramStageId saat rute berubah
   const [currentStageId, setCurrentStageId] = useState(initialStageId)
+  useEffect(() => {
+    if (paramStageId) {
+      const parsed = parseInt(paramStageId, 10)
+      if (!isNaN(parsed) && parsed !== currentStageId) {
+        setCurrentStageId(parsed)
+      }
+    }
+  }, [paramStageId])
+
   const currentStages = getLevelStages(levelId)
   const currentStage = currentStages.find((s) => s.stageId === currentStageId) || currentStages[0]
 
@@ -113,6 +122,8 @@ export default function QuizPage() {
     const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
     const savedData = localStorage.getItem(savedProgressKey)
     let initialQueue = [...stage.questions]
+    let initialCorrect = new Set()
+    let initialWrong = 0
 
     if (savedData) {
       try {
@@ -122,19 +133,19 @@ export default function QuizPage() {
           const restoredQueue = parsed.remainingQuestionIds.map((id) => map.get(id)).filter(Boolean)
           if (restoredQueue.length > 0) {
             initialQueue = restoredQueue
-            setCorrectIds(new Set(parsed.solvedQuestionIds || []))
+            initialCorrect = new Set(parsed.solvedQuestionIds || [])
+            initialWrong = Number(parsed.wrongCount) || 0
           }
         }
       } catch (e) {
         console.warn('Gagal membaca sesi tersimpan:', e)
       }
-    } else {
-      setCorrectIds(new Set())
     }
 
+    setCorrectIds(initialCorrect)
     setQueue(initialQueue)
     setTotalOriginal(stage.questions.length)
-    setWrongCount(0)
+    setWrongCount(initialWrong)
     setIsRetryingWrong(false)
     setSelectedIndex(null)
     setIsAnswerChecked(false)
@@ -146,25 +157,30 @@ export default function QuizPage() {
     holdCountRef.current = 0
   }, [levelId, currentStageId, user?.id])
 
-  // Simpan state progress saat antrean berubah
+  // Simpan state progress saat antrean atau daftar soal terjawab berubah
   useEffect(() => {
     if (!currentStage || isQuizCompleted) return
     const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
-    if (queue.length > 0 && queue.length < totalOriginal) {
-      localStorage.setItem(
-        savedProgressKey,
-        JSON.stringify({
-          levelId,
-          stageId: currentStageId,
-          remainingQuestionIds: queue.map((q) => q.id),
-          solvedQuestionIds: Array.from(correctIds),
-          updatedAt: Date.now(),
-        })
-      )
+    if (queue.length > 0) {
+      // Simpan jika sudah ada soal yang diselesaikan ATAU jumlah soal tersisa lebih sedikit dari aslinya
+      if (correctIds.size > 0 || queue.length < totalOriginal) {
+        localStorage.setItem(
+          savedProgressKey,
+          JSON.stringify({
+            levelId,
+            stageId: currentStageId,
+            remainingQuestionIds: queue.map((q) => q.id),
+            solvedQuestionIds: Array.from(correctIds),
+            wrongCount,
+            totalOriginal,
+            updatedAt: Date.now(),
+          })
+        )
+      }
     } else if (isQuizCompleted || queue.length === 0) {
       localStorage.removeItem(savedProgressKey)
     }
-  }, [queue, correctIds, isQuizCompleted, currentStage, levelId, currentStageId, user?.id, totalOriginal])
+  }, [queue, correctIds, wrongCount, isQuizCompleted, currentStage, levelId, currentStageId, user?.id, totalOriginal])
 
   // Current question adalah item pertama di antrean
   const currentQuestion = queue.length > 0 ? queue[0] : null
@@ -1006,7 +1022,25 @@ export default function QuizPage() {
                   LANJUTKAN BELAJAR
                 </Button>
                 <button
-                  onClick={() => navigate('/belajar')}
+                  onClick={() => {
+                    // Pastikan state sesi tersimpan langsung saat klik Simpan & Keluar
+                    if (queue.length > 0) {
+                      const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
+                      localStorage.setItem(
+                        savedProgressKey,
+                        JSON.stringify({
+                          levelId,
+                          stageId: currentStageId,
+                          remainingQuestionIds: queue.map((q) => q.id),
+                          solvedQuestionIds: Array.from(correctIds),
+                          wrongCount,
+                          totalOriginal,
+                          updatedAt: Date.now(),
+                        })
+                      )
+                    }
+                    navigate('/belajar')
+                  }}
                   className="w-full py-2.5 rounded-2xl text-gray-400 hover:text-gray-700 font-extrabold text-sm transition"
                 >
                   SIMPAN & KELUAR
