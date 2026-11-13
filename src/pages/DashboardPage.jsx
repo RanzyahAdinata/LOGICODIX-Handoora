@@ -2412,23 +2412,32 @@ const DashboardPage = () => {
               <div className="absolute top-0 left-0 right-0 z-40 px-4 sm:px-7 pt-3 sm:pt-5 pb-2 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 pointer-events-none">
                 <motion.div
                   key={selectedUnit.id}
-                  initial={{ y: -8, opacity: 0 }}
+                  initial={{ y: -10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="pointer-events-auto w-fit max-w-sm sm:max-w-md bg-gradient-to-r from-[#EB2B36] to-[#D91E2A] border-2 border-[#FCA5A5]/70 border-b-[5px] border-b-[#991B1B] rounded-2xl px-4 py-2 sm:py-2.5 shadow-[0_12px_28px_rgba(185,28,28,0.32)]"
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  className="pointer-events-auto w-fit max-w-sm sm:max-w-md bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl px-4 py-3 shadow-[0_12px_32px_rgba(0,0,0,0.08)] flex items-center gap-3.5"
                 >
-                  <div className="min-w-0">
+                  {/* Badge Ikon Nomor Level */}
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF4754] to-[#E02424] text-white font-black text-sm flex items-center justify-center shrink-0 shadow-[0_4px_12px_rgba(224,36,36,0.3)] border border-rose-300/40">
+                    {selectedUnit.id}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] sm:text-[11px] font-extrabold tracking-wider uppercase text-[#FFE4E6]">
-                        ← {selectedUnit.section}
+                      <span className="text-[10px] font-black tracking-wider uppercase text-[#E02424]">
+                        {selectedUnit.unitLabel}
                       </span>
-                      <span className="px-2 py-0.5 rounded-full bg-white/20 text-[10px] font-extrabold text-white">
+                      <span className="w-1 h-1 rounded-full bg-gray-300" />
+                      <span className="text-[11px] font-bold text-gray-500 truncate">
                         {selectedUnit.islandName}
                       </span>
                     </div>
-                    <h2 className="text-sm sm:text-base font-extrabold text-white truncate mt-0.5">
+
+                    <h2 className="text-sm sm:text-base font-black text-gray-900 truncate tracking-tight mt-0.5">
                       {selectedUnit.title}
                     </h2>
-                    <p className="text-[11px] font-bold text-white/85 line-clamp-1 mt-0.5 leading-snug">
+
+                    <p className="text-[11px] font-semibold text-gray-400 truncate mt-0.5 leading-snug">
                       {selectedUnit.subtitle}
                     </p>
                   </div>
