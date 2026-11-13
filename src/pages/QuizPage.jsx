@@ -476,39 +476,39 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {/* 1. TOP HEADER (Progress, Stage, Close Button) */}
       {/* ========================================================= */}
-      <header className="w-full max-w-4xl mx-auto px-4 sm:px-8 pt-6 pb-4 flex items-center justify-between gap-4 sm:gap-6">
+      <header className="w-full max-w-5xl mx-auto px-4 sm:px-8 pt-7 pb-5 flex items-center justify-between gap-4 sm:gap-8">
         {/* Tombol Keluar (✕) */}
         <button
           onClick={() => setShowExitModal(true)}
-          className="w-10 h-10 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-800 hover:bg-gray-100/80 transition cursor-pointer shrink-0 border border-transparent hover:border-gray-200"
+          className="w-11 h-11 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100/90 transition cursor-pointer shrink-0 border border-gray-200/80 shadow-2xs"
           title="Keluar dari Kuis"
         >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Dynamic Animated Progress Bar */}
-        <div className="flex-1 max-w-md">
-          <div className="w-full h-3 sm:h-3.5 bg-gray-200/80 rounded-full overflow-hidden p-0.5 shadow-inner relative">
+        <div className="flex-1 max-w-xl">
+          <div className="w-full h-4 sm:h-4.5 bg-gray-200/90 rounded-full overflow-hidden p-0.5 shadow-inner relative">
             <motion.div
               initial={false}
               animate={{ width: `${progressPercent}%` }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
               className="h-full bg-gradient-to-r from-[#FF5C5C] to-[#E02424] rounded-full relative"
             >
-              <div className="absolute inset-x-1 top-0.5 h-0.5 bg-white/40 rounded-full" />
+              <div className="absolute inset-x-1 top-0.5 h-1 bg-white/40 rounded-full" />
             </motion.div>
           </div>
         </div>
 
-        {/* Badge Level & Tahap Modern & Clean */}
+        {/* Badge Level & Tahap Modern, Jelas & Proporsional */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="px-3.5 py-1.5 rounded-2xl bg-white border border-gray-200/90 text-gray-700 font-extrabold text-xs flex items-center gap-2 shadow-[0_2px_8px_rgba(0,0,0,0.04)]">
-            <span className="w-2 h-2 rounded-full bg-[#E02424]" />
+          <div className="px-4 py-2 rounded-2xl bg-white border border-gray-200/90 text-gray-800 font-black text-sm flex items-center gap-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
+            <span className="w-2.5 h-2.5 rounded-full bg-[#E02424] animate-pulse" />
             <span className="tracking-wide">Level {levelId}</span>
             <span className="text-gray-300 font-normal">|</span>
-            <span className="text-gray-500 font-bold">Tahap {currentStageId}/3</span>
+            <span className="text-gray-500 font-extrabold">Tahap {currentStageId}/3</span>
           </div>
         </div>
       </header>
@@ -516,7 +516,7 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {/* 2. BODY CONTENT (Result Page OR Active Question) */}
       {/* ========================================================= */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 sm:px-6 py-4 flex flex-col justify-center items-center">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-4 sm:py-6 flex flex-col justify-center items-center">
         {isQuizCompleted ? (
           /* ========================================================= */
           /* RESULT PAGE CELEBRATION (Sesuai Web - Result page.png) */
@@ -620,17 +620,17 @@ export default function QuizPage() {
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mb-4 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 font-extrabold text-xs flex items-center gap-1.5 shadow-xs"
+                  className="mb-5 px-5 py-2 rounded-full bg-rose-50 border border-rose-200 text-rose-600 font-extrabold text-xs sm:text-sm flex items-center gap-2 shadow-xs"
                 >
-                  <svg className="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                   </svg>
                   <span>Yuk ulangi soal yang tadi terlewat agar semakin lancar!</span>
                 </motion.div>
               )}
 
-              {/* Teks Instruksi Soal */}
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-gray-800 text-center mb-6 tracking-tight">
+              {/* Teks Instruksi Soal - Lebih Besar & Jelas Terbaca */}
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 text-center mb-7 sm:mb-9 tracking-tight max-w-3xl leading-snug">
                 {currentQuestion.prompt}
               </h2>
 
@@ -638,14 +638,14 @@ export default function QuizPage() {
               {/* TIPE 1: 'peragakan' (Kamera Preview Otomatis + AI Feedback) */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'peragakan' && (
-                <div className="w-full max-w-3xl grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 items-stretch">
+                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
                   {/* Kartu Kiri: Kamera Live Viewfinder Clean */}
                   <div
-                    className={`relative aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_12px_36px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
+                    className={`relative min-h-[340px] sm:min-h-[420px] aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
                       visionStatus === 'success'
-                        ? 'border-emerald-500 shadow-[0_0_24px_rgba(16,185,129,0.4)] ring-4 ring-emerald-400/20'
+                        ? 'border-emerald-500 shadow-[0_0_28px_rgba(16,185,129,0.45)] ring-4 ring-emerald-400/25'
                         : visionStatus === 'wrong'
-                        ? 'border-rose-500 shadow-[0_0_20px_rgba(239,68,68,0.3)] ring-4 ring-rose-400/20'
+                        ? 'border-rose-500 shadow-[0_0_24px_rgba(239,68,68,0.35)] ring-4 ring-rose-400/25'
                         : 'border-slate-800'
                     }`}
                   >
@@ -664,16 +664,16 @@ export default function QuizPage() {
                     />
 
                     {!cameraActive && (
-                      <div className="flex flex-col items-center text-center p-5 text-slate-300 z-20">
-                        <div className="w-14 h-14 rounded-2xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center mb-3 text-slate-300 shadow-inner">
-                          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <div className="flex flex-col items-center text-center p-6 text-slate-300 z-20">
+                        <div className="w-16 h-16 rounded-2xl bg-slate-800/90 border border-slate-700/80 flex items-center justify-center mb-4 text-slate-300 shadow-inner">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                           </svg>
                         </div>
-                        <p className="font-black text-sm mb-1 text-white">
+                        <p className="font-black text-base mb-1.5 text-white">
                           {cameraPermissionDenied ? 'Izin Kamera Belum Aktif' : 'Menyiapkan Kamera...'}
                         </p>
-                        <p className="text-xs text-slate-400 max-w-xs mb-4 leading-relaxed font-medium">
+                        <p className="text-xs sm:text-sm text-slate-400 max-w-xs mb-5 leading-relaxed font-medium">
                           {cameraPermissionDenied
                             ? 'Izinkan akses kamera di browsermu agar Handoora dapat mengevaluasi bentuk tanganmu.'
                             : 'Posisikan tanganmu di dalam area pandang kamera sesuai isyarat.'}
@@ -681,7 +681,7 @@ export default function QuizPage() {
                         <button
                           type="button"
                           onClick={startCameraStream}
-                          className="px-4 py-2.5 rounded-xl bg-[#E02424] hover:bg-[#c91d1d] text-white text-xs font-black shadow-sm hover:shadow transition cursor-pointer flex items-center gap-2"
+                          className="px-5 py-3 rounded-2xl bg-[#E02424] hover:bg-[#c91d1d] text-white text-xs sm:text-sm font-black shadow-md hover:shadow-lg transition cursor-pointer flex items-center gap-2"
                         >
                           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -693,29 +693,29 @@ export default function QuizPage() {
 
                     {/* Sudut Retikel Kamera Minimalis */}
                     <div
-                      className={`absolute top-3.5 left-3.5 w-5 h-5 border-t-2 border-l-2 rounded-tl-md pointer-events-none transition-colors ${
+                      className={`absolute top-4 left-4 w-6 h-6 border-t-2 border-l-2 rounded-tl-md pointer-events-none transition-colors ${
                         visionStatus === 'success' ? 'border-emerald-400' : 'border-white/50'
                       }`}
                     />
                     <div
-                      className={`absolute top-3.5 right-3.5 w-5 h-5 border-t-2 border-r-2 rounded-tr-md pointer-events-none transition-colors ${
+                      className={`absolute top-4 right-4 w-6 h-6 border-t-2 border-r-2 rounded-tr-md pointer-events-none transition-colors ${
                         visionStatus === 'success' ? 'border-emerald-400' : 'border-white/50'
                       }`}
                     />
                     <div
-                      className={`absolute bottom-3.5 left-3.5 w-5 h-5 border-b-2 border-l-2 rounded-bl-md pointer-events-none transition-colors ${
+                      className={`absolute bottom-4 left-4 w-6 h-6 border-b-2 border-l-2 rounded-bl-md pointer-events-none transition-colors ${
                         visionStatus === 'success' ? 'border-emerald-400' : 'border-white/50'
                       }`}
                     />
                     <div
-                      className={`absolute bottom-3.5 right-3.5 w-5 h-5 border-b-2 border-r-2 rounded-br-md pointer-events-none transition-colors ${
+                      className={`absolute bottom-4 right-4 w-6 h-6 border-b-2 border-r-2 rounded-br-md pointer-events-none transition-colors ${
                         visionStatus === 'success' ? 'border-emerald-400' : 'border-white/50'
                       }`}
                     />
 
                     {/* Hold Progress Bar di bagian atas frame kamera */}
                     {handHoldProgress > 0 && visionStatus !== 'success' && (
-                      <div className="absolute top-3 inset-x-12 h-1.5 bg-black/50 rounded-full overflow-hidden p-0.5">
+                      <div className="absolute top-4 inset-x-12 h-2 bg-black/50 rounded-full overflow-hidden p-0.5">
                         <motion.div
                           animate={{ width: `${handHoldProgress}%` }}
                           className="h-full bg-emerald-400 rounded-full"
@@ -725,7 +725,7 @@ export default function QuizPage() {
 
                     {/* Badge Sinyal Deteksi Real-Time di Bawah Kamera */}
                     <div
-                      className={`absolute bottom-3 left-1/2 -translate-x-1/2 px-3.5 py-1.5 rounded-full text-white text-[11px] font-bold border flex items-center gap-2 shadow-lg backdrop-blur-md max-w-[90%] text-center transition-all ${
+                      className={`absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-white text-xs font-bold border flex items-center gap-2.5 shadow-lg backdrop-blur-md max-w-[90%] text-center transition-all ${
                         visionStatus === 'success'
                           ? 'bg-emerald-600/95 border-emerald-400/50'
                           : visionStatus === 'wrong'
@@ -734,7 +734,7 @@ export default function QuizPage() {
                       }`}
                     >
                       <span
-                        className={`w-2 h-2 rounded-full shrink-0 ${
+                        className={`w-2.5 h-2.5 rounded-full shrink-0 ${
                           visionStatus === 'success'
                             ? 'bg-emerald-300'
                             : visionStatus === 'wrong'
@@ -746,28 +746,28 @@ export default function QuizPage() {
                     </div>
                   </div>
 
-                  {/* Kartu Kanan: Target Isyarat & Gambar Referensi HD Clean Modern */}
-                  <div className="relative aspect-4/3 sm:aspect-square flex items-center justify-center">
-                    <div className="w-full h-full bg-white rounded-3xl p-5 sm:p-6 text-gray-900 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col justify-between border border-gray-200/90 hover:border-gray-300 transition">
-                      <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-                        <span className="text-[10px] font-black tracking-wider uppercase bg-rose-50 border border-rose-100 text-[#E02424] px-2.5 py-1 rounded-md">
+                  {/* Kartu Kanan: Target Isyarat & Gambar Referensi HD Clean Modern - Jauh Lebih Besar & Jelas */}
+                  <div className="relative min-h-[340px] sm:min-h-[420px] aspect-4/3 sm:aspect-square flex items-center justify-center">
+                    <div className="w-full h-full bg-white rounded-3xl p-6 sm:p-7 text-gray-900 shadow-[0_16px_40px_rgba(0,0,0,0.05)] flex flex-col justify-between border border-gray-200/90 hover:border-gray-300 transition">
+                      <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
+                        <span className="text-xs font-black tracking-wider uppercase bg-rose-50 border border-rose-100 text-[#E02424] px-3 py-1 rounded-lg">
                           Target BISINDO
                         </span>
-                        <span className="text-xl sm:text-2xl font-black text-gray-900">{currentQuestion.targetLetter}</span>
+                        <span className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">{currentQuestion.targetLetter}</span>
                       </div>
 
-                      {/* Gambar Isyarat HD Utuh */}
-                      <div className="w-full flex-1 flex items-center justify-center my-3">
-                        <div className="w-36 h-36 sm:w-44 sm:h-44 bg-gray-50/80 rounded-2xl p-3 border border-gray-100 flex items-center justify-center">
+                      {/* Gambar Isyarat HD Utuh & Jauh Lebih Besar */}
+                      <div className="w-full flex-1 flex items-center justify-center my-3 sm:my-4">
+                        <div className="w-48 h-48 sm:w-60 sm:h-60 md:w-64 md:h-64 bg-gray-50/90 rounded-3xl p-4 sm:p-5 border border-gray-100 flex items-center justify-center shadow-inner">
                           <img
                             src={currentQuestion.signImg}
                             alt={`Isyarat ${currentQuestion.targetLetter}`}
-                            className="max-h-full max-w-full object-contain filter drop-shadow-sm"
+                            className="max-h-full max-w-full object-contain filter drop-shadow-md"
                           />
                         </div>
                       </div>
 
-                      <p className="text-xs text-gray-500 text-center font-medium leading-relaxed bg-gray-50/60 rounded-xl py-2 px-3 border border-gray-100">
+                      <p className="text-xs sm:text-sm text-gray-600 text-center font-bold leading-relaxed bg-gray-50/70 rounded-2xl py-2.5 px-4 border border-gray-100">
                         {currentQuestion.hint}
                       </p>
                     </div>
@@ -779,7 +779,7 @@ export default function QuizPage() {
               {/* TIPE 2: 'pilih_isyarat' (Grid 4 Kartu Isyarat Merah) */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'pilih_isyarat' && (
-                <div className="w-full max-w-2xl grid grid-cols-2 sm:grid-cols-4 gap-3.5 sm:gap-4">
+                <div className="w-full max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
                   {currentQuestion.options.map((opt, idx) => {
                     const isSelected = selectedIndex === idx
                     return (
@@ -789,7 +789,7 @@ export default function QuizPage() {
                         whileTap={!isAnswerChecked ? { scale: 0.98 } : {}}
                         onClick={() => handleSelectOption(idx)}
                         disabled={isAnswerChecked}
-                        className={`relative aspect-3/4 rounded-3xl p-3.5 flex flex-col items-center justify-between transition cursor-pointer border-2 shadow-xs ${
+                        className={`relative aspect-3/4 rounded-3xl p-4 flex flex-col items-center justify-between transition cursor-pointer border-2 shadow-xs ${
                           isSelected
                             ? 'bg-rose-50/70 border-[#E02424] text-[#E02424] shadow-sm ring-2 ring-[#E02424]/20'
                             : 'bg-white hover:bg-gray-50/80 border-gray-200 text-gray-800'
@@ -797,7 +797,7 @@ export default function QuizPage() {
                       >
                         <div className="w-full flex justify-between items-center">
                           <span
-                            className={`w-6 h-6 rounded-lg flex items-center justify-center text-xs font-black ${
+                            className={`w-7 h-7 rounded-xl flex items-center justify-center text-xs sm:text-sm font-black ${
                               isSelected ? 'bg-[#E02424] text-white' : 'bg-gray-100 text-gray-500'
                             }`}
                           >
@@ -806,7 +806,7 @@ export default function QuizPage() {
                         </div>
 
                         <div
-                          className={`w-full flex-1 mx-auto my-2 rounded-2xl flex items-center justify-center p-2.5 transition ${
+                          className={`w-full flex-1 mx-auto my-2 rounded-2xl flex items-center justify-center p-3 transition ${
                             isSelected ? 'bg-white border border-rose-100 shadow-xs' : 'bg-gray-50/70'
                           }`}
                         >
@@ -817,7 +817,7 @@ export default function QuizPage() {
                           />
                         </div>
 
-                        <div className="text-[11px] font-extrabold uppercase tracking-wider">
+                        <div className="text-xs sm:text-sm font-black uppercase tracking-wider">
                           {isSelected ? 'Terpilih' : opt.letter || 'Pilih'}
                         </div>
                       </motion.button>
@@ -830,19 +830,19 @@ export default function QuizPage() {
               {/* TIPE 3: 'tebak_huruf' / Pilihan Kata */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'tebak_huruf' && (
-                <div className="w-full max-w-xl flex flex-col items-center">
-                  <div className="w-48 h-48 sm:w-56 sm:h-56 bg-white rounded-3xl border border-gray-200/90 shadow-[0_8px_24px_rgba(0,0,0,0.04)] p-4 flex items-center justify-center mb-6 relative">
+                <div className="w-full max-w-2xl flex flex-col items-center">
+                  <div className="w-56 h-56 sm:w-68 sm:h-68 bg-white rounded-3xl border border-gray-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.05)] p-5 flex items-center justify-center mb-8 relative">
                     <img
                       src={currentQuestion.signImg}
                       alt="Tebak Isyarat"
-                      className="max-h-full max-w-full object-contain filter drop-shadow-sm"
+                      className="max-h-full max-w-full object-contain filter drop-shadow-md"
                     />
-                    <div className="absolute top-3 right-3 text-[10px] font-black text-gray-500 bg-gray-100 px-2.5 py-0.5 rounded-md">
+                    <div className="absolute top-3.5 right-3.5 text-xs font-black text-gray-500 bg-gray-100 px-3 py-1 rounded-lg">
                       BISINDO
                     </div>
                   </div>
 
-                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {currentQuestion.options.map((optionText, idx) => {
                       const isSelected = selectedIndex === idx
                       return (
@@ -852,7 +852,7 @@ export default function QuizPage() {
                           whileTap={!isAnswerChecked ? { scale: 0.98 } : {}}
                           onClick={() => handleSelectOption(idx)}
                           disabled={isAnswerChecked}
-                          className={`py-3.5 px-4 rounded-2xl font-black text-sm sm:text-base border-2 transition cursor-pointer shadow-xs text-center ${
+                          className={`py-4 px-5 rounded-2xl font-black text-base sm:text-lg border-2 transition cursor-pointer shadow-xs text-center ${
                             isSelected
                               ? 'bg-rose-50 border-[#E02424] text-[#E02424] shadow-sm'
                               : 'bg-white text-gray-800 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -875,29 +875,29 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {!isQuizCompleted && (
         <footer
-          className={`w-full transition-colors duration-300 border-t-2 ${
+          className={`w-full transition-colors duration-300 border-t ${
             isAnswerChecked
               ? isCorrect
-                ? 'bg-[#D7FFB8] border-[#A8E677]'
-                : 'bg-[#FFDFE0] border-[#FFA8AC]'
-              : 'bg-white border-gray-200'
+                ? 'bg-[#EBFDE6] border-[#A8E677]'
+                : 'bg-[#FFF0F0] border-[#FFA8AC]'
+              : 'bg-white border-gray-200/90'
           }`}
         >
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex-1 w-full flex items-center gap-3">
+          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex-1 w-full flex items-center gap-4">
               {isAnswerChecked ? (
                 isCorrect ? (
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-3.5"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#58CC02] flex items-center justify-center text-white text-2xl font-black shadow-md shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-500 flex items-center justify-center text-white text-xl font-black shadow-sm shrink-0">
                       ✓
                     </div>
                     <div>
-                      <h4 className="text-xl font-black text-[#58A700]">Luar biasa!</h4>
-                      <p className="text-xs font-bold text-[#458500]">
+                      <h4 className="text-xl font-black text-emerald-800">Luar biasa!</h4>
+                      <p className="text-xs sm:text-sm font-bold text-emerald-700">
                         {currentQuestion?.type === 'peragakan'
                           ? 'Gerakan tanganmu terdeteksi sempurna oleh kamera!'
                           : 'Jawabanmu tepat sekali! Pertahankan fokusmu.'}
@@ -908,14 +908,14 @@ export default function QuizPage() {
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="flex items-center gap-3"
+                    className="flex items-center gap-3.5"
                   >
-                    <div className="w-12 h-12 rounded-full bg-[#EA2B2B] flex items-center justify-center text-white text-2xl font-black shadow-md shrink-0">
+                    <div className="w-12 h-12 rounded-2xl bg-[#E02424] flex items-center justify-center text-white text-xl font-black shadow-sm shrink-0">
                       ✕
                     </div>
                     <div>
-                      <h4 className="text-xl font-black text-[#EA2B2B]">Kurang tepat</h4>
-                      <p className="text-xs font-bold text-[#BA1616]">
+                      <h4 className="text-xl font-black text-[#E02424]">Kurang tepat</h4>
+                      <p className="text-xs sm:text-sm font-bold text-rose-700">
                         {currentQuestion?.explanation ||
                           'Jangan berkecil hati, soal ini akan diulang di akhir kuis.'}
                       </p>
@@ -926,7 +926,7 @@ export default function QuizPage() {
                 /* Tombol LOMPATI di sisi kiri */
                 <button
                   onClick={handleSkipQuestion}
-                  className="px-5 py-2.5 rounded-2xl border-2 border-gray-300 hover:bg-gray-100 text-gray-500 font-extrabold text-sm uppercase tracking-wider transition cursor-pointer"
+                  className="px-6 py-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-100/70 text-gray-500 font-black text-xs uppercase tracking-wider transition cursor-pointer"
                 >
                   LOMPATI
                 </button>
@@ -937,21 +937,21 @@ export default function QuizPage() {
             <div className="w-full sm:w-auto shrink-0">
               {isAnswerChecked ? (
                 <motion.button
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.96 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleNext}
-                  className={`w-full sm:w-44 py-3.5 px-6 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-md cursor-pointer transition border-b-4 ${
+                  className={`w-full sm:w-48 py-3.5 px-7 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-md cursor-pointer transition ${
                     isCorrect
-                      ? 'bg-[#58CC02] border-[#46A302] hover:bg-[#61E002]'
-                      : 'bg-[#FF4B4B] border-[#D62828] hover:bg-[#FF5C5C]'
+                      ? 'bg-emerald-600 hover:bg-emerald-700'
+                      : 'bg-[#E02424] hover:bg-[#c91d1d]'
                   }`}
                 >
                   LANJUTKAN
                 </motion.button>
               ) : currentQuestion?.type === 'peragakan' ? (
                 /* Pada tipe peragakan, kamera mendeteksi otomatis */
-                <div className="px-5 py-2.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 shadow-2xs">
-                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+                <div className="px-6 py-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2.5 shadow-2xs">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
                   <span>Mendeteksi Gerakan Kamera...</span>
                 </div>
               ) : (
@@ -961,7 +961,7 @@ export default function QuizPage() {
                   whileTap={selectedIndex !== null ? { scale: 0.98 } : {}}
                   onClick={handleCheckAnswer}
                   disabled={selectedIndex === null}
-                  className={`w-full sm:w-44 py-3 px-6 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-sm transition ${
+                  className={`w-full sm:w-48 py-3.5 px-7 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-sm transition ${
                     selectedIndex !== null
                       ? 'bg-[#E02424] hover:bg-[#c91d1d] cursor-pointer'
                       : 'bg-gray-200 text-gray-400 cursor-not-allowed opacity-80'
