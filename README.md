@@ -1,154 +1,242 @@
 # 🤟 Handoora — Platform Edukasi Gamifikasi Bahasa Isyarat Indonesia (BISINDO)
 
 <p align="center">
-  <img src="./public/assets/logo-full.png" alt="Handoora Logo" width="320" />
+  <img src="./public/assets/logo-full.png" alt="Handoora Logo" width="340" />
 </p>
 
 <p align="center">
-  <b>"Cara paling asyik buat jago bahasa isyarat dari nol!"</b><br/>
-  Dikembangkan untuk <b>LOGICODIX Hackathon Competition 2026</b><br/>
-  <i>Tema: "NextGen Digital Innovation: Crafting Creative Solutions for a Better Society"</i>
+  <b>"NextGen Digital Innovation: Crafting Creative Solutions for a Better Society"</b><br/>
+  Karya Kompetisi <b>LOGICODIX Hackathon 2026</b><br/>
+  Subtema: <b>Smart & Fun Education</b> & <b>Inclusive Health & Well-being</b>
+</p>
+
+<p align="center">
+  <a href="https://github.com/RanzyahAdinata/LOGICODIX-Handoora"><img src="https://img.shields.io/badge/Repository-LOGICODIX--Handoora-red?style=for-the-badge&logo=github" alt="Repo"/></a>
+  <a href="#-panduan-instalasi--menjalankan-aplikasi"><img src="https://img.shields.io/badge/Platform-Web%20Application-blue?style=for-the-badge" alt="Web App"/></a>
+  <a href="#-teknologi-yang-digunakan"><img src="https://img.shields.io/badge/Tech-React%20%7C%20Vite%20%7C%20Supabase-emerald?style=for-the-badge" alt="Tech Stack"/></a>
 </p>
 
 ---
 
-## 👥 Informasi Tim
+## 👥 1. Informasi Tim & Pengembang
 
-- **Nama Tim**: LOGICODIX - Handoora
-- **Kategori Lomba**: Web Application
-- **Subtema**:
-  1. **Smart & Fun Education** (Edukasi interaktif, aksesibel, dan menyenangkan berbasis gamifikasi)
-  2. **Inclusive Health & Well-being** (Meningkatkan inklusivitas komunikasi bersama teman Tuli di Indonesia)
-- **Daftar Anggota**:
-  - **Ranzyah Adinata (Aldo)** — Project Lead, Frontend & Backend Developer (`@RanzyahAdinata`)
-
----
-
-## 💡 Deskripsi Produk, Masalah, & Solusi
-
-### Permasalahan yang Diangkat
-Di Indonesia terdapat jutaan teman Tuli yang menggunakan **Bahasa Isyarat Indonesia (BISINDO)** sebagai bahasa ibu untuk berkomunikasi sehari-hari. Namun, kesenjangan komunikasi antara masyarakat dengar dan teman Tuli masih sangat tinggi karena minimnya media pembelajaran BISINDO yang menyenangkan, terstruktur, gratis, dan mudah diakses dari perangkat web maupun mobile.
-
-### Solusi: Handoora
-**Handoora** adalah platform web edukasi berbasis permainan (*gamified learning*) bergaya Duolingo yang dirancang khusus untuk mempelajari **Bahasa Isyarat Indonesia (BISINDO)** dari nol. Melalui peta petualangan kepulauan interaktif, panduan visual gerakan tangan, kuis interaktif, sistem *Streak* harian, *XP*, dan *Papan Skor*, Handoora mengubah proses belajar bahasa isyarat menjadi kebiasaan harian yang seru dan inklusif.
-
-### Target Pengguna
-- Pelajar SMA/SMK/MA, mahasiswa, dan masyarakat umum di Indonesia yang ingin belajar BISINDO dari dasar.
-- Keluarga, sahabat, tenaga pendidik, dan pelayan publik yang berinteraksi dengan komunitas Tuli.
-
----
-
-## ✨ Fitur Utama yang Diimplementasikan
-
-1. **Landing Page Interaktif & Responsif**:
-   - Desain modern dengan maskot tim Handoora, tombol 3D taktil khas gamifikasi, dan transisi halaman halus.
-2. **Sistem Autentikasi Aman (Supabase Auth + Google OAuth 2.0 + PBKDF2 Hashing)**:
-   - Pendaftaran dan masuk menggunakan Email & Password dengan enkripsi kriptografi **PBKDF2-HMAC-SHA256 (100.000 iterasi)** serta **bcrypt** Supabase Auth.
-   - Integrasi **Google OAuth 2.0** untuk login/registrasi menggunakan akun Google asli pengguna beserta sinkronisasi otomatis Nama, Email, Foto Profil, dan Umur ke database PostgreSQL Supabase.
-3. **Peta Pembelajaran Kepulauan 3D Isometrik (`/belajar`)**:
-   - Visualisasi jalur belajar bertema kepulauan Nusantara (Unit 1 s.d. Unit 5) lengkap dengan animasi pulau terapung, jalur laut, dan kontrol *Zoom* (`+`/`-`).
-4. **Buku Panduan Visual BISINDO & Kuis Interaktif**:
-   - Panduan gerakan jari/tangan untuk setiap unit pembelajaran serta kuis evaluasi langsung dengan penjelasan tata bahasa isyarat.
-5. **Sistem Gamifikasi Lengkap (Streak, XP, Gems, Hearts, Misi Harian, & Papan Skor)**:
-   - Penyimpanan progres belajar secara *real-time* ke database cloud Supabase.
-6. **Manajemen Profil & Pengaturan Aplikasi**:
-   - Pembaruan informasi nama & umur langsung ke database Supabase serta pengaturan efek suara dan animasi.
-
----
-
-## 🛠️ Teknologi yang Digunakan
-
-| Komponen | Teknologi |
+| Atribut | Keterangan |
 | :--- | :--- |
-| **Frontend Framework** | React 18.3 + Vite 6 |
-| **Styling & UI** | Tailwind CSS v4 + Custom 3D Gamified CSS |
-| **Animasi & Transisi** | Framer Motion 11 |
-| **Routing** | React Router DOM v6 |
-| **Database & Backend-as-a-Service** | Supabase (PostgreSQL + Row Level Security) |
-| **Autentikasi** | Supabase Auth (Email/Password + Google OAuth 2.0) + Web Crypto API (PBKDF2) |
-| **Notifikasi UI** | React Hot Toast |
-| **Deployment** | Vercel (SPA Rewrite Configured) |
+| **Nama Tim** | **LOGICODIX - Handoora** |
+| **Kategori Lomba** | **Web Application (MVP)** |
+| **Subtema Utama** | **1. Smart & Fun Education**<br/>Solusi digital yang menjadikan proses belajar-mengajar interaktif, aksesibel, dan menyenangkan melalui gamifikasi serta AI asisten visualisasi isyarat.<br/>**2. Inclusive Health & Well-being**<br/>Membantu penyandang disabilitas Tuli dan masyarakat dengar dalam menjembatani komunikasi inklusif sehari-hari. |
+| **Daftar Anggota** | **Ranzyah Adinata (Aldo)** — Project Lead, Frontend & Backend Architecture, AI Computer Vision & Gesture Integration (`@RanzyahAdinata`) |
+| **Institusi** | Siswa / Mahasiswa Indonesia |
 
 ---
 
-## 🏗️ Diagram Arsitektur Sistem & Alur Data
+## 💡 2. Deskripsi Produk, Masalah yang Diangkat, & Target Pengguna
+
+### A. Masalah yang Diangkat
+- **Tingginya Kesenjangan Komunikasi**: Di Indonesia terdapat lebih dari 2,5 juta teman Tuli yang mengandalkan **Bahasa Isyarat Indonesia (BISINDO)** sebagai bahasa ibu. Namun, mayoritas masyarakat dengar tidak memahami bahasa isyarat dasar.
+- **Minimnya Media Pembelajaran Interaktif**: Metode konvensional buku saku atau video statis seringkali membosankan, tidak memiliki umpan balik langsung (*feedback loop*), serta minim motivasi belajar harian yang konsisten.
+- **Ketiadaan AI Praktik Mandiri**: Pembelajar kesulitan memverifikasi apakah gerakan tangan yang mereka peragakan sudah benar tanpa kehadiran guru pembimbing.
+
+### B. Solusi Inovatif: Handoora
+**Handoora** adalah platform web aplikasi pembelajaran Bahasa Isyarat Indonesia (BISINDO) interaktif berbasis gamifikasi modern (*Duolingo-style learning adventure*) yang dipadukan dengan **Real-Time Computer Vision AI Gesture Recognition**:
+1. **Kurikulum Terstruktur Berbasis Level & Tahap**: Mulai dari pengenalan abjad jari dua tangan (Level 1: A–Z), frasa percakapan sehari-hari, hingga komunikasi lanjutan.
+2. **AI Real-Time Gesture Detection Loop**: Pengguna dapat mempraktikkan isyarat tangan langsung di depan kamera laptop/webcam dengan deteksi gestur real-time berakurasi tinggi secara instan di peramban tanpa perlu instalasi rumit.
+3. **Ekosistem Gamifikasi Lengkap**: Peta kepulauan Nusantara interaktif, sistem *Daily Streak* (nyala api harian), *XP*, *Gems*, *Hearts/Nyawa*, *Papan Skor Liga Mingguan*, serta *Misi Harian*.
+4. **Kamus Digital BISINDO Komprehensif**: Referensi visual gerakan isyarat tangan beresolusi tinggi (A–Z) yang tajam, bersih, dan mudah diakses kapan saja.
+
+### C. Target Pengguna
+1. **Pelajar & Mahasiswa**: Generasi muda yang ingin mengasah keterampilan bahasa isyarat inklusif secara mandiri, seru, dan menyenangkan.
+2. **Keluarga & Sahabat Teman Tuli**: Mempererat kedekatan emosional melalui percakapan isyarat yang lancar.
+3. **Tenaga Pendidik & Pelayan Publik**: Tenaga medis, staf pelayanan pemerintahan, dan customer service untuk menciptakan layanan publik yang ramah disabilitas.
+4. **Komunitas Peduli Bahasa Isyarat**: Pegiat inklusi sosial di seluruh Indonesia.
+
+---
+
+## ✨ 3. Daftar Fitur Utama yang Berhasil Diimplementasikan
+
+### 1. Sistem Autentikasi Modern & Keamanan Terenkripsi
+- **Email & Password Authentication**: Menggunakan hashing kriptografi berlapis **PBKDF2-HMAC-SHA256 (100.000 iterasi)** pada sisi klien dan enkripsi **bcrypt** di Supabase Auth.
+- **Google OAuth 2.0 Integration**: Masuk satu klik menggunakan akun Google resmi dengan sinkronisasi profil, avatar, dan nama pengguna otomatis.
+- **Route Guarding**: Perlindungan rute terintegrasi (`ProtectedRoute` dan `PublicOnlyRoute`) untuk menjamin keamanan akses sesi pengguna.
+
+### 2. Loading & Splash Screen Animatif Khas Duolingo
+- **Animated Mascot Group**: Menampilkan animasi melayang (*floating/bouncing*) maskot Doora dan teman-teman Handoora dengan partikel nada musik biru cerah dan bayangan dinamis.
+- **Smart Loading Delay**: Memastikan splash screen tampil elegan minimal 1,8 detik saat memuat data, memberikan transisi visual yang menyenangkan.
+
+### 3. Peta Petualangan Kepulauan Nusantara 3D Isometrik (`/belajar`)
+- **Peta Bertema Kepulauan**: Desain bertahap (Pulau Abjad Dasar, Pulau Kata Dasar, Pulau Angka & Waktu, dsb.) dengan animasi floating island, awan bergulir, dan transisi pemandangan langit (Langit Cerah, Senja, Malam).
+- **Session Resume Modal**: Menyimpan progres kuis yang sedang berjalan. Jika pengguna sempat beristirahat di tengah tahap, sistem otomatis menawarkan opsi melanjutkan dari titik soal terakhir atau mengulang dari awal.
+
+### 4. Mesin Kuis Cerdas & AI Gesture Recognition (`/quiz`)
+- **3 Mode Soal Adaptif**:
+  - *Peragakan Isyarat*: Membuka kamera depan dan mendeteksi gerakan tangan pengguna secara *real-time* dengan visual retikel dan timer akurasi tahan posisi (*hold progress*).
+  - *Pilih Kartu Isyarat*: Memilih kartu visual gerakan tangan yang sesuai tanpa teks pembocor jawaban.
+  - *Tebak Huruf*: Mengidentifikasi huruf dari kartu visual isyarat tangan.
+- **Mistake Recovery & Smart Skip**: Soal yang salah atau dilewati (*Lompati*) otomatis dipindahkan ke antrean paling belakang agar pengguna dapat menuntaskannya kembali sampai benar-benar paham.
+- **Modern Animated Shimmer Progress Bar**: Indikator progres dengan transisi pegas (*spring physics*) dan efek kilau cahaya halus.
+- **Celebration Result Page**: Statistik akurasi belajar, perolehan XP, nyala api streak, selebrasi konfeti partikel mewah, dan tombol *Lanjut* 3D tactile.
+
+### 5. Liga Papan Skor Mingguan Real-Time (Weekly Reset)
+- **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*).
+- **Weekly XP Reset System**: Setiap siklus baru tiba, skor XP liga otomatis di-reset ke 0 XP agar seluruh pengguna dapat bersaing grinding kembali secara adil, sementara total XP profil permanen tetap aman terjaga.
+
+### 6. Kamus Digital BISINDO Lengkap (`/kamus`)
+- Katalog abjad jari A–Z beresolusi tinggi yang bersih dari watermark, dilengkapi deskripsi fondasi gestur tangan dan pencarian instan.
+
+---
+
+## 🛠️ 4. Teknologi yang Digunakan
+
+### Frontend & Antarmuka
+- **React 18.3**: Library JavaScript modern berbasis komponen reaktif.
+- **Vite 6**: Alat build dan bundling kilat dengan modul Hot Module Replacement (HMR).
+- **Tailwind CSS v4**: Framework CSS utility-first untuk tata letak modern dan responsif.
+- **Framer Motion 11**: Pustaka animasi deklaratif untuk transisi halaman, efek pegas 3D, dan gerak interaktif.
+- **Lucide React & Custom SVG**: Ikonografi modern yang tajam dan ringan.
+- **React Hot Toast**: Notifikasi pop-up feedback yang interaktif dan ramah pengguna.
+
+### Backend, Database, & Keamanan
+- **Supabase**: Backend-as-a-Service berbasis PostgreSQL skala enterprise.
+- **PostgreSQL Database**: Menyimpan profil pengguna, riwayat streak, perolehan XP harian/mingguan, unit pulau terbuka, dan status belajar.
+- **Row Level Security (RLS)**: Kebijakan keamanan tingkat baris PostgreSQL yang memastikan setiap pengguna hanya dapat memodifikasi data miliknya sendiri.
+- **Web Crypto API (SubtleCrypto)**: Hashing kriptografi PBKDF2-HMAC-SHA256 untuk perlindungan data kredensial.
+- **HTML5 Canvas & WebRTC MediaStreams**: Pemrosesan komputasi frame video kamera secara instan untuk deteksi isyarat tangan di browser.
+
+### Infrastruktur & Deployment
+- **Git & GitHub**: Version Control System dengan riwayat commit terstruktur sesuai konvensi standardisasi Git (*Conventional Commits*).
+- **Vercel**: Platform hosting cloud untuk produksi dengan konfigurasi Single Page Application (SPA) rewrite.
+
+---
+
+## 🏗️ 5. Diagram Arsitektur Sistem & Alur Data
 
 ```mermaid
 flowchart TD
-    User["Pengguna (Browser Web / Mobile)"]
-    UI["Frontend React + Vite + Tailwind CSS + Framer Motion"]
-    AuthCtx["AuthContext & Security Layer (PBKDF2 + JWT)"]
-    SupaAuth["Supabase Auth (Email/Password & Google OAuth 2.0)"]
-    SupaDB[("Supabase PostgreSQL Database (Tabel public.profiles + RLS)")]
+    subgraph ClientLayer["Frontend Client (Browser / Mobile Web)"]
+        User["Pengguna / Pembelajar BISINDO"]
+        UI["React 18 + Vite + Tailwind CSS + Framer Motion"]
+        CamModule["WebRTC Camera Stream & Canvas Frame Analyzer"]
+        AuthContext["AuthContext & Security Gateway (PBKDF2 Hashing)"]
+    end
 
-    User -->|Interaksi UI & Kuis BISINDO| UI
-    UI -->|Login / Register / Update Progres| AuthCtx
-    AuthCtx -->|OAuth 2.0 / SignIn / SignUp| SupaAuth
-    SupaAuth -->|Trigger on_auth_user_created| SupaDB
-    AuthCtx -->|Select / Upsert XP, Streak, Level Pulau| SupaDB
+    subgraph ServiceLayer["Application Logic & State Services"]
+        StorageService["storage.js (Sync Engine & Weekly Cycle Tracker)"]
+        QuizEngine["Quiz Engine (Antrean Soal, Mistake Recovery, & Shimmer Bar)"]
+    end
+
+    subgraph CloudLayer["Supabase Backend-as-a-Service (PostgreSQL)"]
+        SupaAuth["Supabase Auth (Email / Password & Google OAuth 2.0)"]
+        ProfilesTable[("Tabel public.profiles (XP, weekly_xp, streak, pulau, RLS)")]
+        LeaderboardView["Weekly Leaderboard Engine (Siklus Minggu-Sabtu)"]
+    end
+
+    User -->|Interaksi Navigasi & Belajar| UI
+    User -->|Peragaan Gestur Tangan| CamModule
+    CamModule -->|Analisis Real-Time Frame| QuizEngine
+    UI -->|Penyelesaian Soal & Reward XP| QuizEngine
+    UI -->|Autentikasi Akun| AuthContext
+    AuthContext -->|Kredensial & OAuth Exchange| SupaAuth
+    SupaAuth -->|Sinkronisasi User Baru| ProfilesTable
+    QuizEngine -->|Simpan Progres Sesi & Nilai| StorageService
+    StorageService -->|Select / Upsert Weekly XP & Progres| ProfilesTable
+    ProfilesTable -->|Peringkat Top 10 Terkini| LeaderboardView
+    LeaderboardView -->|Update Papan Skor Real-Time| UI
 ```
 
 ---
 
-## 🚀 Panduan Instalasi & Menjalankan Aplikasi
+## 🚀 6. Panduan Instalasi, Konfigurasi, & Menjalankan Aplikasi
 
-### 1. Prasyarat
-- **Node.js** versi `18.x` atau lebih baru
-- **npm** versi `9.x` atau lebih baru
-- Akun & Project **Supabase**
+### A. Prasyarat Sistem
+- **Node.js**: Versi `18.x` atau `20.x` LTS
+- **npm**: Versi `9.x` atau lebih baru
+- **Browser Modern**: Google Chrome, Microsoft Edge, Safari, atau Firefox yang mendukung akses kamera (WebRTC)
+- **Koneksi Internet**: Untuk sinkronisasi database cloud Supabase
 
-### 2. Clone Repositori & Instalasi Dependensi
-```bash
-git clone https://github.com/RanzyahAdinata/LOGICODIX-Handoora.git
-cd LOGICODIX-Handoora
-npm install
-```
+### B. Langkah Instalasi
 
-### 3. Konfigurasi Variabel Lingkungan (`.env`)
-Salin berkas `.env.example` menjadi `.env` di direktori utama:
-```bash
-cp .env.example .env
-```
-Isi variabel lingkungan pada berkas `.env` dengan kredensial project Supabase Anda:
-```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
-```
+1. **Clone Repositori Proyek**:
+   ```bash
+   git clone https://github.com/RanzyahAdinata/LOGICODIX-Handoora.git
+   cd LOGICODIX-Handoora
+   ```
 
-### 4. Konfigurasi Database Supabase
-Buka **SQL Editor** pada dashboard Supabase Anda, lalu jalankan seluruh isi skrip [`supabase/schema.sql`](./supabase/schema.sql) untuk membuat tabel `public.profiles`, kebijakan *Row Level Security (RLS)*, serta *trigger* sinkronisasi pengguna otomatis.
+2. **Instal Seluruh Dependensi**:
+   ```bash
+   npm install
+   ```
 
-### 5. Menjalankan Server Pengembangan
-```bash
-npm run dev
-```
-Aplikasi akan berjalan di `http://localhost:5173` (atau `http://127.0.0.1:5173`).
+3. **Konfigurasi Variabel Lingkungan (`.env`)**:
+   Salin berkas `.env.example` menjadi `.env` pada direktori root proyek:
+   ```bash
+   cp .env.example .env
+   ```
+   Buka berkas `.env` lalu masukkan kredensial Supabase Anda:
+   ```env
+   VITE_SUPABASE_URL=https://your-project-id.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
+   ```
 
-### 6. Build untuk Produksi
-```bash
-npm run build
-npm run preview
-```
+4. **Konfigurasi Database Supabase (SQL Script)**:
+   - Masuk ke dashboard proyek Supabase Anda: [https://supabase.com/dashboard](https://supabase.com/dashboard)
+   - Buka menu **SQL Editor**, buat query baru, lalu salin dan jalankan seluruh isi file [`supabase/schema.sql`](./supabase/schema.sql).
+   - Skrip ini akan secara otomatis membuat tabel `public.profiles`, menambahkan kolom pelacakan `weekly_xp` dan `weekly_cycle_id`, mengonfigurasi indeks performa, mengaktifkan Row Level Security (RLS), serta menyiapkan *trigger* pembuatan profil pengguna baru.
 
----
+5. **Menjalankan Server Pengembangan Lokal**:
+   ```bash
+   npm run dev
+   ```
+   Buka peramban di tautan `http://localhost:5173` (atau port yang ditampilkan di terminal).
 
-## 🧪 Akun Demonstrasi (Untuk Dewan Juri)
-
-Dewan juri dapat langsung mendaftarkan akun baru di halaman `/register` atau masuk di halaman `/login` menggunakan akun demonstrasi berikut:
-- **Email**: `demo.handoora@gmail.com`
-- **Password**: `HandooraPassword123!`
-
----
-
-## 🤖 Dokumentasi Penggunaan AI
-
-Sesuai ketentuan Guidebook LOGICODIX 2026:
-- **Alat Bantu Pengembangan (AI Coding Assistant)**: Google Antigravity digunakan sebagai asisten pemrograman (*pair programming*) untuk mempercepat penulisan komponen antarmuka React, pembuatan skema SQL RLS Supabase, dan penyusunan dokumentasi teknis.
+6. **Build untuk Rilis Produksi**:
+   ```bash
+   npm run build
+   npm run preview
+   ```
 
 ---
 
-## 📜 Atribusi Aset & Pustaka Pihak Ketiga
+## 🧪 7. Akun Demonstrasi (Demo Credentials untuk Dewan Juri)
 
-- **Desain UI & Ilustrasi Karakter Maskot Handoora**: Karya orisinal tim Handoora untuk LOGICODIX 2026.
-- **Tipografi**: [Fredoka](https://fonts.google.com/specimen/Fredoka) dan [Nunito](https://fonts.google.com/specimen/Nunito) melalui Google Fonts (Open Font License).
-- **Pustaka Open-Source**: React, Vite, Tailwind CSS, Framer Motion, React Router, Supabase JS Client, dan React Hot Toast (Lisensi MIT).
+Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim Handoora telah menyediakan akun demonstrasi siap pakai:
+
+| Kredensial | Data Akun Pengujian |
+| :--- | :--- |
+| **Email** | `demo.handoora@gmail.com` |
+| **Password** | `HandooraPassword123!` |
+| **Akses Rute** | Akses penuh ke seluruh fitur Level 1 (Tahap 1, 2, 3), Kamus BISINDO, Leaderboard Liga Mingguan, dan Profil Pengguna |
+
+*Catatan: Dewan juri juga dipersilakan mendaftarkan akun baru secara langsung di halaman `/register` atau menggunakan tombol Google OAuth.*
+
+---
+
+## 🤖 8. Dokumentasi Penggunaan AI
+
+Sesuai dengan ketentuan pedoman etika penggunaan AI pada **Guidebook LOGICODIX 2026**:
+- **Alat & Model AI yang Digunakan**: **Google Antigravity (Gemini API & Antigravity Autonomous Agent)**.
+- **Pemanfaatan dalam Proyek**:
+  - Digunakan sebagai *AI Pair Programming Assistant* untuk mempercepat perancangan logika komponen React, penataan gaya visual responsif Tailwind CSS, serta perumusan skrip SQL Supabase Row Level Security (RLS).
+  - Pemanfaatan algoritma *Computer Vision Heuristic Analysis* untuk deteksi pose isyarat tangan interaktif berbasis kamera langsung di peramban pengguna.
+- **Tanggung Jawab Kode**: Seluruh logika arsitektur, verifikasi fungsionalitas, keamanan data, dan pengujian sistem berada di bawah kendali dan tanggung jawab penuh tim pengembang Handoora.
+
+---
+
+## 📜 9. Atribusi Aset, Template, & Pustaka Pihak Ketiga
+
+Seluruh aset dan pustaka eksternal yang digunakan dalam proyek ini mematuhi lisensi penggunaan terbuka:
+
+1. **Aset Visual & Karakter Maskot Handoora**:
+   - Dibuat dan dirancang secara orisinal oleh tim Handoora (`mascot-group.png`, `avatar-tiger.png`, `avatar-orangutan.png`, `avatar-komodo.png`) khusus untuk kompetisi LOGICODIX 2026.
+2. **Foto & Ilustrasi Isyarat Jari BISINDO**:
+   - Panduan visual gestur jari BISINDO (A–Z) dikurasi dan diselaraskan secara orisinal dari standar resmi Bahasa Isyarat Indonesia (BISINDO) untuk keperluan edukasi non-komersial.
+3. **Tipografi**:
+   - [Fredoka](https://fonts.google.com/specimen/Fredoka) & [Nunito](https://fonts.google.com/specimen/Nunito) via Google Fonts (Open Font License / OFL).
+4. **Pustaka Open Source**:
+   - React 18, Vite 6, Tailwind CSS, Framer Motion, React Router DOM, React Hot Toast, dan Supabase JS Client (Semua berlisensi MIT License).
+
+---
+
+<p align="center">
+  Dibuat dengan ❤️ dan semangat inklusi oleh <b>Tim LOGICODIX - Handoora</b><br/>
+  <i>Mewujudkan Indonesia yang Ramah, Terbuka, dan Inklusif bagi Teman Tuli!</i>
+</p>
