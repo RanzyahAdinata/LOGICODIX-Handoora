@@ -20,10 +20,10 @@ const IndonesiaFlag = () => (
     whileHover={{ scale: 1.02 }}
     className="flex items-center gap-3 sm:gap-3.5 select-none cursor-default translate-y-1 sm:translate-y-1.5"
   >
-    <span className="text-[11px] sm:text-xs md:text-[13px] font-extrabold text-[#A6A6A6] tracking-wide uppercase hidden sm:inline">
+    <span className="text-xs sm:text-sm font-extrabold text-[#777777] tracking-wide uppercase hidden sm:inline">
       BAHASA SITUS: BAHASA INDONESIA
     </span>
-    <span className="text-[10px] font-extrabold text-[#A6A6A6] tracking-wide uppercase sm:hidden">
+    <span className="text-xs font-extrabold text-[#777777] tracking-wide uppercase sm:hidden">
       BAHASA INDONESIA
     </span>
     <img

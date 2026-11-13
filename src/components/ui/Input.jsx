@@ -116,7 +116,7 @@ const Input = forwardRef(
               initial={{ opacity: 0, y: -3, height: 0 }}
               animate={{ opacity: 1, y: 0, height: 'auto' }}
               exit={{ opacity: 0, y: -3, height: 0 }}
-              className="text-[#EB2B36] text-[11px] mt-1.5 pl-1 font-bold"
+              className="text-[#EB2B36] text-xs mt-1.5 pl-1 font-bold"
             >
               {error}
             </motion.p>

@@ -7,9 +7,9 @@ const variantClasses = {
 }
 
 const sizeClasses = {
-  sm: 'px-4 h-10 text-[11px] rounded-xl',
-  md: 'px-5 h-11 text-xs rounded-xl',
-  lg: 'px-6 h-[52px] text-[11px] sm:text-xs rounded-xl',
+  sm: 'px-4 h-10 text-xs rounded-xl',
+  md: 'px-5 h-11 text-xs sm:text-sm rounded-xl',
+  lg: 'px-6 h-[52px] text-xs sm:text-sm font-extrabold rounded-xl',
 }
 
 const Button = forwardRef(

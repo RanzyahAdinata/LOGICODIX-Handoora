@@ -34,7 +34,7 @@ const GoogleButton = ({ onClick, loading = false }) => {
         btn-3d-secondary
         w-full h-[52px] px-6 rounded-xl
         flex items-center justify-center gap-2.5
-        font-extrabold text-[11px] sm:text-xs tracking-wide uppercase
+        font-extrabold text-xs sm:text-sm tracking-wide uppercase
         cursor-pointer select-none
         disabled:opacity-60 disabled:cursor-not-allowed
       "

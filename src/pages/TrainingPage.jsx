@@ -261,7 +261,7 @@ const TrainingPage = () => {
           <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex items-center justify-between mb-4">
-                <span className="text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                <span className="text-xs font-black uppercase tracking-wider px-3.5 py-1.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
                   {currentSign.moduleBadge || 'BISINDO'}
                 </span>
                 <span className="text-2xl font-black text-gray-800">{currentSign.letter}</span>
@@ -285,7 +285,7 @@ const TrainingPage = () => {
 
             {/* Pilihan Cepat Huruf Lain untuk Dilatih */}
             <div className="pt-5 mt-5 border-t border-gray-100">
-              <span className="text-[11px] font-black text-gray-400 uppercase tracking-wider block mb-2.5 text-center">
+              <span className="text-xs font-black text-gray-500 uppercase tracking-wider block mb-2.5 text-center">
                 Pilih Isyarat Lain:
               </span>
               <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none justify-center flex-wrap">

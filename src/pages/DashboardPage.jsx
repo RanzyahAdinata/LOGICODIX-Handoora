@@ -2423,11 +2423,11 @@ const DashboardPage = () => {
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-black tracking-wider uppercase text-[#E02424]">
+                      <span className="text-xs font-black tracking-wider uppercase text-[#E02424]">
                         {selectedUnit.unitLabel}
                       </span>
                       <span className="w-1 h-1 rounded-full bg-gray-300" />
-                      <span className="text-[11px] font-bold text-gray-500 truncate">
+                      <span className="text-xs font-bold text-gray-600 truncate">
                         {selectedUnit.islandName}
                       </span>
                     </div>
@@ -2436,7 +2436,7 @@ const DashboardPage = () => {
                       {selectedUnit.title}
                     </h2>
 
-                    <p className="text-[11px] font-semibold text-gray-400 truncate mt-0.5 leading-snug">
+                    <p className="text-xs font-semibold text-gray-500 truncate mt-0.5 leading-snug">
                       {selectedUnit.subtitle}
                     </p>
                   </div>
@@ -2493,7 +2493,7 @@ const DashboardPage = () => {
                             >
                               {progress.streak} hari beruntun
                             </h3>
-                            <p className="text-[11px] font-bold text-gray-500 mt-0.5 flex items-center gap-1">
+                            <p className="text-xs font-bold text-gray-500 mt-0.5 flex items-center gap-1.5">
                               {isStreakActive ? (
                                 <>
                                   <IconFlame className="w-3.5 h-3.5" color="#E02424" />
@@ -2755,12 +2755,12 @@ const DashboardPage = () => {
                             >
                               <div className="bg-white/98 backdrop-blur-md border-2 border-[#EB2B36] rounded-2xl p-3.5 text-center shadow-[0_18px_40px_rgba(0,0,0,0.24)]">
                                 <div className="flex items-center justify-center gap-1.5 mb-1.5">
-                                  <span className="px-2.5 py-0.5 rounded-full bg-[#FFF0F0] text-[10px] font-black text-[#E02424] uppercase tracking-wider">
+                                  <span className="px-2.5 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider">
                                     {unit.unitLabel} • {unit.islandName}
                                   </span>
                                 </div>
 
-                                <p className="text-xs sm:text-[13px] font-extrabold text-[#2B2B2B] leading-snug mb-3">
+                                <p className="text-xs sm:text-sm font-extrabold text-[#2B2B2B] leading-snug mb-3">
                                   {unit.title}
                                 </p>
 
@@ -2777,7 +2777,7 @@ const DashboardPage = () => {
                                       e.stopPropagation()
                                       startQuiz(unit)
                                     }}
-                                    className="w-full py-2 px-4 rounded-xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
+                                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-extrabold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-md cursor-pointer"
                                   >
                                     <span>
                                       {checkSavedQuizSession(unit.id)
@@ -2786,10 +2786,10 @@ const DashboardPage = () => {
                                         ? 'LATIH LAGI'
                                         : 'MULAI BELAJAR'}
                                     </span>
-                                    <span className="text-[10px]">▶</span>
+                                    <span className="text-xs">▶</span>
                                   </motion.button>
                                 ) : (
-                                  <div className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
+                                  <div className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
                                     <svg className="w-3.5 h-3.5 text-[#78716C]" fill="currentColor" viewBox="0 0 20 20">
                                       <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                                     </svg>
@@ -3010,8 +3010,8 @@ const DashboardPage = () => {
 
                       {/* Stat Cards Mini */}
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-100">
-                        <div className="p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
-                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                        <div className="p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-xs font-black text-gray-500 uppercase tracking-wider block">
                             Streak Belajar
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
@@ -3026,8 +3026,8 @@ const DashboardPage = () => {
                           </div>
                         </div>
 
-                        <div className="p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
-                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                        <div className="p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-xs font-black text-gray-500 uppercase tracking-wider block">
                             Total XP
                           </span>
                           <div className="flex items-center gap-1 mt-1">
@@ -3040,8 +3040,8 @@ const DashboardPage = () => {
                           </div>
                         </div>
 
-                        <div className="col-span-2 sm:col-span-1 p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
-                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                        <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-xs font-black text-gray-500 uppercase tracking-wider block">
                             Progres Level
                           </span>
                           <div className="flex items-center gap-1.5 mt-1">
@@ -3104,10 +3104,10 @@ const DashboardPage = () => {
                             className="w-12 h-12 rounded-xl object-cover border border-white shadow-xs"
                           />
                           <div className="min-w-0">
-                            <span className="text-xs font-black text-gray-900 block truncate">
+                            <span className="text-xs sm:text-sm font-black text-gray-900 block truncate">
                               {av.label}
                             </span>
-                            <span className="text-[11px] text-gray-400 font-semibold">
+                            <span className="text-xs text-gray-500 font-semibold">
                               {isSelected ? 'Sedang Digunakan' : 'Klik untuk Pilih'}
                             </span>
                           </div>
@@ -3133,8 +3133,8 @@ const DashboardPage = () => {
                         </svg>
                       </div>
                       <div>
-                        <h2 className="text-sm font-black text-gray-900">Informasi Pribadi</h2>
-                        <p className="text-[11px] text-gray-400 font-semibold">Sesuaikan identitas profil belajarmu</p>
+                        <h2 className="text-sm sm:text-base font-black text-gray-900">Informasi Pribadi</h2>
+                        <p className="text-xs text-gray-500 font-semibold">Sesuaikan identitas profil belajarmu</p>
                       </div>
                     </div>
 
@@ -3188,8 +3188,8 @@ const DashboardPage = () => {
                         </svg>
                       </div>
                       <div>
-                        <h2 className="text-sm font-black text-gray-900">Keamanan Akun</h2>
-                        <p className="text-[11px] text-gray-400 font-semibold">Atur atau ubah kata sandi akunmu</p>
+                        <h2 className="text-sm sm:text-base font-black text-gray-900">Keamanan Akun</h2>
+                        <p className="text-xs text-gray-500 font-semibold">Atur atau ubah kata sandi akunmu</p>
                       </div>
                     </div>
 
@@ -3297,13 +3297,13 @@ const DashboardPage = () => {
                       >
                         <span>{mod.badge}</span>
                         {mod.isComingSoon ? (
-                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                          <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-md ${
                             isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
                           }`}>
                             Segera
                           </span>
                         ) : (
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
                             isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
                           }`}>
                             {mod.entries.length} Isyarat
@@ -3322,7 +3322,7 @@ const DashboardPage = () => {
                     className="w-full bg-gradient-to-r from-slate-900 via-gray-900 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4"
                   >
                     <div className="space-y-1.5 text-center sm:text-left">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 font-black text-[11px] uppercase tracking-wider">
+                      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-amber-300 font-black text-xs uppercase tracking-wider">
                         <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
                         <span>Koleksi Mendatang • {DICTIONARY_MODULES.find(m => m.id === selectedDictModuleId)?.title}</span>
                       </div>
@@ -3397,10 +3397,10 @@ const DashboardPage = () => {
                           >
                             <div>
                               <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">
+                                <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700">
                                   {item.moduleBadge || item.category}
                                 </span>
-                                <span className="text-[11px] font-black text-gray-400 group-hover:text-[#E02424] transition">
+                                <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
                                   BISINDO
                                 </span>
                               </div>
@@ -3414,10 +3414,10 @@ const DashboardPage = () => {
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                       </svg>
                                     </div>
-                                    <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">
+                                    <span className="text-xs font-black text-gray-700 uppercase tracking-wider">
                                       Materi Rilis
                                     </span>
-                                    <span className="text-[9px] font-bold text-gray-400 mt-0.5">
+                                    <span className="text-[11px] font-bold text-gray-400 mt-0.5">
                                       Segera Hadir
                                     </span>
                                   </div>
@@ -3434,7 +3434,7 @@ const DashboardPage = () => {
                               <h3 className="text-sm sm:text-base font-black text-gray-900 text-center mb-1">
                                 {item.word}
                               </h3>
-                              <p className="text-[11px] font-medium text-gray-500 text-center leading-relaxed line-clamp-3">
+                              <p className="text-xs font-medium text-gray-600 text-center leading-relaxed line-clamp-3">
                                 {isSecretComingSoon
                                   ? 'Panduan gestur dan video interaktif untuk kosakata ini sedang difinalisasi.'
                                   : item.desc}
@@ -3442,7 +3442,7 @@ const DashboardPage = () => {
                             </div>
 
                             {isSecretComingSoon ? (
-                              <div className="mt-3.5 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200/80 text-gray-500 text-[10px] font-black uppercase tracking-wider text-center">
+                              <div className="mt-3.5 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200/80 text-gray-600 text-xs font-black uppercase tracking-wider text-center">
                                 Segera Hadir
                               </div>
                             ) : (
@@ -3515,35 +3515,35 @@ const DashboardPage = () => {
 
                     {/* Widget Hitung Mundur Sebelum Reset Weekly */}
                     <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center">
-                      <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-rose-600 mb-2.5">
+                      <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-rose-600 mb-2.5">
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
                         <span>Hitung Mundur Reset Mingguan</span>
                       </div>
 
                       <div className="grid grid-cols-4 gap-2 sm:gap-2.5 w-full max-w-xs">
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
                           <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
                             {leagueTimeRemaining.days}
                           </span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Hari</span>
+                          <span className="text-[11px] font-bold text-gray-500 uppercase">Hari</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
                           <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
                             {leagueTimeRemaining.hours}
                           </span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Jam</span>
+                          <span className="text-[11px] font-bold text-gray-500 uppercase">Jam</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
                           <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
                             {leagueTimeRemaining.minutes}
                           </span>
-                          <span className="text-[9px] font-bold text-gray-400 uppercase">Menit</span>
+                          <span className="text-[11px] font-bold text-gray-500 uppercase">Menit</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-rose-200 bg-rose-50/40 rounded-2xl p-2 flex flex-col items-center">
+                        <div className="bg-gray-50/90 border border-rose-200 bg-rose-50/40 rounded-2xl p-2.5 flex flex-col items-center">
                           <span className="text-base sm:text-lg font-black text-[#E02424] font-mono">
                             {leagueTimeRemaining.seconds}
                           </span>
-                          <span className="text-[9px] font-bold text-rose-400 uppercase">Detik</span>
+                          <span className="text-[11px] font-bold text-rose-500 uppercase">Detik</span>
                         </div>
                       </div>
                     </div>
@@ -3989,7 +3989,7 @@ const DashboardPage = () => {
               <button
                 key={id}
                 onClick={() => setActiveMenu(id)}
-                className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-2xl text-[9px] font-extrabold tracking-wider uppercase cursor-pointer transition-all ${
+                className={`flex flex-col items-center gap-1 px-2.5 py-1.5 rounded-2xl text-[11px] font-black tracking-wider uppercase cursor-pointer transition-all ${
                   isActive
                     ? 'text-[#E02424] bg-[#FFF0F0]'
                     : 'text-[#999999]'
@@ -4021,13 +4021,13 @@ const DashboardPage = () => {
                 </div>
 
                 <div>
-                  <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-[11px] font-black text-[#E02424] uppercase tracking-wider">
+                  <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider">
                     {levelSessionModalUnit.unitLabel} • Tahap {savedSessionData.stageId}
                   </span>
                   <h3 className="text-xl font-extrabold text-[#2B2B2B] mt-2">
                     Lanjutkan Belajar?
                   </h3>
-                  <p className="text-xs text-gray-500 font-bold mt-1">
+                  <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1">
                     Kamu memiliki riwayat kuis pada level ini yang belum selesai ({savedSessionData.remainingQuestionIds?.length} soal tersisa).
                   </p>
                 </div>
