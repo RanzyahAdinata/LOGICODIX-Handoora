@@ -3044,16 +3044,21 @@ const DashboardPage = () => {
 
                         <div className="p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
                           <span className="text-xs font-black text-gray-500 uppercase tracking-wider block">
-                            Total XP
+                            XP Belajar
                           </span>
                           <div className="flex items-center gap-1 mt-1">
                             <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
                             <span className="text-base font-black text-gray-900">
-                              {progress.xp} XP
+                              {progress.weekly_xp !== undefined ? progress.weekly_xp : (Number(progress.xp) || 0)} XP
                             </span>
                           </div>
+                          {progress.xp > 0 && progress.weekly_xp !== undefined && progress.xp !== progress.weekly_xp && (
+                            <span className="text-[10px] text-gray-400 font-bold block mt-0.5">
+                              Total: {progress.xp} XP
+                            </span>
+                          )}
                         </div>
 
                         <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">

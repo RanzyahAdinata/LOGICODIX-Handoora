@@ -702,7 +702,7 @@ export const progressService = {
 
     // Update profiles di Supabase dengan weekly_xp dan weekly_cycle_id
     try {
-      await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
         .update({
           xp: updatedProgress.xp,
@@ -718,22 +718,44 @@ export const progressService = {
           updated_at: new Date().toISOString(),
         })
         .eq('id', userId)
+
+      if (updateError) {
+        // Fallback jika kolom weekly_xp belum tersedia di profiles Supabase
+        await supabase
+          .from('profiles')
+          .update({
+            xp: updatedProgress.xp,
+            streak: updatedProgress.streak,
+            last_activity_date: lastDate,
+            streak_history: history,
+            gems: updatedProgress.gems,
+            hearts: updatedProgress.hearts,
+            completed_lessons: updatedProgress.completedIslands,
+            unlocked_islands: updatedProgress.unlockedIslands,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+      }
     } catch {
-      // Fallback jika kolom weekly_xp belum tersedia di profiles Supabase
-      await supabase
-        .from('profiles')
-        .update({
-          xp: updatedProgress.xp,
-          streak: updatedProgress.streak,
-          last_activity_date: lastDate,
-          streak_history: history,
-          gems: updatedProgress.gems,
-          hearts: updatedProgress.hearts,
-          completed_lessons: updatedProgress.completedIslands,
-          unlocked_islands: updatedProgress.unlockedIslands,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
+      // Fallback jika error jaringan/eksepsi
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            xp: updatedProgress.xp,
+            streak: updatedProgress.streak,
+            last_activity_date: lastDate,
+            streak_history: history,
+            gems: updatedProgress.gems,
+            hearts: updatedProgress.hearts,
+            completed_lessons: updatedProgress.completedIslands,
+            unlocked_islands: updatedProgress.unlockedIslands,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+      } catch {
+        // ignore
+      }
     }
 
     return updatedProgress
