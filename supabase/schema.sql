@@ -17,6 +17,8 @@ create table if not exists public.profiles (
   auth_provider text default 'email' not null,
   avatar_url text,
   xp integer default 0 not null,
+  weekly_xp integer default 0 not null,
+  weekly_cycle_id text,
   streak integer default 0 not null,
   gems integer default 500 not null,
   hearts integer default 5 not null,
@@ -32,6 +34,7 @@ create table if not exists public.profiles (
 -- Index untuk performa query email dan papan skor (leaderboard)
 create index if not exists profiles_email_idx on public.profiles (email);
 create index if not exists profiles_xp_idx on public.profiles (xp desc);
+create index if not exists profiles_weekly_xp_idx on public.profiles (weekly_xp desc);
 
 -- 2. Berikan hak akses tabel ke role Data API Supabase
 grant select on table public.profiles to anon;

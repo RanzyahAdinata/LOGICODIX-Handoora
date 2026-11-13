@@ -454,9 +454,23 @@ export function recordDailyLessonCompletion(currentProgress) {
   }
 }
 
+// Helper: Dapatkan identifikasi siklus mingguan (Minggu s.d. Sabtu)
+// Format: "YYYY-MM-DD" berbasis hari Minggu pukul 00:00:00 lokal
+export function getWeeklyCycleId(date = new Date()) {
+  const sunday = new Date(date)
+  sunday.setDate(sunday.getDate() - sunday.getDay())
+  sunday.setHours(0, 0, 0, 0)
+  const y = sunday.getFullYear()
+  const m = String(sunday.getMonth() + 1).padStart(2, '0')
+  const d = String(sunday.getDate()).padStart(2, '0')
+  return `${y}-${m}-${d}`
+}
+
 // Semua pengguna mulai dari Level 1 (Pulau 1 terbuka, belum ada pulau yang selesai)
 const DEFAULT_PROGRESS = {
   xp: 0,
+  weekly_xp: 0,
+  weekly_cycle_id: getWeeklyCycleId(),
   streak: 0,
   isStreakActiveToday: false,
   last_activity_date: null,
@@ -474,6 +488,7 @@ const DEFAULT_PROGRESS = {
 
 export const progressService = {
   getProgress(userId) {
+    const currentCycle = getWeeklyCycleId()
     if (userId) {
       const cached = localStorage.getItem(`handoora_progress_${userId}`)
       if (cached) {
@@ -485,8 +500,20 @@ export const progressService = {
             parsed.last_activity_date || parsed.lastActivityDate,
             parsed.streak_history || parsed.streakHistory
           )
+
+          // Reset mingguan XP leaderboard jika sudah masuk ke siklus minggu yang baru
+          let weeklyXp = Number(parsed.weekly_xp)
+          if (parsed.weekly_cycle_id !== currentCycle) {
+            weeklyXp = 0
+          } else if (isNaN(weeklyXp)) {
+            // Fallback untuk akun lama: jika minggu ini baru dibuat/diupdate, gunakan xp
+            weeklyXp = Number(parsed.xp) || 0
+          }
+
           return {
             ...parsed,
+            weekly_xp: weeklyXp,
+            weekly_cycle_id: currentCycle,
             streak: streakState.streak,
             isStreakActiveToday: streakState.isStreakActiveToday,
             last_activity_date: streakState.lastActivityDate,
@@ -497,13 +524,16 @@ export const progressService = {
         }
       }
     }
-    return { ...DEFAULT_PROGRESS }
+    return { ...DEFAULT_PROGRESS, weekly_cycle_id: currentCycle }
   },
 
   resetProgress(userId) {
+    const currentCycle = getWeeklyCycleId()
     const fresh = {
       ...DEFAULT_PROGRESS,
       xp: 0,
+      weekly_xp: 0,
+      weekly_cycle_id: currentCycle,
       completedIslands: [],
       unlockedIslands: [1],
     }
@@ -521,9 +551,11 @@ export const progressService = {
   async fetchProgressFromSupabase(userId) {
     if (!supabase || !userId) return { ...DEFAULT_PROGRESS }
 
+    const currentCycle = getWeeklyCycleId()
+
     const { data, error } = await supabase
       .from('profiles')
-      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
+      .select('xp, weekly_xp, weekly_cycle_id, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
       .eq('id', userId)
       .maybeSingle()
 
@@ -542,8 +574,20 @@ export const progressService = {
         data.streak_history
       )
 
+      // Cek apakah siklus mingguan berganti -> reset weekly_xp ke 0
+      let weeklyXp = Number(data.weekly_xp)
+      let needsWeeklyReset = false
+      if (data.weekly_cycle_id !== currentCycle) {
+        weeklyXp = 0
+        needsWeeklyReset = true
+      } else if (isNaN(weeklyXp)) {
+        weeklyXp = norm.xp
+      }
+
       const result = {
         xp: norm.xp,
+        weekly_xp: weeklyXp,
+        weekly_cycle_id: currentCycle,
         streak: streakState.streak,
         isStreakActiveToday: streakState.isStreakActiveToday,
         last_activity_date: streakState.lastActivityDate,
@@ -561,8 +605,8 @@ export const progressService = {
 
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
 
-      // Jika akun masih memiliki seed lama ([1, 2]), perbarui otomatis agar mulai dari Level 1
-      if (norm.wasNormalized) {
+      // Jika akun masih memiliki seed lama ([1, 2]) atau siklus mingguan berganti, perbarui otomatis ke database
+      if (norm.wasNormalized || needsWeeklyReset) {
         localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
         await this.saveProgressToSupabase(userId, result)
       }
@@ -585,8 +629,17 @@ export const progressService = {
       meta.streak_history || meta.streakHistory
     )
 
+    let weeklyXp = Number(meta.weekly_xp)
+    if (meta.weekly_cycle_id !== currentCycle) {
+      weeklyXp = 0
+    } else if (isNaN(weeklyXp)) {
+      weeklyXp = norm.xp
+    }
+
     const fallback = {
       xp: norm.xp,
+      weekly_xp: weeklyXp,
+      weekly_cycle_id: currentCycle,
       streak: streakState.streak,
       isStreakActiveToday: streakState.isStreakActiveToday,
       last_activity_date: streakState.lastActivityDate,
@@ -607,45 +660,83 @@ export const progressService = {
   },
 
   async saveProgressToSupabase(userId, progress) {
-    if (userId) {
-      localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
-      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(progress))
+    const currentCycle = getWeeklyCycleId()
+    const finalWeeklyCycle = progress.weekly_cycle_id || currentCycle
+    let finalWeeklyXp = Number(progress.weekly_xp)
+    if (finalWeeklyCycle !== currentCycle) {
+      finalWeeklyXp = 0
+    } else if (isNaN(finalWeeklyXp)) {
+      finalWeeklyXp = Number(progress.xp) || 0
     }
 
-    if (!supabase || !userId) return progress
+    const updatedProgress = {
+      ...progress,
+      weekly_xp: finalWeeklyXp,
+      weekly_cycle_id: currentCycle,
+    }
 
-    const lastDate = progress.last_activity_date || progress.lastActivityDate || null
-    const history = progress.streak_history || progress.streakHistory || []
+    if (userId) {
+      localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+      localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(updatedProgress))
+    }
+
+    if (!supabase || !userId) return updatedProgress
+
+    const lastDate = updatedProgress.last_activity_date || updatedProgress.lastActivityDate || null
+    const history = updatedProgress.streak_history || updatedProgress.streakHistory || []
 
     await supabase.auth.updateUser({
       data: {
-        xp: progress.xp,
-        streak: progress.streak,
+        xp: updatedProgress.xp,
+        weekly_xp: finalWeeklyXp,
+        weekly_cycle_id: currentCycle,
+        streak: updatedProgress.streak,
         last_activity_date: lastDate,
         streak_history: history,
-        gems: progress.gems,
-        hearts: progress.hearts,
-        completed_lessons: progress.completedIslands,
-        unlocked_islands: progress.unlockedIslands,
+        gems: updatedProgress.gems,
+        hearts: updatedProgress.hearts,
+        completed_lessons: updatedProgress.completedIslands,
+        unlocked_islands: updatedProgress.unlockedIslands,
       },
     })
 
-    await supabase
-      .from('profiles')
-      .update({
-        xp: progress.xp,
-        streak: progress.streak,
-        last_activity_date: lastDate,
-        streak_history: history,
-        gems: progress.gems,
-        hearts: progress.hearts,
-        completed_lessons: progress.completedIslands,
-        unlocked_islands: progress.unlockedIslands,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', userId)
+    // Update profiles di Supabase dengan weekly_xp dan weekly_cycle_id
+    try {
+      await supabase
+        .from('profiles')
+        .update({
+          xp: updatedProgress.xp,
+          weekly_xp: finalWeeklyXp,
+          weekly_cycle_id: currentCycle,
+          streak: updatedProgress.streak,
+          last_activity_date: lastDate,
+          streak_history: history,
+          gems: updatedProgress.gems,
+          hearts: updatedProgress.hearts,
+          completed_lessons: updatedProgress.completedIslands,
+          unlocked_islands: updatedProgress.unlockedIslands,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+    } catch {
+      // Fallback jika kolom weekly_xp belum tersedia di profiles Supabase
+      await supabase
+        .from('profiles')
+        .update({
+          xp: updatedProgress.xp,
+          streak: updatedProgress.streak,
+          last_activity_date: lastDate,
+          streak_history: history,
+          gems: updatedProgress.gems,
+          hearts: updatedProgress.hearts,
+          completed_lessons: updatedProgress.completedIslands,
+          unlocked_islands: updatedProgress.unlockedIslands,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', userId)
+    }
 
-    return progress
+    return updatedProgress
   },
 
   // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles
@@ -655,6 +746,8 @@ export const progressService = {
       return []
     }
 
+    const currentCycle = getWeeklyCycleId()
+
     // Tentukan waktu awal siklus minggu berjalan (Hari Minggu pukul 00:00:00 waktu lokal)
     const now = new Date()
     const sundayStart = new Date(now)
@@ -663,25 +756,55 @@ export const progressService = {
     const weekCycleStartIso = sundayStart.toISOString()
 
     try {
-      // Ambil user dengan xp > 0 yang beraktivitas di siklus minggu ini
+      // Prioritaskan mengambil profil dengan kolom weekly_xp & weekly_cycle_id
       const { data, error } = await supabase
+        .from('profiles')
+        .select('id, nama, email, xp, weekly_xp, weekly_cycle_id, current_unit, avatar_url, updated_at')
+        .order('weekly_xp', { ascending: false })
+        .limit(limit)
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        // Petakan XP liga mingguan: jika weekly_cycle_id berbeda, weekly_xp dianggap 0
+        return data.map((p) => {
+          let score = Number(p.weekly_xp)
+          if (p.weekly_cycle_id !== currentCycle) {
+            // Jika siklus berbeda tetapi updated_at masih minggu ini, fallback ke p.xp jika weekly_xp null
+            if (p.updated_at && p.updated_at >= weekCycleStartIso && isNaN(score)) {
+              score = Number(p.xp) || 0
+            } else {
+              score = 0
+            }
+          } else if (isNaN(score)) {
+            score = Number(p.xp) || 0
+          }
+          return {
+            ...p,
+            weekly_xp: score,
+            xp: score, // XP yang dipakai untuk sorting leaderboard mingguan
+          }
+        }).sort((a, b) => b.weekly_xp - a.weekly_xp)
+      }
+
+      // Fallback: jika kolom weekly_xp belum tersedia di Supabase profiles, filter dengan updated_at mingguan
+      const { data: fallbackData } = await supabase
         .from('profiles')
         .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
         .gte('updated_at', weekCycleStartIso)
         .order('xp', { ascending: false })
         .limit(limit)
 
-      if (error) {
-        console.warn('Gagal memuat data leaderboard mingguan Supabase:', error)
-        // Fallback: jika query gte gagal karena data kosong, ambil keseluruhan
-        const { data: fallbackData } = await supabase
-          .from('profiles')
-          .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
-          .order('xp', { ascending: false })
-          .limit(limit)
-        return fallbackData || []
+      if (fallbackData && fallbackData.length > 0) {
+        return fallbackData
       }
-      return data || []
+
+      // Fallback kedua: ambil keseluruhan jika data baru kosong
+      const { data: allData } = await supabase
+        .from('profiles')
+        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
+        .order('xp', { ascending: false })
+        .limit(limit)
+
+      return allData || []
     } catch (err) {
       console.warn('Error fetching leaderboard:', err)
       return []

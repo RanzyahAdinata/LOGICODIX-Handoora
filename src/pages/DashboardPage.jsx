@@ -3567,10 +3567,11 @@ const DashboardPage = () => {
                       // Masukkan data pengguna dari database Supabase
                       if (Array.isArray(supabaseLeaderboard) && supabaseLeaderboard.length > 0) {
                         supabaseLeaderboard.forEach((p) => {
+                          const displayWeeklyXp = p.weekly_xp !== undefined ? Number(p.weekly_xp) : (Number(p.xp) || 0)
                           userMap.set(p.id, {
                             id: p.id,
                             name: p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora'),
-                            xp: Number(p.xp) || 0,
+                            xp: displayWeeklyXp,
                             level: Number(p.current_unit) || 1,
                             avatar: p.avatar_url || '/assets/avatar-orangutan.png',
                             status: p.id === user?.id ? userLeaderboardStatus : '🌟',
@@ -3583,7 +3584,9 @@ const DashboardPage = () => {
                       // masukkan data profil lokal user agar tetap tampil akurat apa adanya
                       if (user?.id) {
                         const existing = userMap.get(user.id)
-                        const currentXp = Number(progress.xp) || (existing?.xp ?? 0)
+                        const currentXp = progress.weekly_xp !== undefined
+                          ? Number(progress.weekly_xp)
+                          : (existing?.xp ?? (Number(progress.xp) || 0))
                         userMap.set(user.id, {
                           id: user.id,
                           name: `${user.nama || 'Sobat Handoora'} (Kamu)`,
@@ -3595,10 +3598,13 @@ const DashboardPage = () => {
                         })
                       } else if (userMap.size === 0) {
                         // Jika mode tamu / belum login sama sekali dan database kosong
+                        const currentXp = progress.weekly_xp !== undefined
+                          ? Number(progress.weekly_xp)
+                          : (Number(progress.xp) || 0)
                         userMap.set('guest', {
                           id: 'guest',
                           name: 'Kamu (Tamu Belajar)',
-                          xp: Number(progress.xp) || 0,
+                          xp: currentXp,
                           level: currentActiveUnitId,
                           avatar: currentAvatar,
                           status: userLeaderboardStatus,

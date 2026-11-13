@@ -422,6 +422,7 @@ export default function QuizPage() {
     try {
       const currentProgress = progressService.getProgress(userId)
       const newXp = (Number(currentProgress?.xp) || 0) + earnedXp
+      const newWeeklyXp = (Number(currentProgress?.weekly_xp) || 0) + earnedXp
 
       // Update streak harian real-time (hanya bertambah maks 1 per hari, api menyala)
       const streakProgress = recordDailyLessonCompletion(currentProgress)
@@ -450,6 +451,7 @@ export default function QuizPage() {
       const updatedProgress = {
         ...streakProgress,
         xp: newXp,
+        weekly_xp: newWeeklyXp,
         unlockedIslands: unlocked,
         completedIslands: completed,
       }
