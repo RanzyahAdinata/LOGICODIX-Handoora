@@ -107,3 +107,9 @@ drop trigger if exists on_auth_user_created on auth.users;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- ============================================================
+-- 5. Kredensial Akun Pengujian & Juri (Opsional di Supabase Dashboard)
+-- Jika email demo.handoora@gmail.com didaftarkan dan ingin dikonfirmasi langsung:
+-- UPDATE auth.users SET email_confirmed_at = now() WHERE email = 'demo.handoora@gmail.com';
+-- ============================================================

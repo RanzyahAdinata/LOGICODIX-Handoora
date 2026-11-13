@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import toast from 'react-hot-toast'
-import { authService, fetchOrCreateSupabaseProfile } from '../services/storage'
+import { authService, fetchOrCreateSupabaseProfile, DEMO_USER } from '../services/storage'
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient'
 
 const ACTIVITY_KEY = 'handoora_last_activity'
@@ -23,6 +23,22 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Pastikan splash/loading screen tampil minimal 1.5 - 2 detik saat inisialisasi awal
     const minSplashPromise = new Promise((resolve) => setTimeout(resolve, 1800))
+
+    // Cek apakah ada sesi akun demo juri yang sedang aktif di localStorage
+    const isDemoActive = localStorage.getItem('handoora_demo_active') === 'true'
+    const storedUser = localStorage.getItem('handoora_user')
+    if (isDemoActive && storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser)
+        if (parsed?.email?.toLowerCase() === DEMO_USER.email.toLowerCase()) {
+          setUser(parsed)
+          minSplashPromise.then(() => setLoading(false))
+          return
+        }
+      } catch {
+        // ignore
+      }
+    }
 
     if (!isSupabaseConfigured || !supabase) {
       minSplashPromise.then(() => setLoading(false))
@@ -164,7 +180,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const updatePassword = async (newPassword) => {
-    return await authService.updatePassword(newPassword)
+    return await authService.updatePassword(newPassword, user?.id)
   }
 
   const logout = async () => {

@@ -156,6 +156,37 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
   }
 }
 
+export const DEMO_USER = {
+  id: 'demo-handoora-juri-account',
+  nama: 'Demo Pengujian (Juri)',
+  email: 'demo.handoora@gmail.com',
+  umur: 25,
+  auth_provider: 'email',
+  avatar_url: null,
+  xp: 350,
+  weekly_xp: 350,
+  weekly_cycle_id: getWeeklyCycleId(),
+  streak: 3,
+  gems: 750,
+  hearts: 5,
+  current_unit: 2,
+  completed_lessons: [1],
+  unlocked_islands: [1, 2],
+  last_activity_date: getLocalDateString(),
+  streak_history: [getLocalDateString()],
+}
+
+export function isDemoUser(userOrId) {
+  if (!userOrId) return false
+  if (typeof userOrId === 'string') {
+    return userOrId === DEMO_USER.id || userOrId.toLowerCase() === DEMO_USER.email.toLowerCase()
+  }
+  return (
+    userOrId.id === DEMO_USER.id ||
+    userOrId.email?.toLowerCase() === DEMO_USER.email.toLowerCase()
+  )
+}
+
 export const authService = {
   // 1. REGISTER PENGGUNA BARU (MULAI DARI LEVEL 1)
   async register({ nama, umur, email, password }) {
@@ -243,11 +274,56 @@ export const authService = {
 
   // 2. LOGIN DENGAN EMAIL & PASSWORD
   async login({ email, password }) {
+    const cleanEmail = email.trim().toLowerCase()
+
+    // Penanganan khusus kredensial Akun Demo Juri/Penguji (sesuai README)
+    // Memastikan juri dapat langsung menguji aplikasi tanpa terhalang proses verifikasi email
+    if (cleanEmail === DEMO_USER.email.toLowerCase()) {
+      if (password === 'HandooraPassword123!') {
+        const currentCycle = getWeeklyCycleId()
+        const demoProfile = {
+          ...DEMO_USER,
+          weekly_cycle_id: currentCycle,
+          avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
+        }
+
+        // Siapkan penyimpanan profil demo di localStorage
+        localStorage.setItem('handoora_user', JSON.stringify(demoProfile))
+        localStorage.setItem('handoora_demo_active', 'true')
+
+        // Inisialisasi progres demo jika belum ada
+        const existingDemoProgress = localStorage.getItem(`handoora_progress_${DEMO_USER.id}`)
+        if (!existingDemoProgress) {
+          const initProgress = {
+            xp: demoProfile.xp,
+            weekly_xp: demoProfile.weekly_xp,
+            weekly_cycle_id: currentCycle,
+            streak: demoProfile.streak,
+            isStreakActiveToday: true,
+            last_activity_date: demoProfile.last_activity_date,
+            streak_history: demoProfile.streak_history,
+            gems: demoProfile.gems,
+            hearts: demoProfile.hearts,
+            completedIslands: [1],
+            unlockedIslands: [1, 2],
+            dailyQuests: {
+              xpEarned: 20,
+              xpEarnedToday: 50,
+              highScoreLessons: 1,
+            },
+          }
+          localStorage.setItem(`handoora_progress_${DEMO_USER.id}`, JSON.stringify(initProgress))
+        }
+
+        return demoProfile
+      } else {
+        throw new Error('Password akun demo salah. Silakan periksa kembali.')
+      }
+    }
+
     if (!isSupabaseConfigured || !supabase) {
       throw new Error('Layanan autentikasi belum aktif.')
     }
-
-    const cleanEmail = email.trim().toLowerCase()
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: cleanEmail,
@@ -305,6 +381,17 @@ export const authService = {
   async updateProfile(userId, updates) {
     if (updates.avatar_url && userId) {
       localStorage.setItem(`handoora_avatar_${userId}`, updates.avatar_url)
+    }
+
+    if (isDemoUser(userId)) {
+      try {
+        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
+        const updatedMeta = { ...currentMeta, ...updates }
+        localStorage.setItem('handoora_user', JSON.stringify(updatedMeta))
+        return updatedMeta
+      } catch {
+        return updates
+      }
     }
 
     if (!supabase || !userId) return updates
@@ -365,9 +452,12 @@ export const authService = {
   },
 
   // 4.1. UPDATE PASSWORD PENGGUNA
-  async updatePassword(newPassword) {
+  async updatePassword(newPassword, userId = null) {
     if (!newPassword || newPassword.length < 6) {
       throw new Error('Password baru minimal 6 karakter.')
+    }
+    if (isDemoUser(userId)) {
+      return true
     }
     if (supabase && isSupabaseConfigured) {
       const { data, error } = await supabase.auth.updateUser({
@@ -383,8 +473,14 @@ export const authService = {
 
   // 5. LOGOUT
   async logout() {
+    localStorage.removeItem('handoora_user')
+    localStorage.removeItem('handoora_demo_active')
     if (supabase) {
-      await supabase.auth.signOut()
+      try {
+        await supabase.auth.signOut()
+      } catch {
+        // ignore
+      }
     }
     return true
   },
@@ -609,6 +705,10 @@ export const progressService = {
   },
 
   async fetchProgressFromSupabase(userId) {
+    if (isDemoUser(userId)) {
+      return this.getProgress(userId)
+    }
+
     if (!supabase || !userId) return { ...DEFAULT_PROGRESS }
 
     const currentCycle = getWeeklyCycleId()
@@ -756,6 +856,10 @@ export const progressService = {
       }
     }
 
+    if (isDemoUser(userId)) {
+      return updatedProgress
+    }
+
     if (!supabase || !userId) return updatedProgress
 
     const lastDate = updatedProgress.last_activity_date || updatedProgress.lastActivityDate || null
@@ -845,6 +949,19 @@ export const progressService = {
     const getCachedKnownProfiles = () => {
       try {
         const stored = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+        // Pastikan akun demo juri juga disertakan dalam leaderboard lokal
+        if (!stored[DEMO_USER.id]) {
+          const demoProg = this.getProgress(DEMO_USER.id)
+          stored[DEMO_USER.id] = {
+            id: DEMO_USER.id,
+            nama: DEMO_USER.nama,
+            email: DEMO_USER.email,
+            xp: demoProg.xp || DEMO_USER.xp,
+            weekly_xp: demoProg.weekly_xp || DEMO_USER.weekly_xp,
+            current_unit: demoProg.unlockedIslands?.slice(-1)[0] || 2,
+            avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
+          }
+        }
         return Object.values(stored).map(p => ({
           ...p,
           xp: Number(p.xp) || 0,
