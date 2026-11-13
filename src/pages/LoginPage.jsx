@@ -53,8 +53,8 @@ const LoginPage = () => {
     const newErrors = {}
     if (!formData.email.trim()) {
       newErrors.email = 'Email wajib diisi'
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Format email tidak valid'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Format email tidak valid (contoh: nama@domain.com)'
     }
     if (!formData.password) {
       newErrors.password = 'Password wajib diisi'

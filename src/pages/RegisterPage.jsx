@@ -67,8 +67,8 @@ const RegisterPage = () => {
     }
     if (!formData.email.trim()) {
       newErrors.email = 'Email wajib diisi'
-    } else if (!formData.email.includes('@') || formData.email.trim().startsWith('@') || formData.email.trim().endsWith('@')) {
-      newErrors.email = 'Format email tidak valid (harus mengandung @)'
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = 'Format email tidak valid (contoh: nama@domain.com)'
     }
     if (!formData.password) {
       newErrors.password = 'Password wajib diisi'

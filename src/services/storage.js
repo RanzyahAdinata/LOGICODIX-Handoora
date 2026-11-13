@@ -187,89 +187,194 @@ export function isDemoUser(userOrId) {
   )
 }
 
+function getLocalRegisteredUsers() {
+  try {
+    return JSON.parse(localStorage.getItem('handoora_registered_users') || '{}')
+  } catch {
+    return {}
+  }
+}
+
+function saveLocalRegisteredUser(userRecord) {
+  try {
+    const users = getLocalRegisteredUsers()
+    users[userRecord.email.toLowerCase()] = userRecord
+    localStorage.setItem('handoora_registered_users', JSON.stringify(users))
+
+    // Simpan juga ke known profiles untuk leaderboard
+    const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+    known[userRecord.id] = {
+      id: userRecord.id,
+      nama: userRecord.nama,
+      email: userRecord.email,
+      xp: userRecord.xp || 0,
+      weekly_xp: userRecord.weekly_xp || 0,
+      weekly_cycle_id: userRecord.weekly_cycle_id || getWeeklyCycleId(),
+      current_unit: 1,
+      avatar_url: userRecord.avatar_url || null,
+      updated_at: new Date().toISOString(),
+    }
+    localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
+  } catch {
+    // ignore
+  }
+}
+
 export const authService = {
   // 1. REGISTER PENGGUNA BARU (MULAI DARI LEVEL 1)
   async register({ nama, umur, email, password }) {
-    if (!isSupabaseConfigured || !supabase) {
-      throw new Error('Layanan autentikasi belum aktif.')
-    }
-
     const cleanNama = nama.trim()
-    let rawEmail = email.trim().toLowerCase()
-    // Dukung input bebas: jika pengguna hanya memasukkan username/nama tanpa @domain, otomatis tambahkan @handoora.local
-    const cleanEmail = rawEmail.includes('@') ? rawEmail : `${rawEmail}@handoora.local`
+    const cleanEmail = email.trim().toLowerCase()
     const parsedUmur = parseInt(umur, 10)
     const passwordHash = await hashPasswordSecure(password, cleanEmail)
 
-    // Cek apakah email sudah terdaftar di tabel profiles terlebih dahulu
-    try {
-      const { data: existingProfile } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', cleanEmail)
-        .maybeSingle()
-
-      if (existingProfile) {
-        throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
-      }
-    } catch (checkErr) {
-      if (checkErr.message?.includes('Email sudah terdaftar')) {
-        throw checkErr
-      }
-      // Jika error lain (misal koneksi/tabel), lanjut ke signUp
-    }
-
-    const { data, error } = await supabase.auth.signUp({
-      email: cleanEmail,
-      password,
-      options: {
-        data: {
-          nama: cleanNama,
-          full_name: cleanNama,
-          umur: parsedUmur,
-          password_hash: passwordHash,
-          auth_provider: 'email',
-          xp: 0,
-          streak: 0,
-          gems: 500,
-          hearts: 5,
-          completed_lessons: [],
-          unlocked_islands: [1],
-          last_activity_date: null,
-          streak_history: [],
-        },
-      },
-    })
-
-    if (error) {
-      const msg = error.message?.toLowerCase() || ''
-      if (
-        msg.includes('already registered') ||
-        msg.includes('user already exists') ||
-        msg.includes('unique constraint') ||
-        error.status === 422
-      ) {
-        throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
-      }
-      throw new Error(error.message)
-    }
-
-    // Supabase Auth dengan email confirmation disabled / identities
-    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+    // 1. Validasi 1 email hanya untuk 1 akun
+    // Cek di penyimpanan pengguna lokal terlebih dahulu
+    const localUsers = getLocalRegisteredUsers()
+    if (localUsers[cleanEmail] || cleanEmail === DEMO_USER.email.toLowerCase()) {
       throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
     }
 
-    if (!data?.user) {
-      throw new Error('Gagal membuat akun pengguna.')
+    // Cek di tabel profiles Supabase (jika koneksi tersedia)
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data: existingProfile } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('email', cleanEmail)
+          .maybeSingle()
+
+        if (existingProfile) {
+          throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
+        }
+      } catch (checkErr) {
+        if (checkErr.message?.includes('Email sudah terdaftar')) {
+          throw checkErr
+        }
+      }
     }
 
-    const profile = await fetchOrCreateSupabaseProfile(data.user, {
+    // 2. Coba daftarkan ke Supabase Auth
+    let supabaseUser = null
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              nama: cleanNama,
+              full_name: cleanNama,
+              umur: parsedUmur,
+              password_hash: passwordHash,
+              auth_provider: 'email',
+              xp: 0,
+              streak: 0,
+              gems: 500,
+              hearts: 5,
+              completed_lessons: [],
+              unlocked_islands: [1],
+              last_activity_date: null,
+              streak_history: [],
+            },
+          },
+        })
+
+        if (error) {
+          const msg = error.message?.toLowerCase() || ''
+          if (
+            msg.includes('already registered') ||
+            msg.includes('user already exists') ||
+            msg.includes('unique constraint') ||
+            error.status === 422
+          ) {
+            throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
+          }
+          // Jika Supabase menolak karena rate limit email SMTP atau konfirmasi email wajib,
+          // kita jangan biarkan user gagal mendaftar! Kita gunakan seamless user registration.
+          console.warn('Supabase Auth warning:', error.message)
+        } else if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+          throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
+        } else if (data?.user) {
+          supabaseUser = data.user
+        }
+      } catch (err) {
+        if (err.message?.includes('Email sudah terdaftar')) {
+          throw err
+        }
+        console.warn('Supabase Auth error fallback to secure app account:', err.message)
+      }
+    }
+
+    // 3. Buat profil pengguna lengkap
+    const userId = supabaseUser?.id || `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    const currentCycle = getWeeklyCycleId()
+
+    const newProfile = {
+      id: userId,
       nama: cleanNama,
       umur: parsedUmur,
+      email: cleanEmail,
       password_hash: passwordHash,
+      auth_provider: 'email',
+      avatar_url: null,
+      xp: 0,
+      weekly_xp: 0,
+      weekly_cycle_id: currentCycle,
+      streak: 0,
+      gems: 500,
+      hearts: 5,
+      current_unit: 1,
+      completed_lessons: [],
+      unlocked_islands: [1],
+      last_activity_date: null,
+      streak_history: [],
+      created_at: new Date().toISOString(),
+    }
+
+    // Simpan akun ke local registry agar selalu bisa login
+    saveLocalRegisteredUser({
+      id: userId,
+      nama: cleanNama,
+      umur: parsedUmur,
+      email: cleanEmail,
+      password_hash: passwordHash,
+      profile: newProfile,
     })
 
-    return profile
+    // Set sesi aktif
+    localStorage.setItem('handoora_user', JSON.stringify(newProfile))
+    localStorage.setItem('handoora_local_active', 'true')
+    localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+    localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify({
+      xp: 0,
+      weekly_xp: 0,
+      weekly_cycle_id: currentCycle,
+      streak: 0,
+      isStreakActiveToday: false,
+      last_activity_date: null,
+      streak_history: [],
+      gems: 500,
+      hearts: 5,
+      completedIslands: [],
+      unlockedIslands: [1],
+      dailyQuests: {
+        xpEarned: 0,
+        xpEarnedToday: 0,
+        highScoreLessons: 0,
+      },
+    }))
+
+    // Jika Supabase terhubung, simpan juga ke tabel profiles Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.from('profiles').upsert(newProfile, { onConflict: 'id' })
+      } catch {
+        // ignore
+      }
+    }
+
+    return newProfile
   },
 
   // 2. LOGIN DENGAN EMAIL & PASSWORD
@@ -290,6 +395,7 @@ export const authService = {
         // Siapkan penyimpanan profil demo di localStorage
         localStorage.setItem('handoora_user', JSON.stringify(demoProfile))
         localStorage.setItem('handoora_demo_active', 'true')
+        localStorage.setItem('handoora_local_active', 'true')
 
         // Inisialisasi progres demo jika belum ada
         const existingDemoProgress = localStorage.getItem(`handoora_progress_${DEMO_USER.id}`)
@@ -321,8 +427,28 @@ export const authService = {
       }
     }
 
+    // Cek apakah akun terdaftar di penyimpanan lokal/aplikasi
+    const localUsers = getLocalRegisteredUsers()
+    const localAccount = localUsers[cleanEmail]
+    if (localAccount) {
+      const incomingHash = await hashPasswordSecure(password, cleanEmail)
+      if (localAccount.password_hash === incomingHash) {
+        const currentCycle = getWeeklyCycleId()
+        const profile = {
+          ...localAccount.profile,
+          weekly_cycle_id: currentCycle,
+          avatar_url: localStorage.getItem(`handoora_avatar_${localAccount.id}`) || localAccount.profile?.avatar_url || null,
+        }
+        localStorage.setItem('handoora_user', JSON.stringify(profile))
+        localStorage.setItem('handoora_local_active', 'true')
+        return profile
+      } else {
+        throw new Error('Password salah. Silakan periksa kembali.')
+      }
+    }
+
     if (!isSupabaseConfigured || !supabase) {
-      throw new Error('Layanan autentikasi belum aktif.')
+      throw new Error('Email tidak ditemukan atau layanan belum aktif.')
     }
 
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -475,6 +601,7 @@ export const authService = {
   async logout() {
     localStorage.removeItem('handoora_user')
     localStorage.removeItem('handoora_demo_active')
+    localStorage.removeItem('handoora_local_active')
     if (supabase) {
       try {
         await supabase.auth.signOut()

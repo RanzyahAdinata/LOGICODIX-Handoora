@@ -24,13 +24,13 @@ export const AuthProvider = ({ children }) => {
     // Pastikan splash/loading screen tampil minimal 1.5 - 2 detik saat inisialisasi awal
     const minSplashPromise = new Promise((resolve) => setTimeout(resolve, 1800))
 
-    // Cek apakah ada sesi akun demo juri yang sedang aktif di localStorage
-    const isDemoActive = localStorage.getItem('handoora_demo_active') === 'true'
+    // Cek apakah ada sesi akun lokal/demo yang sedang aktif di localStorage
+    const isLocalActive = localStorage.getItem('handoora_local_active') === 'true' || localStorage.getItem('handoora_demo_active') === 'true'
     const storedUser = localStorage.getItem('handoora_user')
-    if (isDemoActive && storedUser) {
+    if (isLocalActive && storedUser) {
       try {
         const parsed = JSON.parse(storedUser)
-        if (parsed?.email?.toLowerCase() === DEMO_USER.email.toLowerCase()) {
+        if (parsed?.id) {
           setUser(parsed)
           minSplashPromise.then(() => setLoading(false))
           return
