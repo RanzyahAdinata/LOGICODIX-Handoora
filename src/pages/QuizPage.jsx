@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
-import { progressService } from '../services/storage'
+import { progressService, recordDailyLessonCompletion } from '../services/storage'
 import { getLevelStages } from '../data/allLevelsQuizData'
 import { analyzeHandGesture } from '../utils/gestureDetector'
 import Button from '../components/ui/Button'
@@ -400,18 +400,16 @@ export default function QuizPage() {
     const accuracy =
       totalOriginal > 0 ? Math.round((totalOriginal / (totalOriginal + wrongCount)) * 100) : 100
 
-    setResultStats({
-      accuracy,
-      xpEarned: earnedXp,
-      streak: 1,
-      correctTotal: finalCorrectCount,
-      totalQuestions: totalOriginal,
-    })
-
     const userId = user?.id || 'guest'
+    let finalStreak = 1
+
     try {
       const currentProgress = progressService.getProgress(userId)
       const newXp = (Number(currentProgress?.xp) || 0) + earnedXp
+
+      // Update streak harian real-time (hanya bertambah maks 1 per hari, api menyala)
+      const streakProgress = recordDailyLessonCompletion(currentProgress)
+      finalStreak = streakProgress.streak
 
       // Simpan stage completion flag
       const stageKey = `handoora_stage_done_${userId}_L${levelId}_S${currentStageId}`
@@ -434,9 +432,8 @@ export default function QuizPage() {
       }
 
       const updatedProgress = {
-        ...currentProgress,
+        ...streakProgress,
         xp: newXp,
-        streak: Math.max(1, currentProgress?.streak || 1),
         unlockedIslands: unlocked,
         completedIslands: completed,
       }
@@ -449,6 +446,14 @@ export default function QuizPage() {
     } catch (err) {
       console.warn('Gagal menyimpan progres kuis otomatis:', err)
     }
+
+    setResultStats({
+      accuracy,
+      xpEarned: earnedXp,
+      streak: finalStreak,
+      correctTotal: finalCorrectCount,
+      totalQuestions: totalOriginal,
+    })
   }
 
   // Navigasi ke tahap berikutnya atau kembali ke pulau beranda

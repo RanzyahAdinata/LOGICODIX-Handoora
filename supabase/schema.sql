@@ -17,12 +17,14 @@ create table if not exists public.profiles (
   auth_provider text default 'email' not null,
   avatar_url text,
   xp integer default 0 not null,
-  streak integer default 1 not null,
+  streak integer default 0 not null,
   gems integer default 500 not null,
   hearts integer default 5 not null,
   current_unit integer default 1 not null,
   completed_lessons jsonb default '[]'::jsonb not null,
   unlocked_islands jsonb default '[1]'::jsonb not null,
+  last_activity_date date,
+  streak_history jsonb default '[]'::jsonb not null,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

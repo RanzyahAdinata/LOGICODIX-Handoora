@@ -6,7 +6,7 @@ import PageTransition from '../components/layout/PageTransition'
 import Button from '../components/ui/Button'
 import Input from '../components/ui/Input'
 import { useAuth } from '../context/AuthContext'
-import { progressService } from '../services/storage'
+import { progressService, getLocalDateString } from '../services/storage'
 import { DICTIONARY_MODULES } from '../data/dictionaryData'
 
 // ============================================================
@@ -2173,9 +2173,44 @@ const DashboardPage = () => {
     await logout()
   }
 
-  const activeStreakDays = Math.min(7, Math.max(1, progress.streak % 8 || 1))
+  // Evaluasi status Streak real-time
+  const isStreakActive = Boolean(progress.isStreakActiveToday && progress.streak > 0)
   const currentAvatar =
     profileForm.avatar_url || user?.avatar_url || '/assets/avatar-orangutan.png'
+
+  // Hitung tanggal 7 hari dalam minggu berjalan (Senin s.d. Minggu)
+  // DAYS_STREAK: ['S', 'S', 'R', 'K', 'J', 'S', 'M'] -> Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu
+  const weekDaysStatus = (() => {
+    const now = new Date()
+    const jsDay = now.getDay() // 0: Min, 1: Sen, ..., 6: Sab
+    const mondayOffset = (jsDay + 6) % 7 // 0 untuk Senin, 6 untuk Minggu
+    const streakHistorySet = new Set(
+      Array.isArray(progress.streak_history) ? progress.streak_history : []
+    )
+    if (progress.last_activity_date && progress.isStreakActiveToday) {
+      streakHistorySet.add(progress.last_activity_date)
+    }
+
+    const todayStr = getLocalDateString(now)
+
+    return DAYS_STREAK.map((dayLetter, idx) => {
+      const dayDate = new Date(now)
+      dayDate.setDate(now.getDate() - mondayOffset + idx)
+      const dateStr = getLocalDateString(dayDate)
+      const isToday = dateStr === todayStr
+      const isPastOrToday = idx <= mondayOffset
+      const isDone = streakHistorySet.has(dateStr)
+
+      return {
+        idx,
+        dayLetter,
+        dateStr,
+        isToday,
+        isPastOrToday,
+        isDone,
+      }
+    })
+  })()
 
   return (
     <PageTransition>
@@ -2281,10 +2316,24 @@ const DashboardPage = () => {
 
           <button
             onClick={() => setShowStreakPopover((v) => !v)}
-            className="px-3.5 py-1.5 rounded-xl bg-[#F8EFEF] border border-[#F5D0D0] flex items-center gap-1.5 cursor-pointer"
+            className={`px-3.5 py-1.5 rounded-xl border flex items-center gap-1.5 cursor-pointer transition-colors ${
+              isStreakActive
+                ? 'bg-[#F8EFEF] border-[#F5D0D0] text-[#E02424]'
+                : 'bg-white/90 border-gray-200 text-gray-400'
+            }`}
           >
-            <IconFlame className="w-4 h-5" />
-            <span className="text-xs font-black text-[#E02424]">{progress.streak}</span>
+            <IconFlame
+              className="w-4 h-5"
+              color={isStreakActive ? '#E02424' : '#9CA3AF'}
+              innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
+            />
+            <span
+              className={`text-xs font-black ${
+                isStreakActive ? 'text-[#E02424]' : 'text-gray-500'
+              }`}
+            >
+              {progress.streak}
+            </span>
           </button>
         </header>
 
@@ -2332,12 +2381,24 @@ const DashboardPage = () => {
                     onClick={() => setShowStreakPopover((v) => !v)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-2xl border-2 transition-all cursor-pointer shadow-sm ${
                       showStreakPopover
-                        ? 'bg-[#F7EFEF] border-[#E02424]/40'
-                        : 'bg-white/95 hover:bg-[#F7EFEF] border-white/80'
+                        ? isStreakActive
+                          ? 'bg-[#F7EFEF] border-[#E02424]/50'
+                          : 'bg-[#F3F4F6] border-gray-300'
+                        : isStreakActive
+                          ? 'bg-white/95 hover:bg-[#F7EFEF] border-rose-100 shadow-[0_2px_10px_rgba(224,36,36,0.12)]'
+                          : 'bg-white/95 hover:bg-gray-100 border-gray-200'
                     }`}
                   >
-                    <IconFlame className="w-5 h-6" />
-                    <span className="text-base font-black text-[#E02424]">
+                    <IconFlame
+                      className="w-5 h-6"
+                      color={isStreakActive ? '#E02424' : '#9CA3AF'}
+                      innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
+                    />
+                    <span
+                      className={`text-base font-black ${
+                        isStreakActive ? 'text-[#E02424]' : 'text-gray-500'
+                      }`}
+                    >
                       {progress.streak}
                     </span>
                   </motion.button>
@@ -2355,43 +2416,65 @@ const DashboardPage = () => {
                         <div className="absolute -top-3 right-6 w-5 h-5 bg-[#FAFAFA] border-l-2 border-t-2 border-[#E6E6E6] rotate-45" />
 
                         <div className="flex items-center justify-between mb-4">
-                          <h3 className="text-lg sm:text-xl font-extrabold text-[#D91E2A]">
-                            {progress.streak} hari beruntun
-                          </h3>
+                          <div>
+                            <h3
+                              className={`text-lg sm:text-xl font-extrabold ${
+                                isStreakActive ? 'text-[#D91E2A]' : 'text-gray-700'
+                              }`}
+                            >
+                              {progress.streak} hari beruntun
+                            </h3>
+                            <p className="text-[11px] font-bold text-gray-500 mt-0.5">
+                              {isStreakActive
+                                ? '🔥 Api streak menyala hari ini!'
+                                : progress.streak === 0
+                                  ? 'Api belum menyala. Selesaikan 1 level!'
+                                  : 'Selesaikan 1 level hari ini agar streak bertambah!'}
+                            </p>
+                          </div>
                           <button
                             onClick={() => setShowStreakPopover(false)}
-                            className="text-xs font-extrabold text-[#AAAAAA] hover:text-[#666666] cursor-pointer"
+                            className="text-xs font-extrabold text-[#AAAAAA] hover:text-[#666666] cursor-pointer p-1"
                           >
                             ✕
                           </button>
                         </div>
 
+                        {/* Kalender 7 Hari dalam Minggu Berjalan (Senin - Minggu) */}
                         <div className="grid grid-cols-7 gap-2 text-center">
-                          {DAYS_STREAK.map((dayLetter, idx) => {
-                            const isDayActive = idx < activeStreakDays
+                          {weekDaysStatus.map((day) => {
+                            const isDone = day.isDone
+                            const isToday = day.isToday
                             return (
-                              <div key={idx} className="flex flex-col items-center gap-1.5">
+                              <div key={day.idx} className="flex flex-col items-center gap-1.5">
                                 <span
                                   className={`text-xs font-extrabold ${
-                                    isDayActive ? 'text-[#D91E2A]' : 'text-[#DCDCDC]'
+                                    isDone
+                                      ? 'text-[#D91E2A]'
+                                      : isToday
+                                        ? 'text-amber-600 underline'
+                                        : 'text-[#AAAAAA]'
                                   }`}
                                 >
-                                  {dayLetter}
+                                  {day.dayLetter}
                                 </span>
                                 <motion.div
                                   initial={{ scale: 0.9 }}
                                   animate={{ scale: 1 }}
-                                  transition={{ delay: idx * 0.04 }}
-                                  className={`w-8 h-9 sm:w-9 sm:h-10 rounded-xl flex items-center justify-center shadow-2xs ${
-                                    isDayActive
-                                      ? 'bg-[#D91E2A] shadow-[0_3px_10px_rgba(217,30,42,0.3)]'
-                                      : 'bg-[#EBEBEB]'
+                                  transition={{ delay: day.idx * 0.03 }}
+                                  className={`w-8 h-9 sm:w-9 sm:h-10 rounded-xl flex items-center justify-center transition-all ${
+                                    isDone
+                                      ? 'bg-[#D91E2A] shadow-[0_3px_10px_rgba(217,30,42,0.32)] ring-2 ring-rose-200'
+                                      : isToday
+                                        ? 'bg-[#FFF3E0] border-2 border-dashed border-amber-400'
+                                        : 'bg-[#EBEBEB]'
                                   }`}
+                                  title={`${day.dateStr} - ${isDone ? 'Selesai' : isToday ? 'Hari ini' : 'Belum ada latihan'}`}
                                 >
                                   <IconFlame
                                     className="w-4 h-5"
-                                    color="#FFFFFF"
-                                    innerColor={isDayActive ? '#D91E2A' : '#EBEBEB'}
+                                    color={isDone ? '#FFFFFF' : isToday ? '#FFA000' : '#B0B0B0'}
+                                    innerColor={isDone ? '#D91E2A' : isToday ? '#FFF3E0' : '#EBEBEB'}
                                   />
                                 </motion.div>
                               </div>
@@ -2400,7 +2483,7 @@ const DashboardPage = () => {
                         </div>
 
                         <p className="text-[11px] font-bold text-[#888888] mt-4 leading-relaxed">
-                          Selesaikan minimal 1 pelajaran BISINDO setiap hari untuk menjaga api beruntunmu tetap menyala! 🔥
+                          Selesaikan minimal 1 level BISINDO setiap hari untuk menjaga api beruntunmu tetap menyala! Jika terlewat 1 hari, api streak akan padam dan kembali ke 0.
                         </p>
                       </motion.div>
                     )}
@@ -2835,9 +2918,21 @@ const DashboardPage = () => {
                         {user?.email || 'sobat@handoora.id'} • {user?.umur || 20} Tahun
                       </p>
                       <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
-                        <span className="px-3 py-1 rounded-full bg-rose-50 border border-rose-200 text-[11px] font-black text-[#E02424] flex items-center gap-1.5">
-                          <IconFlame className="w-3.5 h-3.5" color="#E02424" />
-                          <span>{progress.streak} Hari Beruntun</span>
+                        <span
+                          className={`px-3 py-1 rounded-full border text-[11px] font-black flex items-center gap-1.5 ${
+                            isStreakActive
+                              ? 'bg-rose-50 border-rose-200 text-[#E02424]'
+                              : 'bg-gray-100 border-gray-200 text-gray-500'
+                          }`}
+                        >
+                          <IconFlame
+                            className="w-3.5 h-3.5"
+                            color={isStreakActive ? '#E02424' : '#9CA3AF'}
+                            innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
+                          />
+                          <span>
+                            {progress.streak} Hari Beruntun {isStreakActive ? '(Aktif)' : '(Mati)'}
+                          </span>
                         </span>
                         <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-black text-emerald-700 flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />

@@ -130,12 +130,14 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     auth_provider: defaultProvider,
     avatar_url: defaultAvatar,
     xp: 0,
-    streak: 1,
+    streak: 0,
     gems: 500,
     hearts: 5,
     current_unit: 1,
     completed_lessons: [],
     unlocked_islands: [1],
+    last_activity_date: null,
+    streak_history: [],
   }
 
   const { data: insertedProfile, error: insertErr } = await supabase
@@ -177,11 +179,13 @@ export const authService = {
           password_hash: passwordHash,
           auth_provider: 'email',
           xp: 0,
-          streak: 1,
+          streak: 0,
           gems: 500,
           hearts: 5,
           completed_lessons: [],
           unlocked_islands: [1],
+          last_activity_date: null,
+          streak_history: [],
         },
       },
     })
@@ -326,10 +330,137 @@ export const authService = {
   },
 }
 
+// Format tanggal lokal (YYYY-MM-DD)
+export function getLocalDateString(d = new Date()) {
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// Menghitung selisih hari kalender antara dua tanggal (YYYY-MM-DD)
+export function getCalendarDayDiff(dateStrA, dateStrB) {
+  if (!dateStrA || !dateStrB) return null
+  const [y1, m1, d1] = dateStrA.split('-').map(Number)
+  const [y2, m2, d2] = dateStrB.split('-').map(Number)
+  const utc1 = Date.UTC(y1, m1 - 1, d1)
+  const utc2 = Date.UTC(y2, m2 - 1, d2)
+  return Math.round((utc2 - utc1) / (1000 * 60 * 60 * 24))
+}
+
+// Menghitung status streak terkini secara real-time
+// Aturan:
+// 1. User baru streak = 0 (api mati)
+// 2. Jika hari ini user sudah menyelesaikan minimal 1 level/stage: api menyala (isStreakActiveToday = true)
+// 3. Jika hari ini belum menyelesaikan:
+//    - Jika kemarin mengerjakan (diff === 1): streak tetap bertahan, api belum nyala hari ini (isStreakActiveToday = false)
+//    - Jika kemarin TIDAK mengerjakan (diff > 1): streak padam & reset ke 0!
+export function calculateCurrentStreak(streak = 0, lastActivityDate = null, streakHistory = []) {
+  const todayStr = getLocalDateString()
+  const numStreak = Number(streak) || 0
+
+  if (!lastActivityDate) {
+    return {
+      streak: 0,
+      isStreakActiveToday: false,
+      lastActivityDate: null,
+      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+    }
+  }
+
+  const diff = getCalendarDayDiff(lastActivityDate, todayStr)
+
+  if (diff === 0) {
+    // Hari ini sudah mengerjakan minimal 1 level -> api streak aktif & menyala
+    return {
+      streak: Math.max(1, numStreak),
+      isStreakActiveToday: true,
+      lastActivityDate,
+      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+    }
+  }
+
+  if (diff === 1) {
+    // Kemarin mengerjakan, hari ini belum -> streak kemarin masih tersimpan tapi api belum menyala hari ini
+    return {
+      streak: numStreak,
+      isStreakActiveToday: false,
+      lastActivityDate,
+      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+    }
+  }
+
+  // diff > 1 (atau < 0 karena jam berubah) -> kemarin tidak mengerjakan, streak putus & reset ke 0
+  return {
+    streak: 0,
+    isStreakActiveToday: false,
+    lastActivityDate,
+    streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+  }
+}
+
+// Mencatat penyelesaian level harian untuk menambah streak
+// Aturan:
+// - Menyelesaikan minimal 1 level membuat api streak menyala hari ini
+// - Maksimal penambahan streak cuma 1 tiap 1 hari
+export function recordDailyLessonCompletion(currentProgress) {
+  const todayStr = getLocalDateString()
+  const lastDate = currentProgress?.last_activity_date || currentProgress?.lastActivityDate || null
+  const currentStreakVal = Number(currentProgress?.streak) || 0
+  const history = Array.isArray(currentProgress?.streak_history || currentProgress?.streakHistory)
+    ? [...(currentProgress.streak_history || currentProgress.streakHistory)]
+    : []
+
+  if (!history.includes(todayStr)) {
+    history.push(todayStr)
+    // Simpan riwayat 60 hari terakhir agar efisien
+    if (history.length > 60) {
+      history.splice(0, history.length - 60)
+    }
+  }
+
+  // Jika hari ini sudah tercatat penambahan streak, pertahankan streak hari ini (maks 1 per hari)
+  if (lastDate === todayStr) {
+    return {
+      ...currentProgress,
+      streak: Math.max(1, currentStreakVal),
+      isStreakActiveToday: true,
+      last_activity_date: todayStr,
+      lastActivityDate: todayStr,
+      streak_history: history,
+      streakHistory: history,
+    }
+  }
+
+  const diff = lastDate ? getCalendarDayDiff(lastDate, todayStr) : null
+
+  let nextStreak = 1
+  if (diff === 1) {
+    // Konsisten beruntun dari kemarin! Tambah 1
+    nextStreak = currentStreakVal + 1
+  } else {
+    // Baru mulai / sempat putus kemarin
+    nextStreak = 1
+  }
+
+  return {
+    ...currentProgress,
+    streak: nextStreak,
+    isStreakActiveToday: true,
+    last_activity_date: todayStr,
+    lastActivityDate: todayStr,
+    streak_history: history,
+    streakHistory: history,
+  }
+}
+
 // Semua pengguna mulai dari Level 1 (Pulau 1 terbuka, belum ada pulau yang selesai)
 const DEFAULT_PROGRESS = {
   xp: 0,
-  streak: 1,
+  streak: 0,
+  isStreakActiveToday: false,
+  last_activity_date: null,
+  streak_history: [],
   gems: 500,
   hearts: 5,
   completedIslands: [],
@@ -347,7 +478,20 @@ export const progressService = {
       const cached = localStorage.getItem(`handoora_progress_${userId}`)
       if (cached) {
         try {
-          return JSON.parse(cached)
+          const parsed = JSON.parse(cached)
+          // Hitung status streak real-time terhadap hari ini
+          const streakState = calculateCurrentStreak(
+            parsed.streak,
+            parsed.last_activity_date || parsed.lastActivityDate,
+            parsed.streak_history || parsed.streakHistory
+          )
+          return {
+            ...parsed,
+            streak: streakState.streak,
+            isStreakActiveToday: streakState.isStreakActiveToday,
+            last_activity_date: streakState.lastActivityDate,
+            streak_history: streakState.streakHistory,
+          }
         } catch {
           // ignore
         }
@@ -379,7 +523,7 @@ export const progressService = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands')
+      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
       .eq('id', userId)
       .maybeSingle()
 
@@ -391,9 +535,19 @@ export const progressService = {
         userId
       )
 
+      // Hitung streak real-time
+      const streakState = calculateCurrentStreak(
+        data.streak ?? 0,
+        data.last_activity_date,
+        data.streak_history
+      )
+
       const result = {
         xp: norm.xp,
-        streak: data.streak ?? 1,
+        streak: streakState.streak,
+        isStreakActiveToday: streakState.isStreakActiveToday,
+        last_activity_date: streakState.lastActivityDate,
+        streak_history: streakState.streakHistory,
         gems: data.gems ?? 500,
         hearts: data.hearts ?? 5,
         completedIslands: norm.completedIslands,
@@ -425,9 +579,18 @@ export const progressService = {
       userId
     )
 
+    const streakState = calculateCurrentStreak(
+      meta.streak ?? 0,
+      meta.last_activity_date || meta.lastActivityDate,
+      meta.streak_history || meta.streakHistory
+    )
+
     const fallback = {
       xp: norm.xp,
-      streak: meta.streak ?? 1,
+      streak: streakState.streak,
+      isStreakActiveToday: streakState.isStreakActiveToday,
+      last_activity_date: streakState.lastActivityDate,
+      streak_history: streakState.streakHistory,
       gems: meta.gems ?? 500,
       hearts: meta.hearts ?? 5,
       completedIslands: norm.completedIslands,
@@ -451,10 +614,15 @@ export const progressService = {
 
     if (!supabase || !userId) return progress
 
+    const lastDate = progress.last_activity_date || progress.lastActivityDate || null
+    const history = progress.streak_history || progress.streakHistory || []
+
     await supabase.auth.updateUser({
       data: {
         xp: progress.xp,
         streak: progress.streak,
+        last_activity_date: lastDate,
+        streak_history: history,
         gems: progress.gems,
         hearts: progress.hearts,
         completed_lessons: progress.completedIslands,
@@ -467,6 +635,8 @@ export const progressService = {
       .update({
         xp: progress.xp,
         streak: progress.streak,
+        last_activity_date: lastDate,
+        streak_history: history,
         gems: progress.gems,
         hearts: progress.hearts,
         completed_lessons: progress.completedIslands,
