@@ -520,20 +520,48 @@ export default function QuizPage() {
             transition={{ duration: 0.5, ease: 'easeOut' }}
             className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 text-center shadow-xl border border-gray-100 flex flex-col items-center"
           >
-            {/* Maskot Orangutan Handoora berdiri ramah */}
-            <div className="relative w-44 h-44 sm:w-52 sm:h-52 mb-4">
+            {/* Maskot Doora Selebrasi Berdiri Ramah */}
+            <div className="relative w-48 h-48 sm:w-56 sm:h-56 mb-4 flex items-center justify-center">
+              {/* Efek Lingkaran Cahaya Selebrasi Lembut di Belakang Maskot */}
+              <div className="absolute inset-2 -z-10 rounded-full bg-gradient-to-tr from-[#FFE58F]/40 via-[#FFB8B8]/35 to-[#FFF0F0]/60 blur-xl scale-95" />
+              <div className="absolute inset-6 -z-10 rounded-full bg-gradient-to-b from-[#FFF5F5] to-[#FFEBEB] border-2 border-[#FFD6D6]/60 shadow-[0_8px_24px_rgba(224,36,36,0.08)]" />
+
+              {/* Partikel Bintang & Sparkle Selebrasi */}
+              <motion.span
+                animate={{ scale: [1, 1.25, 1], rotate: [0, 15, 0] }}
+                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute top-2 right-4 text-xl sm:text-2xl select-none pointer-events-none drop-shadow-sm"
+              >
+                ✨
+              </motion.span>
+              <motion.span
+                animate={{ scale: [1, 1.3, 1], rotate: [0, -20, 0] }}
+                transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
+                className="absolute top-4 left-4 text-lg sm:text-xl select-none pointer-events-none drop-shadow-sm"
+              >
+                ⭐
+              </motion.span>
+              <motion.span
+                animate={{ scale: [1, 1.2, 1], y: [0, -3, 0] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
+                className="absolute bottom-6 right-3 text-base sm:text-lg select-none pointer-events-none drop-shadow-sm"
+              >
+                🎉
+              </motion.span>
+
+              {/* Karakter Maskot Doora HD dengan Animasi Mengapung Halus */}
               <motion.div
-                animate={{ y: [0, -6, 0] }}
+                animate={{ y: [0, -8, 0] }}
                 transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                className="w-full h-full flex items-center justify-center"
+                className="w-full h-full flex items-center justify-center p-2"
               >
                 <img
                   src="/assets/mascot-standing.png"
-                  alt="Maskot Handoora"
-                  className="w-full h-full object-contain drop-shadow-lg"
+                  alt="Maskot Doora Handoora"
+                  className="w-full h-full object-contain drop-shadow-[0_12px_22px_rgba(0,0,0,0.18)]"
+                  draggable={false}
                 />
               </motion.div>
-              <div className="absolute inset-0 -z-10 rounded-full bg-gradient-to-tr from-[#FFED4A]/20 via-[#FF4754]/15 to-transparent blur-2xl" />
             </div>
 
             {/* Judul Besar Hasil */}
