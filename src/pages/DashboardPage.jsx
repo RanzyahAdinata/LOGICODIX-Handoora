@@ -3238,37 +3238,36 @@ const DashboardPage = () => {
           {activeMenu === 'kamus' && (
             <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
               <div className="max-w-5xl mx-auto w-full space-y-6">
-                {/* Header Banner Kamus */}
+                {/* Header Banner Kamus Modern & Clean */}
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6"
+                  className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col md:flex-row items-center justify-between gap-6"
                 >
                   <div className="space-y-2 text-center md:text-left">
-                    <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-xs font-black text-[#E02424] tracking-wide">
                       <svg className="w-3.5 h-3.5 text-[#E02424]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                       </svg>
                       <span>Ensiklopedia Visual BISINDO</span>
-                    </span>
-                    <h1 className="text-2xl sm:text-3xl font-black text-[#2B2B2B] tracking-tight">
+                    </div>
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
                       Kamus Bentuk Tangan BISINDO
                     </h1>
-                    <p className="text-xs sm:text-sm text-gray-500 font-bold max-w-xl">
-                      Kumpulan seluruh gestur dan ejaan bahasa isyarat dari Level 1 hingga Level 6.
-                      Pelajari detail bentuk jari, makna, dan praktikkan langsung ke kamera!
+                    <p className="text-xs sm:text-sm text-gray-500 font-bold max-w-xl leading-relaxed">
+                      Eksplorasi gestur, ejaan abjad jari, dan sapaan bahasa isyarat standar BISINDO dengan ilustrasi beresolusi tinggi yang tajam dan presisi.
                     </p>
                   </div>
 
                   {/* Input Pencarian Kata / Huruf */}
-                  <div className="w-full md:w-72">
+                  <div className="w-full md:w-80">
                     <div className="relative">
                       <input
                         type="text"
                         value={dictionarySearch}
                         onChange={(e) => setDictionarySearch(e.target.value)}
                         placeholder="Cari huruf atau isyarat..."
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F7F7F7] border-2 border-[#EAEAEA] focus:border-[#E02424] text-xs font-bold text-gray-800 placeholder-gray-400 outline-none transition"
+                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50/80 border border-gray-200 focus:bg-white focus:border-[#E02424] text-xs font-bold text-gray-800 placeholder-gray-400 outline-none transition shadow-inner"
                       />
                       <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -3279,8 +3278,8 @@ const DashboardPage = () => {
                   </div>
                 </motion.div>
 
-                {/* Tabs Modul Level 1 - 6 Tanpa Emoticon / Emoji */}
-                <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
+                {/* Segmented Filter Modul Level 1 - 6 */}
+                <div className="bg-white/80 backdrop-blur-md border border-gray-200/80 p-2 rounded-2xl flex items-center gap-2 overflow-x-auto scrollbar-none shadow-xs">
                   {DICTIONARY_MODULES.map((mod) => {
                     const isSelected = selectedDictModuleId === mod.id && !dictionarySearch
                     return (
@@ -3290,16 +3289,24 @@ const DashboardPage = () => {
                           setSelectedDictModuleId(mod.id)
                           setDictionarySearch('')
                         }}
-                        className={`px-4 py-2.5 rounded-2xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer border-2 relative ${
+                        className={`px-4 py-2.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer ${
                           isSelected
-                            ? 'bg-[#E02424] text-white border-[#E02424] shadow-md shadow-red-200'
-                            : 'bg-white/90 text-gray-600 border-[#EAEAEA] hover:border-gray-300'
+                            ? 'bg-[#E02424] text-white shadow-sm'
+                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
                         }`}
                       >
                         <span>{mod.badge}</span>
-                        {mod.isComingSoon && (
-                          <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded-md bg-amber-400 text-amber-950 ml-1">
-                            Soon
+                        {mod.isComingSoon ? (
+                          <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            Segera
+                          </span>
+                        ) : (
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${
+                            isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
+                          }`}>
+                            {mod.entries.length} Isyarat
                           </span>
                         )}
                       </button>
@@ -3307,23 +3314,28 @@ const DashboardPage = () => {
                   })}
                 </div>
 
-                {/* Banner Coming Soon Khusus Modul 3 - 6 */}
+                {/* Banner Status Modul Coming Soon */}
                 {!dictionarySearch && selectedDictModuleId >= 3 && (
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.98 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="w-full bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl p-6 sm:p-7 text-center shadow-xs"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="w-full bg-gradient-to-r from-slate-900 via-gray-900 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4"
                   >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-black text-xs uppercase tracking-wider mb-2">
-                      <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                      <span>Tahap Pengembangan</span>
+                    <div className="space-y-1.5 text-center sm:text-left">
+                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-amber-300 font-black text-[11px] uppercase tracking-wider">
+                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span>Koleksi Mendatang • {DICTIONARY_MODULES.find(m => m.id === selectedDictModuleId)?.title}</span>
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-black text-white">
+                        Silabus & Kosakata Sedang Dipersiapkan
+                      </h3>
+                      <p className="text-xs text-gray-300 font-medium max-w-xl">
+                        Daftar materi berikut dirancang bersama mitra pengajar Tuli. Panduan animasi visual 3D dan kartu isyarat interaktif akan dirilis secara bertahap.
+                      </p>
                     </div>
-                    <h3 className="text-lg sm:text-xl font-black text-gray-800">
-                      Materi Modul {selectedDictModuleId} Sedang Disiapkan
-                    </h3>
-                    <p className="text-xs font-bold text-gray-500 max-w-lg mx-auto mt-1.5 leading-relaxed">
-                      Koleksi gestur tangan interaktif untuk modul ini akan segera dirilis. Kamu dapat melihat daftar kosakata di bawah sebagai referensi awal pembelajaran.
-                    </p>
+                    <div className="shrink-0 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-xs font-bold text-gray-200">
+                      Rilis Mendatang
+                    </div>
                   </motion.div>
                 )}
 
@@ -3339,7 +3351,7 @@ const DashboardPage = () => {
                           en.word.toLowerCase().includes(q) ||
                           en.desc.toLowerCase().includes(q)
                         ) {
-                          activeEntries.push({ ...en, moduleBadge: mod.badge })
+                          activeEntries.push({ ...en, moduleBadge: mod.badge, isComingSoon: mod.isComingSoon })
                         }
                       })
                     })
@@ -3347,20 +3359,24 @@ const DashboardPage = () => {
                     const curMod =
                       DICTIONARY_MODULES.find((m) => m.id === selectedDictModuleId) ||
                       DICTIONARY_MODULES[0]
-                    activeEntries = curMod.entries.map((en) => ({ ...en, moduleBadge: curMod.badge }))
+                    activeEntries = curMod.entries.map((en) => ({
+                      ...en,
+                      moduleBadge: curMod.badge,
+                      isComingSoon: curMod.isComingSoon,
+                    }))
                   }
 
                   if (activeEntries.length === 0) {
                     return (
-                      <div className="bg-white/90 rounded-3xl p-12 text-center border-2 border-[#EBEBEB]">
+                      <div className="bg-white/95 rounded-3xl p-12 text-center border border-gray-200/90 shadow-sm">
                         <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 mx-auto mb-3">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
                         </div>
-                        <h3 className="text-base font-black text-gray-700">Tidak ada isyarat ditemukan</h3>
+                        <h3 className="text-base font-black text-gray-800">Tidak ada isyarat ditemukan</h3>
                         <p className="text-xs text-gray-400 font-bold mt-1">
-                          Coba gunakan kata kunci pencarian lain.
+                          Coba gunakan kata kunci pencarian yang lain.
                         </p>
                       </div>
                     )
@@ -3369,41 +3385,39 @@ const DashboardPage = () => {
                   return (
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                       {activeEntries.map((item, idx) => {
-                        const isSecretComingSoon = !dictionarySearch && selectedDictModuleId >= 3
+                        const isSecretComingSoon = item.isComingSoon
 
                         return (
                           <motion.div
                             key={`${item.letter}-${idx}`}
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.02 }}
-                            whileHover={{ y: -4 }}
-                            className="bg-white/95 backdrop-blur-sm border-2 border-[#EBEBEB] hover:border-[#E02424] rounded-3xl p-4 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
+                            className="bg-white/95 backdrop-blur-sm border border-gray-200/90 hover:border-[#E02424]/60 rounded-3xl p-4 shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_25px_rgba(224,36,36,0.08)] transition-all flex flex-col justify-between group"
                           >
                             <div>
-                              <div className="flex items-center justify-between mb-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                              <div className="flex items-center justify-between mb-2.5">
+                                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-gray-100 text-gray-600">
                                   {item.moduleBadge || item.category}
                                 </span>
-                                <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
+                                <span className="text-[11px] font-black text-gray-400 group-hover:text-[#E02424] transition">
                                   BISINDO
                                 </span>
                               </div>
 
-                              {/* Gambar Isyarat HD Utuh Persegi Simetris (atau Tampilan Misteri Coming Soon) */}
-                              <div className="w-full aspect-square rounded-2xl bg-[#FFF6F6] p-3 flex items-center justify-center border border-rose-100 mb-3 shadow-inner group-hover:bg-[#FFF0F0] transition relative overflow-hidden">
+                              {/* Gambar Isyarat HD Utuh Persegi Simetris */}
+                              <div className="w-full aspect-square rounded-2xl bg-gray-50/80 p-3.5 flex items-center justify-center border border-gray-100 mb-3 group-hover:bg-rose-50/30 transition relative overflow-hidden">
                                 {isSecretComingSoon ? (
-                                  /* UI Rahasia & Estetik untuk Isyarat Coming Soon */
-                                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 flex flex-col items-center justify-center p-3 text-center">
-                                    <div className="w-12 h-12 rounded-2xl bg-white border border-amber-200 shadow-sm flex items-center justify-center mb-1 text-amber-600">
+                                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-gray-50 to-slate-100 border border-gray-200 flex flex-col items-center justify-center p-3 text-center">
+                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-xs flex items-center justify-center mb-1.5 text-gray-500">
                                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                                       </svg>
                                     </div>
-                                    <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">
-                                      Dirahasiakan
+                                    <span className="text-[10px] font-black text-gray-700 uppercase tracking-wider">
+                                      Materi Rilis
                                     </span>
-                                    <span className="text-[9px] font-bold text-amber-600/80 mt-0.5">
+                                    <span className="text-[9px] font-bold text-gray-400 mt-0.5">
                                       Segera Hadir
                                     </span>
                                   </div>
@@ -3411,34 +3425,37 @@ const DashboardPage = () => {
                                   <img
                                     src={item.signImg}
                                     alt={item.word}
-                                    className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-300"
+                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
+                                    loading="lazy"
                                   />
                                 )}
                               </div>
 
-                              <h3 className="text-base font-black text-[#2B2B2B] text-center mb-1">
+                              <h3 className="text-sm sm:text-base font-black text-gray-900 text-center mb-1">
                                 {item.word}
                               </h3>
-                              <p className="text-[11px] font-bold text-gray-500 text-center leading-relaxed line-clamp-3">
+                              <p className="text-[11px] font-medium text-gray-500 text-center leading-relaxed line-clamp-3">
                                 {isSecretComingSoon
-                                  ? 'Bentuk gestur tangan dan video interaktif untuk materi ini akan segera dirilis.'
+                                  ? 'Panduan gestur dan video interaktif untuk kosakata ini sedang difinalisasi.'
                                   : item.desc}
                               </p>
                             </div>
 
                             {isSecretComingSoon ? (
-                              <div className="mt-3 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200 text-gray-500 text-[10px] font-black uppercase tracking-wider text-center">
-                                SEGERA DIBUKA
+                              <div className="mt-3.5 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200/80 text-gray-500 text-[10px] font-black uppercase tracking-wider text-center">
+                                Segera Hadir
                               </div>
                             ) : (
                               <button
                                 onClick={() => {
                                   navigate(`/training/${item.letter}`)
                                 }}
-                                className="mt-3 w-full py-2 rounded-xl bg-gray-50 hover:bg-[#E02424] text-gray-700 hover:text-white text-[11px] font-black uppercase tracking-wider transition cursor-pointer border border-gray-200 hover:border-[#E02424] flex items-center justify-center gap-1.5"
+                                className="mt-3.5 w-full py-2.5 rounded-xl bg-rose-50 hover:bg-[#E02424] text-[#E02424] hover:text-white text-xs font-black uppercase tracking-wider transition cursor-pointer border border-rose-200/80 hover:border-[#E02424] flex items-center justify-center gap-1.5 shadow-2xs"
                               >
                                 <span>Latih Isyarat</span>
-                                <span className="text-[10px]">▶</span>
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                                </svg>
                               </button>
                             )}
                           </motion.div>
