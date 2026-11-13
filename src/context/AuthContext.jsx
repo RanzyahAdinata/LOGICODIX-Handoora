@@ -21,17 +21,24 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Pastikan splash/loading screen tampil minimal 1.5 - 2 detik saat inisialisasi awal
+    const minSplashPromise = new Promise((resolve) => setTimeout(resolve, 1800))
+
     if (!isSupabaseConfigured || !supabase) {
-      setLoading(false)
+      minSplashPromise.then(() => setLoading(false))
       return
     }
 
-    // 1. Cek sesi aktif dari Supabase Auth (termasuk setelah redirect dari Google OAuth)
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (session?.user) {
-        const profile = await fetchOrCreateSupabaseProfile(session.user)
-        setUser(profile)
-      }
+    // 1. Cek sesi aktif dari Supabase Auth bersamaan dengan timer minimal splash
+    Promise.all([
+      supabase.auth.getSession().then(async ({ data: { session } }) => {
+        if (session?.user) {
+          const profile = await fetchOrCreateSupabaseProfile(session.user)
+          setUser(profile)
+        }
+      }),
+      minSplashPromise,
+    ]).finally(() => {
       setLoading(false)
     })
 
