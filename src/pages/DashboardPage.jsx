@@ -769,24 +769,12 @@ const ConstructionSceneryOnIsland = ({ unitId, isBright }) => {
     )
   }
 
-  // PULAU 5: Konstruksi Bangunan Gedung & Pemantauan (Insinyur Peta & Scaffolding Kecil)
+  // PULAU 5: Konstruksi Bangunan Gedung & Pemantauan (Insinyur Peta Pengawas)
   if (unitId === 5) {
     return (
       <div className="absolute inset-0 pointer-events-none z-20 overflow-visible">
-        {/* Arsitek Pengawas Membaca Blueprint */}
+        {/* Arsitek Pengawas Membaca Blueprint di Area Lapang Pulau */}
         <ConstructionWorkerBlueprint x="44%" y="42%" flip={false} />
-        {/* Kerangka Scaffolding Rapi di Sisi Lereng Rumput */}
-        <div style={{ left: '72%', top: '38%' }} className="absolute -translate-x-1/2 -translate-y-full w-9 sm:w-11 h-12">
-          <svg viewBox="0 0 45 55" className="w-full h-full drop-shadow-xs">
-            <ellipse cx="22" cy="52" rx="16" ry="3" fill="#000000" fillOpacity="0.18" />
-            <rect x="8" y="10" width="3" height="42" rx="1" fill="#B45309" />
-            <rect x="34" y="10" width="3" height="42" rx="1" fill="#B45309" />
-            <line x1="8" y1="22" x2="37" y2="22" stroke="#D97706" strokeWidth="2" />
-            <line x1="8" y1="36" x2="37" y2="36" stroke="#D97706" strokeWidth="2" />
-            <line x1="10" y1="22" x2="35" y2="36" stroke="#92400E" strokeWidth="1.2" />
-            <line x1="10" y1="36" x2="35" y2="22" stroke="#92400E" strokeWidth="1.2" />
-          </svg>
-        </div>
       </div>
     )
   }
@@ -1860,12 +1848,14 @@ const DashboardPage = () => {
       if (saved) {
         const parsed = JSON.parse(saved)
         return {
+          soundEnabled: parsed.soundEnabled ?? true,
           hapticFeedback: parsed.hapticFeedback ?? true,
           skyTheme: parsed.skyTheme || 'bright',
         }
       }
     } catch {}
     return {
+      soundEnabled: true,
       hapticFeedback: true,
       skyTheme: 'bright',
     }
@@ -1902,6 +1892,17 @@ const DashboardPage = () => {
   // Search & Filter state untuk menu KAMUS
   const [dictionarySearch, setDictionarySearch] = useState('')
   const [selectedDictModuleId, setSelectedDictModuleId] = useState(1)
+  const filterScrollRef = useRef(null)
+
+  const handleFilterScroll = (direction) => {
+    if (filterScrollRef.current) {
+      const scrollAmount = 240
+      filterScrollRef.current.scrollBy({
+        left: direction === 'left' ? -scrollAmount : scrollAmount,
+        behavior: 'smooth',
+      })
+    }
+  }
 
   // Status sticker untuk LEADERBOARD
   const [userLeaderboardStatus, setUserLeaderboardStatus] = useState('🔥')
@@ -1965,19 +1966,25 @@ const DashboardPage = () => {
   const [showResetLevelModal, setShowResetLevelModal] = useState(false)
 
   // Form Profil Pengguna + Ganti Foto Profil
+  const getStoredAvatar = (uid, fallback) => {
+    if (!uid) return fallback || '/assets/avatar-orangutan.png'
+    return localStorage.getItem(`handoora_avatar_${uid}`) || fallback || '/assets/avatar-orangutan.png'
+  }
+
   const [profileForm, setProfileForm] = useState({
     nama: user?.nama || 'Sobat Handoora',
     umur: user?.umur || 20,
-    avatar_url: user?.avatar_url || '/assets/avatar-orangutan.png',
+    avatar_url: getStoredAvatar(user?.id, user?.avatar_url),
   })
   const [isSavingProfile, setIsSavingProfile] = useState(false)
 
   useEffect(() => {
     if (user?.id) {
+      const activeAvatar = getStoredAvatar(user.id, user.avatar_url)
       setProfileForm({
         nama: user.nama || 'Sobat Handoora',
         umur: user.umur || 20,
-        avatar_url: user.avatar_url || '/assets/avatar-orangutan.png',
+        avatar_url: activeAvatar,
       })
 
       progressService.syncFromSupabase(user.id).then((remote) => {
@@ -2063,11 +2070,15 @@ const DashboardPage = () => {
     ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) ||
     ISLAND_UNITS[0]
 
-  // Mascot berdiri pada pulau level saat ini (atau pulau yang sedang dipilih jika sudah terbuka)
-  const mascotUnit =
-    progress.unlockedIslands.includes(selectedUnit.id) || selectedUnit.id === 1
-      ? selectedUnit
-      : ISLAND_UNITS.find((u) => u.id === currentActiveUnitId) || ISLAND_UNITS[0]
+  // Mascot berdiri HANYA pada pulau level yang aktif & bukan pulau Coming Soon (Level 1 & 2)
+  // Pulau Coming Soon (Level >= 3) TIDAK BISA diduduki/diletakkan avatar Doora
+  const validPlayableUnits = ISLAND_UNITS.filter((u) => u.id < 3)
+  const safeActiveUnitId = Math.min(2, Math.max(1, currentActiveUnitId))
+  const isSelectedPlayable = selectedUnit.id < 3 && (progress.unlockedIslands.includes(selectedUnit.id) || selectedUnit.id === 1)
+
+  const mascotUnit = isSelectedPlayable
+    ? selectedUnit
+    : validPlayableUnits.find((u) => u.id === safeActiveUnitId) || ISLAND_UNITS[0]
 
   const activeMascotPos =
     skyMode === 'bright' ? mascotUnit.dayMascotPos : mascotUnit.sunsetMascotPos
@@ -2174,9 +2185,19 @@ const DashboardPage = () => {
     try {
       const dataUrl = await resizeImageFileToDataUrl(file, 240)
       setProfileForm((p) => ({ ...p, avatar_url: dataUrl }))
+      if (user?.id) {
+        localStorage.setItem(`handoora_avatar_${user.id}`, dataUrl)
+      }
       toast.success('Foto profil dipilih! Klik Simpan Perubahan untuk menerapkan.')
     } catch {
       toast.error('Gagal memuat gambar, silakan coba foto lain.')
+    }
+  }
+
+  const handleSelectPresetAvatar = (avatarSrc) => {
+    setProfileForm((p) => ({ ...p, avatar_url: avatarSrc }))
+    if (user?.id) {
+      localStorage.setItem(`handoora_avatar_${user.id}`, avatarSrc)
     }
   }
 
@@ -2184,10 +2205,14 @@ const DashboardPage = () => {
     e.preventDefault()
     setIsSavingProfile(true)
     try {
+      const targetAvatar = profileForm.avatar_url || (user?.id ? localStorage.getItem(`handoora_avatar_${user.id}`) : null) || '/assets/avatar-orangutan.png'
+      if (user?.id) {
+        localStorage.setItem(`handoora_avatar_${user.id}`, targetAvatar)
+      }
       await updateProfile({
         nama: profileForm.nama.trim() || 'Sobat Handoora',
         umur: parseInt(profileForm.umur, 10) || 20,
-        avatar_url: profileForm.avatar_url,
+        avatar_url: targetAvatar,
       })
       toast.success('Informasi profil berhasil disimpan')
     } catch {
@@ -2252,7 +2277,10 @@ const DashboardPage = () => {
   // Evaluasi status Streak real-time
   const isStreakActive = Boolean(progress.isStreakActiveToday && progress.streak > 0)
   const currentAvatar =
-    profileForm.avatar_url || user?.avatar_url || '/assets/avatar-orangutan.png'
+    (user?.id ? localStorage.getItem(`handoora_avatar_${user.id}`) : null) ||
+    profileForm.avatar_url ||
+    user?.avatar_url ||
+    '/assets/avatar-orangutan.png'
 
   // Hitung tanggal 7 hari dalam minggu berjalan (Senin s.d. Minggu)
   // DAYS_STREAK: ['S', 'S', 'R', 'K', 'J', 'S', 'M'] -> Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu
@@ -3051,14 +3079,9 @@ const DashboardPage = () => {
                               <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                             </svg>
                             <span className="text-base font-black text-gray-900">
-                              {progress.weekly_xp !== undefined ? progress.weekly_xp : (Number(progress.xp) || 0)} XP
+                              {Number(progress.xp) || 0} XP
                             </span>
                           </div>
-                          {progress.xp > 0 && progress.weekly_xp !== undefined && progress.xp !== progress.weekly_xp && (
-                            <span className="text-[10px] text-gray-400 font-bold block mt-0.5">
-                              Total: {progress.xp} XP
-                            </span>
-                          )}
                         </div>
 
                         <div className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-gray-50/80 border border-gray-200/70">
@@ -3112,7 +3135,7 @@ const DashboardPage = () => {
                         <button
                           key={av.id}
                           type="button"
-                          onClick={() => setProfileForm((p) => ({ ...p, avatar_url: av.src }))}
+                          onClick={() => handleSelectPresetAvatar(av.src)}
                           className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 text-left ${
                             isSelected
                               ? 'bg-rose-50/70 border-[#E02424] shadow-xs'
@@ -3254,113 +3277,163 @@ const DashboardPage = () => {
           )}
 
           {/* ========================================================== */}
-          {/* VIEW C: KAMUS LENGKAP BAHASA ISYARAT BISINDO               */}
+          {/* VIEW C: KAMUS VISUAL BAHASA ISYARAT (WARM, ANIMATIF & VIBRANT) */}
           {/* ========================================================== */}
           {activeMenu === 'kamus' && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
-              <div className="max-w-5xl mx-auto w-full space-y-6">
-                {/* Header Banner Kamus Modern & Clean */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-32">
+              <div className="max-w-6xl mx-auto w-full space-y-6">
+                {/* Header Card Kamus: Bersih, Rapi, Mewah dengan Border dan Shadow Proporsional */}
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col md:flex-row items-center justify-between gap-6"
+                  transition={{ duration: 0.3 }}
+                  className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.04)]"
                 >
-                  <div className="space-y-2 text-center md:text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-50 border border-rose-100 text-xs font-black text-[#E02424] tracking-wide">
-                      <svg className="w-3.5 h-3.5 text-[#E02424]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                      </svg>
-                      <span>Ensiklopedia Visual BISINDO</span>
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                      <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
+                        Kamus BISINDO
+                      </h1>
+                      <p className="text-xs sm:text-sm font-bold text-gray-500 mt-0.5">
+                        Panduan bentuk tangan dan kosakata isyarat sehari-hari
+                      </p>
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 tracking-tight">
-                      Kamus Bentuk Tangan BISINDO
-                    </h1>
-                    <p className="text-xs sm:text-sm text-gray-500 font-bold max-w-xl leading-relaxed">
-                      Eksplorasi gestur, ejaan abjad jari, dan sapaan bahasa isyarat standar BISINDO dengan ilustrasi beresolusi tinggi yang tajam dan presisi.
-                    </p>
-                  </div>
 
-                  {/* Input Pencarian Kata / Huruf */}
-                  <div className="w-full md:w-80">
-                    <div className="relative">
-                      <input
-                        type="text"
-                        value={dictionarySearch}
-                        onChange={(e) => setDictionarySearch(e.target.value)}
-                        placeholder="Cari huruf atau isyarat..."
-                        className="w-full pl-10 pr-4 py-3 rounded-2xl bg-gray-50/80 border border-gray-200 focus:bg-white focus:border-[#E02424] text-xs font-bold text-gray-800 placeholder-gray-400 outline-none transition shadow-inner"
-                      />
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                        </svg>
-                      </span>
+                    {/* Search Bar Kompak & Responsif */}
+                    <div className="w-full md:w-80 shrink-0">
+                      <div className="relative group">
+                        <input
+                          type="text"
+                          value={dictionarySearch}
+                          onChange={(e) => setDictionarySearch(e.target.value)}
+                          placeholder="Cari huruf atau kata..."
+                          className="w-full pl-10 pr-9 py-2.5 rounded-2xl bg-gray-50/90 border-2 border-gray-200 focus:bg-white focus:border-[#E02424] focus:ring-4 focus:ring-rose-500/10 text-xs sm:text-sm font-bold text-gray-900 placeholder-gray-400 outline-none transition-all shadow-inner"
+                        />
+                        <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#E02424] transition-colors pointer-events-none">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </span>
+                        {dictionarySearch && (
+                          <button
+                            onClick={() => setDictionarySearch('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-gray-200 hover:bg-[#E02424] text-gray-600 hover:text-white flex items-center justify-center transition cursor-pointer"
+                            title="Hapus pencarian"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
 
-                {/* Segmented Filter Modul Level 1 - 6 */}
-                <div className="bg-white/80 backdrop-blur-md border border-gray-200/80 p-2 rounded-2xl flex items-center gap-2 overflow-x-auto scrollbar-none shadow-xs">
-                  {DICTIONARY_MODULES.map((mod) => {
-                    const isSelected = selectedDictModuleId === mod.id && !dictionarySearch
-                    return (
-                      <button
-                        key={mod.id}
-                        onClick={() => {
-                          setSelectedDictModuleId(mod.id)
-                          setDictionarySearch('')
-                        }}
-                        className={`px-4 py-2.5 rounded-xl text-xs font-black shrink-0 flex items-center gap-2 transition cursor-pointer ${
-                          isSelected
-                            ? 'bg-[#E02424] text-white shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100/70'
-                        }`}
-                      >
-                        <span>{mod.badge}</span>
-                        {mod.isComingSoon ? (
-                          <span className={`text-xs font-black uppercase px-2 py-0.5 rounded-md ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800'
-                          }`}>
-                            Segera
-                          </span>
-                        ) : (
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${
-                            isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-500'
-                          }`}>
-                            {mod.entries.length} Isyarat
-                          </span>
-                        )}
-                      </button>
-                    )
-                  })}
+                {/* Filter Tab Modul Level 1-6 dengan Navigasi Panah Scroll Kiri & Kanan yang Halus */}
+                <div className="relative flex items-center">
+                  {/* Tombol Scroll Kiri */}
+                  <button
+                    onClick={() => handleFilterScroll('left')}
+                    className="hidden sm:flex shrink-0 w-9 h-9 rounded-2xl bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-600 hover:text-[#E02424] hover:border-rose-200 hover:bg-rose-50/50 transition cursor-pointer mr-2.5 z-10 active:scale-95"
+                    title="Geser ke kiri"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Kontainer Tombol Tab Filter Bergeser Halus */}
+                  <div
+                    ref={filterScrollRef}
+                    className="flex-1 flex items-center gap-2.5 overflow-x-auto scrollbar-none py-1 scroll-smooth"
+                  >
+                    {DICTIONARY_MODULES.map((mod) => {
+                      const isSelected = selectedDictModuleId === mod.id && !dictionarySearch
+                      return (
+                        <motion.button
+                          key={mod.id}
+                          whileHover={{ scale: 1.02, y: -1 }}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => {
+                            setSelectedDictModuleId(mod.id)
+                            setDictionarySearch('')
+                          }}
+                          className={`px-4.5 py-2.5 rounded-2xl text-xs font-black shrink-0 flex items-center gap-2 transition-all cursor-pointer border-2 shadow-xs ${
+                            isSelected
+                              ? 'bg-[#E02424] text-white border-[#C81E1E] shadow-[0_4px_14px_rgba(224,36,36,0.35)]'
+                              : 'bg-white/95 text-gray-700 border-gray-200/90 hover:bg-gray-50 hover:text-gray-900'
+                          }`}
+                        >
+                          <span>{mod.title}</span>
+                          {mod.isComingSoon ? (
+                            <span
+                              className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-md ${
+                                isSelected ? 'bg-white/20 text-white' : 'bg-amber-100 text-amber-800 border border-amber-200'
+                              }`}
+                            >
+                              Segera
+                            </span>
+                          ) : (
+                            <span
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-md ${
+                                isSelected ? 'bg-white/20 text-white' : 'bg-gray-100 text-gray-600 border border-gray-200/80'
+                              }`}
+                            >
+                              {mod.entries.length}
+                            </span>
+                          )}
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Tombol Scroll Kanan */}
+                  <button
+                    onClick={() => handleFilterScroll('right')}
+                    className="hidden sm:flex shrink-0 w-9 h-9 rounded-2xl bg-white border border-gray-200 shadow-sm items-center justify-center text-gray-600 hover:text-[#E02424] hover:border-rose-200 hover:bg-rose-50/50 transition cursor-pointer ml-2.5 z-10 active:scale-95"
+                    title="Geser ke kanan"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
                 </div>
 
-                {/* Banner Status Modul Coming Soon */}
+                {/* Info Card untuk Modul Tahap Pengembangan */}
                 {!dictionarySearch && selectedDictModuleId >= 3 && (
                   <motion.div
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full bg-gradient-to-r from-slate-900 via-gray-900 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-sm border border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-4"
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-gradient-to-r from-amber-50 via-orange-50 to-amber-50 border-2 border-amber-200 rounded-3xl p-5 sm:p-6 flex items-center justify-between gap-4 shadow-sm"
                   >
-                    <div className="space-y-1.5 text-center sm:text-left">
-                      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 text-amber-300 font-black text-xs uppercase tracking-wider">
-                        <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                        <span>Koleksi Mendatang • {DICTIONARY_MODULES.find(m => m.id === selectedDictModuleId)?.title}</span>
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shrink-0 shadow-md">
+                        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
                       </div>
-                      <h3 className="text-lg sm:text-xl font-black text-white">
-                        Silabus & Kosakata Sedang Dipersiapkan
-                      </h3>
-                      <p className="text-xs text-gray-300 font-medium max-w-xl">
-                        Daftar materi berikut dirancang bersama mitra pengajar Tuli. Panduan animasi visual 3D dan kartu isyarat interaktif akan dirilis secara bertahap.
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-black uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded-md">
+                            Materi Dalam Penyusunan
+                          </span>
+                          <span className="text-xs font-extrabold text-amber-800">
+                            {DICTIONARY_MODULES.find((m) => m.id === selectedDictModuleId)?.title}
+                          </span>
+                        </div>
+                        <p className="text-xs sm:text-sm font-bold text-amber-900/90 mt-1">
+                          Kosakata dan video animasi gerakan isyarat untuk level ini sedang dirancang dan akan dibuka secara bertahap.
+                        </p>
+                      </div>
                     </div>
-                    <div className="shrink-0 px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-xs font-bold text-gray-200">
-                      Rilis Mendatang
+                    <div className="hidden sm:block shrink-0 px-4 py-2 rounded-xl bg-white/80 border border-amber-200 text-xs font-black text-amber-800 uppercase tracking-wider">
+                      Segera Hadir
                     </div>
                   </motion.div>
                 )}
 
-                {/* Grid Kartu Isyarat Tangan HD */}
+                {/* Grid Kartu Isyarat Tangan Animatif & Jelas dengan Transisi AnimatePresence Halus */}
                 {(() => {
                   let activeEntries = []
                   if (dictionarySearch.trim()) {
@@ -3372,7 +3445,12 @@ const DashboardPage = () => {
                           en.word.toLowerCase().includes(q) ||
                           en.desc.toLowerCase().includes(q)
                         ) {
-                          activeEntries.push({ ...en, moduleBadge: mod.badge, isComingSoon: mod.isComingSoon })
+                          activeEntries.push({
+                            ...en,
+                            moduleBadge: mod.badge,
+                            moduleTitle: mod.title,
+                            isComingSoon: mod.isComingSoon,
+                          })
                         }
                       })
                     })
@@ -3383,106 +3461,127 @@ const DashboardPage = () => {
                     activeEntries = curMod.entries.map((en) => ({
                       ...en,
                       moduleBadge: curMod.badge,
+                      moduleTitle: curMod.title,
                       isComingSoon: curMod.isComingSoon,
                     }))
                   }
 
                   if (activeEntries.length === 0) {
                     return (
-                      <div className="bg-white/95 rounded-3xl p-12 text-center border border-gray-200/90 shadow-sm">
-                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 mx-auto mb-3">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="bg-white rounded-3xl p-12 text-center border-2 border-gray-100 shadow-sm"
+                      >
+                        <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#E02424] flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                           </svg>
                         </div>
-                        <h3 className="text-base font-black text-gray-800">Tidak ada isyarat ditemukan</h3>
-                        <p className="text-xs text-gray-400 font-bold mt-1">
-                          Coba gunakan kata kunci pencarian yang lain.
+                        <h3 className="text-base font-black text-gray-900">Isyarat Tidak Ditemukan</h3>
+                        <p className="text-xs font-bold text-gray-500 mt-1">
+                          Coba gunakan kata kunci atau huruf isyarat yang lain.
                         </p>
-                      </div>
+                      </motion.div>
                     )
                   }
 
-                  return (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-                      {activeEntries.map((item, idx) => {
-                        const isSecretComingSoon = item.isComingSoon
+                  const activeKey = dictionarySearch ? `search-${dictionarySearch}` : `module-${selectedDictModuleId}`
 
-                        return (
-                          <motion.div
-                            key={`${item.letter}-${idx}`}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: idx * 0.02 }}
-                            className="bg-white/95 backdrop-blur-sm border border-gray-200/90 hover:border-[#E02424]/60 rounded-3xl p-4 shadow-[0_4px_16px_rgba(0,0,0,0.03)] hover:shadow-[0_10px_25px_rgba(224,36,36,0.08)] transition-all flex flex-col justify-between group"
-                          >
-                            <div>
-                              <div className="flex items-center justify-between mb-2.5">
-                                <span className="text-xs font-black uppercase tracking-wider px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700">
-                                  {item.moduleBadge || item.category}
-                                </span>
-                                <span className="text-xs font-black text-gray-400 group-hover:text-[#E02424] transition">
-                                  BISINDO
-                                </span>
+                  return (
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={activeKey}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -8 }}
+                        transition={{ duration: 0.22, ease: 'easeOut' }}
+                        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5"
+                      >
+                        {activeEntries.map((item, idx) => {
+                          const isSecretComingSoon = item.isComingSoon
+
+                          return (
+                            <motion.div
+                              key={`${item.letter}-${idx}`}
+                              initial={{ opacity: 0, scale: 0.96 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2, delay: Math.min(idx * 0.015, 0.2) }}
+                              whileHover={{ y: -4, transition: { duration: 0.18 } }}
+                              className="bg-white border-2 border-gray-100 hover:border-[#E02424]/40 rounded-3xl p-4 sm:p-4.5 shadow-[0_4px_16px_rgba(0,0,0,0.04)] hover:shadow-[0_12px_28px_rgba(224,36,36,0.12)] transition-all flex flex-col justify-between group"
+                            >
+                              <div>
+                                {/* Header Kartu: Badge Level & Huruf Mono Tegas */}
+                                <div className="flex items-center justify-between mb-3">
+                                  <span className="text-[11px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-lg bg-gray-100 text-gray-700">
+                                    {item.moduleBadge || item.category}
+                                  </span>
+                                  <span className="w-7 h-7 rounded-lg bg-rose-50 text-[#E02424] font-black text-xs flex items-center justify-center border border-rose-100 group-hover:scale-110 transition-transform">
+                                    {item.letter}
+                                  </span>
+                                </div>
+
+                                {/* Frame Ilustrasi Gambar Isyarat Kontras & Jelas */}
+                                <div className="w-full aspect-square rounded-2xl bg-gradient-to-b from-gray-50/90 to-gray-100/50 border border-gray-100 p-3.5 flex items-center justify-center mb-3.5 relative overflow-hidden group-hover:bg-rose-50/30 transition-colors">
+                                  {isSecretComingSoon ? (
+                                    <div className="w-full h-full rounded-xl bg-white/80 border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-3 text-center">
+                                      <div className="w-10 h-10 rounded-xl bg-gray-100 text-gray-400 flex items-center justify-center mb-1.5">
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                        </svg>
+                                      </div>
+                                      <span className="text-xs font-black text-gray-700">
+                                        Segera Hadir
+                                      </span>
+                                    </div>
+                                  ) : (
+                                    <img
+                                      src={item.signImg}
+                                      alt={item.word}
+                                      className="w-full h-full object-contain filter drop-shadow-md group-hover:scale-108 transition-transform duration-300 ease-out"
+                                      loading="lazy"
+                                    />
+                                  )}
+                                </div>
+
+                                {/* Judul & Deskripsi Teks Hitam Kontras Tinggi Mudah Dibaca */}
+                                <div className="space-y-1.5">
+                                  <h3 className="text-base sm:text-lg font-black text-gray-900 group-hover:text-[#E02424] transition-colors leading-snug">
+                                    {item.word}
+                                  </h3>
+                                  <p className="text-xs font-bold text-gray-600 leading-relaxed line-clamp-2">
+                                    {isSecretComingSoon
+                                      ? 'Panduan gestur dan video interaktif sedang dalam tahap kurasi.'
+                                      : item.desc}
+                                  </p>
+                                </div>
                               </div>
 
-                              {/* Gambar Isyarat HD Utuh Persegi Simetris */}
-                              <div className="w-full aspect-square rounded-2xl bg-gray-50/80 p-3.5 flex items-center justify-center border border-gray-100 mb-3 group-hover:bg-rose-50/30 transition relative overflow-hidden">
+                              {/* Tombol Latih Isyarat Animatif Bergaya Handoora */}
+                              <div className="mt-4 pt-3 border-t border-gray-100">
                                 {isSecretComingSoon ? (
-                                  <div className="w-full h-full rounded-xl bg-gradient-to-br from-gray-50 to-slate-100 border border-gray-200 flex flex-col items-center justify-center p-3 text-center">
-                                    <div className="w-10 h-10 rounded-xl bg-white border border-gray-200 shadow-xs flex items-center justify-center mb-1.5 text-gray-500">
-                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                                      </svg>
-                                    </div>
-                                    <span className="text-xs font-black text-gray-700 uppercase tracking-wider">
-                                      Materi Rilis
-                                    </span>
-                                    <span className="text-[11px] font-bold text-gray-400 mt-0.5">
-                                      Segera Hadir
-                                    </span>
+                                  <div className="w-full py-2.5 rounded-2xl bg-gray-100 border border-gray-200 text-gray-400 text-xs font-black uppercase tracking-wider text-center">
+                                    Terkunci
                                   </div>
                                 ) : (
-                                  <img
-                                    src={item.signImg}
-                                    alt={item.word}
-                                    className="w-full h-full object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform duration-300"
-                                    loading="lazy"
-                                  />
+                                  <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
+                                    onClick={() => navigate(`/training/${item.letter}`)}
+                                    className="w-full py-2.5 px-3 rounded-2xl bg-[#E02424] hover:bg-[#C81E1E] text-white text-xs font-black uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-[0_4px_12px_rgba(224,36,36,0.28)]"
+                                  >
+                                    <span>Latih Isyarat</span>
+                                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M9 5l7 7-7 7" />
+                                    </svg>
+                                  </motion.button>
                                 )}
                               </div>
-
-                              <h3 className="text-sm sm:text-base font-black text-gray-900 text-center mb-1">
-                                {item.word}
-                              </h3>
-                              <p className="text-xs font-medium text-gray-600 text-center leading-relaxed line-clamp-3">
-                                {isSecretComingSoon
-                                  ? 'Panduan gestur dan video interaktif untuk kosakata ini sedang difinalisasi.'
-                                  : item.desc}
-                              </p>
-                            </div>
-
-                            {isSecretComingSoon ? (
-                              <div className="mt-3.5 w-full py-2.5 rounded-xl bg-gray-100 border border-gray-200/80 text-gray-600 text-xs font-black uppercase tracking-wider text-center">
-                                Segera Hadir
-                              </div>
-                            ) : (
-                              <button
-                                onClick={() => {
-                                  navigate(`/training/${item.letter}`)
-                                }}
-                                className="mt-3.5 w-full py-2.5 rounded-xl bg-rose-50 hover:bg-[#E02424] text-[#E02424] hover:text-white text-xs font-black uppercase tracking-wider transition cursor-pointer border border-rose-200/80 hover:border-[#E02424] flex items-center justify-center gap-1.5 shadow-2xs"
-                              >
-                                <span>Latih Isyarat</span>
-                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" />
-                                </svg>
-                              </button>
-                            )}
-                          </motion.div>
-                        )
-                      })}
-                    </div>
+                            </motion.div>
+                          )
+                        })}
+                      </motion.div>
+                    </AnimatePresence>
                   )
                 })()}
               </div>
@@ -3497,75 +3596,117 @@ const DashboardPage = () => {
               <div className="max-w-4xl mx-auto w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
                 {/* Kolom Kiri & Tengah: Peringkat 10 Besar */}
                 <div className="lg:col-span-2 space-y-4">
-                  {/* Banner Liga Duolingo Style */}
+                  {/* Banner Liga Duolingo Elegan & Proporsional */}
                   <motion.div
-                    initial={{ opacity: 0, y: 12 }}
+                    initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                    className="relative overflow-hidden bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 text-center shadow-[0_6px_24px_rgba(0,0,0,0.04)]"
                   >
-                    {/* Badge Tingkatan Liga Perunggu */}
-                    <div className="flex items-center justify-center gap-2.5 mb-3.5">
-                      <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#E59866] to-[#BA4A00] flex items-center justify-center text-white shadow-md border-2 border-[#F5B041]">
-                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                        </svg>
-                      </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+                    {/* Glow amber/gold lembut di belakang badge */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-44 h-24 bg-amber-400/15 rounded-full blur-2xl pointer-events-none" />
+
+                    {/* Badge Tingkatan Liga Perunggu (Warm Golden Amber Shield dengan Ikon Sayap Mewah) */}
+                    <div className="relative flex items-center justify-center gap-2.5 sm:gap-3 mb-3.5">
+                      {/* Active Bronze Badge: Warna hangat bernuansa madu/amber keemasan mewah */}
+                      <motion.div
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        className="relative cursor-pointer transition-transform"
+                      >
+                        <div className="w-13 h-15 sm:w-14 sm:h-16 rounded-[20px] bg-gradient-to-b from-[#F5B041] via-[#E67E22] to-[#B95C00] p-[2.5px] shadow-[0_8px_18px_rgba(230,126,34,0.32)] flex items-center justify-center border-b-2 border-[#934500]">
+                          <div className="w-full h-full rounded-[17.5px] bg-gradient-to-b from-[#FAD7A0] via-[#EDBB99] to-[#D35400] flex flex-col items-center justify-center relative overflow-hidden shadow-inner">
+                            {/* Kilau gloss atas */}
+                            <div className="absolute top-0 inset-x-0 h-1/2 bg-gradient-to-b from-white/40 to-transparent rounded-t-[17.5px]" />
+                            
+                            {/* Ikon Sepasang Sayap Juara (Wings of Victory) */}
+                            <svg className="w-7 h-7 sm:w-8 sm:h-8 text-[#6E2C00] drop-shadow-[0_1px_1px_rgba(255,255,255,0.4)] relative z-10" fill="currentColor" viewBox="0 0 24 24">
+                              <path d="M12 4.5C12 4.5 10.5 2.5 6.5 2C2.5 1.5 1.5 5.5 1 7C0.5 8.5 2 11 3.5 11.5C5 12 6.5 11 7 10C7.5 11.5 9 13.5 11 14C11.5 13 12 11 12 11C12 11 12.5 13 13 14C15 13.5 16.5 11.5 17 10C17.5 11 19 12 20.5 11.5C22 11 23.5 8.5 23 7C22.5 5.5 21.5 1.5 17.5 2C13.5 2.5 12 4.5 12 4.5ZM12 8C12.55 8 13 8.45 13 9C13 9.55 12.55 10 12 10C11.45 10 11 9.55 11 9C11 8.45 11.45 8 12 8Z" />
+                              <circle cx="12" cy="17" r="1.5" />
+                              <path d="M10.5 19.5L12 18.5L13.5 19.5L13 21.5L12 20.5L11 21.5L10.5 19.5Z" />
+                            </svg>
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* Locked Silver Badge */}
+                      <div className="w-9 h-11 sm:w-10 sm:h-12 rounded-2xl bg-gray-100 border border-gray-200/90 flex items-center justify-center text-gray-300 shadow-inner">
                         <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+
+                      {/* Locked Gold Badge */}
+                      <div className="w-9 h-11 sm:w-10 sm:h-12 rounded-2xl bg-gray-100 border border-gray-200/90 flex items-center justify-center text-gray-300 shadow-inner">
                         <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
                         </svg>
                       </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+
+                      {/* Locked Diamond Badge */}
+                      <div className="w-9 h-11 sm:w-10 sm:h-12 rounded-2xl bg-gray-100 border border-gray-200/90 flex items-center justify-center text-gray-300 shadow-inner">
                         <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
                         </svg>
                       </div>
                     </div>
 
-                    <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                    <h2 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight font-display">
                       Liga Perunggu Handoora
                     </h2>
-                    <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                    <p className="text-xs sm:text-sm font-semibold text-gray-500 mt-1">
                       Top 10 pembelajar bahasa isyarat teraktif minggu ini
                     </p>
 
-                    {/* Widget Hitung Mundur Sebelum Reset Weekly */}
+                    {/* Countdown Proporsional, Cantik, dan Berukuran Pas */}
                     <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center">
-                      <div className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-rose-600 mb-2.5">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 border border-rose-200/70 text-[#E02424] text-[11px] font-black uppercase tracking-wider mb-2.5">
                         <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
-                        <span>Hitung Mundur Reset Mingguan</span>
+                        <span>Reset Mingguan</span>
                       </div>
 
-                      <div className="grid grid-cols-4 gap-2 sm:gap-2.5 w-full max-w-xs">
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
-                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+                      <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+                        {/* Hari */}
+                        <div className="bg-gray-50/90 border border-gray-200/80 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center min-w-[52px] sm:min-w-[58px] shadow-2xs">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono leading-none">
                             {leagueTimeRemaining.days}
                           </span>
-                          <span className="text-[11px] font-bold text-gray-500 uppercase">Hari</span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Hari</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
-                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+
+                        <span className="text-gray-300 font-black text-sm pb-3">:</span>
+
+                        {/* Jam */}
+                        <div className="bg-gray-50/90 border border-gray-200/80 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center min-w-[52px] sm:min-w-[58px] shadow-2xs">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono leading-none">
                             {leagueTimeRemaining.hours}
                           </span>
-                          <span className="text-[11px] font-bold text-gray-500 uppercase">Jam</span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Jam</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2.5 flex flex-col items-center">
-                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+
+                        <span className="text-gray-300 font-black text-sm pb-3">:</span>
+
+                        {/* Menit */}
+                        <div className="bg-gray-50/90 border border-gray-200/80 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center min-w-[52px] sm:min-w-[58px] shadow-2xs">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono leading-none">
                             {leagueTimeRemaining.minutes}
                           </span>
-                          <span className="text-[11px] font-bold text-gray-500 uppercase">Menit</span>
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-1">Menit</span>
                         </div>
-                        <div className="bg-gray-50/90 border border-rose-200 bg-rose-50/40 rounded-2xl p-2.5 flex flex-col items-center">
-                          <span className="text-base sm:text-lg font-black text-[#E02424] font-mono">
+
+                        <span className="text-gray-300 font-black text-sm pb-3">:</span>
+
+                        {/* Detik (Pulsing Animatif) */}
+                        <motion.div
+                          key={leagueTimeRemaining.seconds}
+                          initial={{ scale: 1.08 }}
+                          animate={{ scale: 1 }}
+                          transition={{ duration: 0.2 }}
+                          className="bg-rose-50/90 border border-rose-200/80 rounded-xl px-2.5 py-1.5 sm:px-3 sm:py-2 flex flex-col items-center min-w-[52px] sm:min-w-[58px] shadow-2xs"
+                        >
+                          <span className="text-base sm:text-lg font-black text-[#E02424] font-mono leading-none">
                             {leagueTimeRemaining.seconds}
                           </span>
-                          <span className="text-[11px] font-bold text-rose-500 uppercase">Detik</span>
-                        </div>
+                          <span className="text-[10px] font-bold text-rose-500 uppercase tracking-wider mt-1">Detik</span>
+                        </motion.div>
                       </div>
                     </div>
                   </motion.div>
@@ -3585,14 +3726,14 @@ const DashboardPage = () => {
                       // Susun list dari data Supabase profiles apa adanya
                       const userMap = new Map()
 
-                      // Masukkan data pengguna dari database Supabase
+                      // Masukkan seluruh data pengguna aktual dari database Supabase / synced profiles
                       if (Array.isArray(supabaseLeaderboard) && supabaseLeaderboard.length > 0) {
                         supabaseLeaderboard.forEach((p) => {
-                          const displayWeeklyXp = p.weekly_xp !== undefined ? Number(p.weekly_xp) : (Number(p.xp) || 0)
+                          const displayXp = Number(p.xp) || 0
                           userMap.set(p.id, {
                             id: p.id,
                             name: p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora'),
-                            xp: displayWeeklyXp,
+                            xp: displayXp,
                             level: Number(p.current_unit) || 1,
                             avatar: p.avatar_url || '/assets/avatar-orangutan.png',
                             status: p.id === user?.id ? userLeaderboardStatus : '🌟',
@@ -3601,13 +3742,9 @@ const DashboardPage = () => {
                         })
                       }
 
-                      // Jika user yang sedang login belum tersimpan di state Supabase profiles,
-                      // masukkan data profil lokal user agar tetap tampil akurat apa adanya
+                      // Sinkronkan data pengguna yang sedang login dengan state progres aktual
                       if (user?.id) {
-                        const existing = userMap.get(user.id)
-                        const currentXp = progress.weekly_xp !== undefined
-                          ? Number(progress.weekly_xp)
-                          : (existing?.xp ?? (Number(progress.xp) || 0))
+                        const currentXp = Number(progress.xp) || 0
                         userMap.set(user.id, {
                           id: user.id,
                           name: `${user.nama || 'Sobat Handoora'} (Kamu)`,
@@ -3619,9 +3756,7 @@ const DashboardPage = () => {
                         })
                       } else if (userMap.size === 0) {
                         // Jika mode tamu / belum login sama sekali dan database kosong
-                        const currentXp = progress.weekly_xp !== undefined
-                          ? Number(progress.weekly_xp)
-                          : (Number(progress.xp) || 0)
+                        const currentXp = Number(progress.xp) || 0
                         userMap.set('guest', {
                           id: 'guest',
                           name: 'Kamu (Tamu Belajar)',
@@ -3634,6 +3769,7 @@ const DashboardPage = () => {
                       }
 
                       // Urutkan murni berdasarkan XP terbanyak (Descending)
+                      // Tampilkan tepat sebanyak data yang ada di database (maksimal 10 orang teratas: jika ada 2 ya 2, jika 3 ya 3, dst)
                       const sortedList = Array.from(userMap.values())
                         .sort((a, b) => b.xp - a.xp)
                         .slice(0, 10)
@@ -3804,6 +3940,32 @@ const DashboardPage = () => {
                       </div>
 
                       <div className="divide-y divide-gray-100">
+                        {/* 0. Efek Suara (Sound Effects) Kuis */}
+                        <div className="py-4 flex items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700 shrink-0 mt-0.5">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-gray-900">Efek Suara Kuis</p>
+                              <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                                Mainkan efek suara interaktif saat memilih kartu, menjawab benar, atau menuntaskan level
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSetting('soundEnabled')}
+                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer shrink-0 ${
+                              settingsPref.soundEnabled ? 'bg-emerald-500' : 'bg-gray-300'
+                            }`}
+                          >
+                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.soundEnabled ? 'translate-x-5' : 'translate-x-0'}`} />
+                          </button>
+                        </div>
+
                         {/* 1. Umpan Balik Kamera Real-time */}
                         <div className="py-4 flex items-center justify-between gap-4">
                           <div className="flex items-start gap-3">

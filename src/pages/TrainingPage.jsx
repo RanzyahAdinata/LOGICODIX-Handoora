@@ -112,17 +112,17 @@ const TrainingPage = () => {
 
       if (analysis.detected) {
         holdCountRef.current += 1
-        const pct = Math.min(100, Math.round((holdCountRef.current / 4) * 100))
+        const pct = Math.min(100, Math.round((holdCountRef.current / 6) * 100))
         setHoldProgress(pct)
-        setVisionFeedback('Bagus! Pertahankan posisi tanganmu...')
+        setVisionFeedback(`Tahan posisi isyaratmu... (${pct}%)`)
 
-        if (holdCountRef.current >= 4) {
+        if (holdCountRef.current >= 6) {
           setVisionStatus('success')
           setVisionFeedback('Luar biasa! Isyaratmu berhasil terdeteksi sempurna!')
         }
       } else if (analysis.handPresent) {
         holdCountRef.current = Math.max(0, holdCountRef.current - 1)
-        setHoldProgress(0)
+        setHoldProgress(Math.round((holdCountRef.current / 6) * 100))
         setVisionStatus('wrong')
         setVisionFeedback(analysis.feedback || 'Sesuaikan bentuk jarimu sesuai gambar referensi')
       } else {

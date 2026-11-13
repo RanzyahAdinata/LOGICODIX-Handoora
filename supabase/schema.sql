@@ -46,7 +46,7 @@ alter table public.profiles enable row level security;
 drop policy if exists "Profil publik untuk papan skor" on public.profiles;
 create policy "Profil publik untuk papan skor"
   on public.profiles for select
-  to authenticated
+  to anon, authenticated
   using ( true );
 
 drop policy if exists "Pengguna hanya dapat membuat profil miliknya sendiri" on public.profiles;

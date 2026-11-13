@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import { progressService, recordDailyLessonCompletion } from '../services/storage'
 import { getLevelStages } from '../data/allLevelsQuizData'
 import { analyzeHandGesture } from '../utils/gestureDetector'
+import { soundFx } from '../utils/soundEffects'
 import Button from '../components/ui/Button'
 
 // Pure lightweight CSS / DOM Confetti Effect
@@ -75,6 +76,10 @@ export default function QuizPage() {
 
   const currentStages = getLevelStages(levelId)
   const currentStage = currentStages.find((s) => s.stageId === currentStageId) || currentStages[0]
+
+  useEffect(() => {
+    soundFx.preload()
+  }, [])
 
   // Queue-based questions (mendukung mistake recovery & smart skipping)
   const [queue, setQueue] = useState([])
@@ -304,30 +309,31 @@ export default function QuizPage() {
       const analysis = analyzeHandGesture(video, canvas, currentQuestion?.targetLetter)
 
       if (analysis.detected) {
-        // Tangan cocok! Tingkatkan hold count agar pengguna menahan posisi stabil selama ~1 detik
+        // Tangan cocok! Pengguna harus menahan posisi selama ~1,5 detik (6 frame berturut-turut)
         holdCountRef.current += 1
-        const pct = Math.min(100, Math.round((holdCountRef.current / 4) * 100))
+        const pct = Math.min(100, Math.round((holdCountRef.current / 6) * 100))
         setHandHoldProgress(pct)
         setVisionStatus('detecting')
-        setVisionFeedback(`Bagus! Tahan posisimu... (${pct}%)`)
+        setVisionFeedback(`Tahan posisi isyaratmu... (${pct}%)`)
 
-        if (holdCountRef.current >= 4) {
-          // BERHASIL 100%! Berikan border hijau sukses dan kunci jawaban benar
+        if (holdCountRef.current >= 6) {
+          // BERHASIL 100%!
           stopDetectionLoop()
           setVisionStatus('success')
           setVisionFeedback('Luar biasa! Isyarat tangan terdeteksi benar!')
           setIsCorrect(true)
           setIsAnswerChecked(true)
+          soundFx.playCorrect()
         }
       } else {
-        // Jika tangan hilang atau salah pose
+        // Jika tangan salah pose / tidak cocok, kurangi hold progress
         if (holdCountRef.current > 0) {
           holdCountRef.current = Math.max(0, holdCountRef.current - 1)
-          setHandHoldProgress(Math.round((holdCountRef.current / 4) * 100))
+          setHandHoldProgress(Math.round((holdCountRef.current / 6) * 100))
         }
         if (analysis.handPresent) {
           setVisionStatus('wrong')
-          setVisionFeedback(analysis.feedback || 'Gerakan belum tepat, sesuaikan posisi tanganmu')
+          setVisionFeedback(analysis.feedback || 'Bentuk isyarat belum tepat')
         } else {
           setVisionStatus('detecting')
           setVisionFeedback('Posisikan tanganmu ke depan kamera')
@@ -339,6 +345,7 @@ export default function QuizPage() {
   // Handle pilih opsi jawaban kartu
   const handleSelectOption = (idx) => {
     if (isAnswerChecked) return
+    soundFx.playSelect()
     setSelectedIndex(idx)
   }
 
@@ -350,6 +357,11 @@ export default function QuizPage() {
     const correct = selectedIndex === currentQuestion.correctIndex
     setIsCorrect(correct)
     setIsAnswerChecked(true)
+    if (correct) {
+      soundFx.playCorrect()
+    } else {
+      soundFx.playWrong()
+    }
   }
 
   // Handle LOMPATI (Skip)
@@ -358,6 +370,7 @@ export default function QuizPage() {
   // sehingga soal pilihan/tebak didahulukan.
   const handleSkipQuestion = () => {
     if (!currentQuestion || isAnswerChecked) return
+    soundFx.playSkip()
 
     const remainingQueue = queue.slice(1)
     const updatedQueue = [...remainingQueue, currentQuestion]
@@ -418,8 +431,9 @@ export default function QuizPage() {
   const finishQuizSession = async (finalCorrectCount) => {
     setIsQuizCompleted(true)
 
-    // Trigger selebrasi confetti mewah
+    // Trigger selebrasi confetti mewah & jingle victory ceria
     triggerLuxuryConfetti()
+    soundFx.playVictory()
 
     // Hapus sesi saved in-progress karena kuis sudah selesai tuntas
     const activeUserId = user?.id || 'guest'

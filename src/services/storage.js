@@ -164,9 +164,29 @@ export const authService = {
     }
 
     const cleanNama = nama.trim()
-    const cleanEmail = email.trim().toLowerCase()
+    let rawEmail = email.trim().toLowerCase()
+    // Dukung input bebas: jika pengguna hanya memasukkan username/nama tanpa @domain, otomatis tambahkan @handoora.local
+    const cleanEmail = rawEmail.includes('@') ? rawEmail : `${rawEmail}@handoora.local`
     const parsedUmur = parseInt(umur, 10)
     const passwordHash = await hashPasswordSecure(password, cleanEmail)
+
+    // Cek apakah email sudah terdaftar di tabel profiles terlebih dahulu
+    try {
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', cleanEmail)
+        .maybeSingle()
+
+      if (existingProfile) {
+        throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
+      }
+    } catch (checkErr) {
+      if (checkErr.message?.includes('Email sudah terdaftar')) {
+        throw checkErr
+      }
+      // Jika error lain (misal koneksi/tabel), lanjut ke signUp
+    }
 
     const { data, error } = await supabase.auth.signUp({
       email: cleanEmail,
@@ -191,10 +211,21 @@ export const authService = {
     })
 
     if (error) {
-      if (error.message?.toLowerCase().includes('already registered')) {
+      const msg = error.message?.toLowerCase() || ''
+      if (
+        msg.includes('already registered') ||
+        msg.includes('user already exists') ||
+        msg.includes('unique constraint') ||
+        error.status === 422
+      ) {
         throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
       }
       throw new Error(error.message)
+    }
+
+    // Supabase Auth dengan email confirmation disabled / identities
+    if (data?.user && (!data.user.identities || data.user.identities.length === 0)) {
+      throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
     }
 
     if (!data?.user) {
@@ -283,25 +314,54 @@ export const authService = {
     if (metaUpdates.avatar_url && metaUpdates.avatar_url.startsWith('data:')) {
       delete metaUpdates.avatar_url
     }
-    await supabase.auth.updateUser({
-      data: metaUpdates,
-    })
-
-    const { data: updatedRow } = await supabase
-      .from('profiles')
-      .update({
-        ...updates,
-        updated_at: new Date().toISOString(),
+    try {
+      await supabase.auth.updateUser({
+        data: metaUpdates,
       })
-      .eq('id', userId)
-      .select('*')
-      .maybeSingle()
+    } catch {
+      // ignore
+    }
 
-    return (
-      updatedRow || {
-        ...updates,
+    // Upsert ke tabel profiles agar foto profil tersimpan permanen
+    try {
+      const { data: updatedRow, error: profileErr } = await supabase
+        .from('profiles')
+        .upsert({
+          id: userId,
+          nama: updates.nama,
+          umur: updates.umur,
+          avatar_url: updates.avatar_url,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+        .select('*')
+        .maybeSingle()
+
+      if (!profileErr && updatedRow) {
+        return updatedRow
       }
-    )
+    } catch {
+      // Fallback update jika schema lama
+      try {
+        const { data: updatedRow } = await supabase
+          .from('profiles')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', userId)
+          .select('*')
+          .maybeSingle()
+
+        if (updatedRow) return updatedRow
+      } catch {
+        // ignore
+      }
+    }
+
+    return {
+      ...updates,
+      avatar_url: updates.avatar_url || (userId ? localStorage.getItem(`handoora_avatar_${userId}`) : null),
+    }
   },
 
   // 4.1. UPDATE PASSWORD PENGGUNA
@@ -553,6 +613,9 @@ export const progressService = {
 
     const currentCycle = getWeeklyCycleId()
 
+    // Ambil cache lokal terkini jika ada, agar XP yang baru saja diperoleh tidak tertimpa data lama
+    const cached = this.getProgress(userId)
+
     const { data, error } = await supabase
       .from('profiles')
       .select('xp, weekly_xp, weekly_cycle_id, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
@@ -567,46 +630,39 @@ export const progressService = {
         userId
       )
 
+      // Ambil XP tertinggi antara database dan cache lokal agar perolehan kuis tidak hilang
+      const resolvedXp = Math.max(norm.xp, Number(cached?.xp) || 0)
+
       // Hitung streak real-time
       const streakState = calculateCurrentStreak(
-        data.streak ?? 0,
-        data.last_activity_date,
-        data.streak_history
+        data.streak ?? cached?.streak ?? 0,
+        data.last_activity_date || cached?.last_activity_date,
+        data.streak_history || cached?.streak_history
       )
 
-      // Cek apakah siklus mingguan berganti -> reset weekly_xp ke 0
-      let weeklyXp = Number(data.weekly_xp)
-      let needsWeeklyReset = false
-      if (data.weekly_cycle_id !== currentCycle) {
-        weeklyXp = 0
-        needsWeeklyReset = true
-      } else if (isNaN(weeklyXp)) {
-        weeklyXp = norm.xp
-      }
-
       const result = {
-        xp: norm.xp,
-        weekly_xp: weeklyXp,
+        xp: resolvedXp,
+        weekly_xp: resolvedXp,
         weekly_cycle_id: currentCycle,
         streak: streakState.streak,
         isStreakActiveToday: streakState.isStreakActiveToday,
         last_activity_date: streakState.lastActivityDate,
         streak_history: streakState.streakHistory,
-        gems: data.gems ?? 500,
-        hearts: data.hearts ?? 5,
-        completedIslands: norm.completedIslands,
+        gems: data.gems ?? cached?.gems ?? 500,
+        hearts: data.hearts ?? cached?.hearts ?? 5,
+        completedIslands: Array.isArray(data.completed_lessons) && data.completed_lessons.length > 0 ? data.completed_lessons : (cached?.completedIslands || []),
         unlockedIslands: norm.unlockedIslands,
         dailyQuests: {
-          xpEarned: Math.min(20, norm.xp),
-          xpEarnedToday: Math.min(50, norm.xp),
-          highScoreLessons: norm.completedIslands.length,
+          xpEarned: Math.min(20, resolvedXp),
+          xpEarnedToday: Math.min(50, resolvedXp),
+          highScoreLessons: (data.completed_lessons || []).length,
         },
       }
 
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
 
-      // Jika akun masih memiliki seed lama ([1, 2]) atau siklus mingguan berganti, perbarui otomatis ke database
-      if (norm.wasNormalized || needsWeeklyReset) {
+      // Jika ada perbedaan atau normalisasi, sinkronkan balik ke database
+      if (norm.wasNormalized || resolvedXp > norm.xp) {
         localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
         await this.saveProgressToSupabase(userId, result)
       }
@@ -678,6 +734,26 @@ export const progressService = {
     if (userId) {
       localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(updatedProgress))
+      
+      // Simpan juga ke known local profiles untuk sinkronisasi fallback multi-akun
+      try {
+        const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
+        knownProfiles[userId] = {
+          id: userId,
+          nama: currentMeta.nama || progress.nama || 'Sobat Handoora',
+          email: currentMeta.email || '',
+          xp: updatedProgress.xp,
+          weekly_xp: finalWeeklyXp,
+          weekly_cycle_id: currentCycle,
+          current_unit: updatedProgress.current_unit || (updatedProgress.unlockedIslands?.slice(-1)[0] || 1),
+          avatar_url: currentMeta.avatar_url || localStorage.getItem(`handoora_avatar_${userId}`) || null,
+          updated_at: new Date().toISOString()
+        }
+        localStorage.setItem('handoora_known_profiles', JSON.stringify(knownProfiles))
+      } catch {
+        // ignore
+      }
     }
 
     if (!supabase || !userId) return updatedProgress
@@ -700,11 +776,13 @@ export const progressService = {
       },
     })
 
-    // Update profiles di Supabase dengan weekly_xp dan weekly_cycle_id
+    // Upsert ke tabel profiles agar row akun dipastikan ada di database (bukan sekadar update)
     try {
-      const { error: updateError } = await supabase
+      const { error: upsertError } = await supabase
         .from('profiles')
-        .update({
+        .upsert({
+          id: userId,
+          nama: progress.nama || undefined,
           xp: updatedProgress.xp,
           weekly_xp: finalWeeklyXp,
           weekly_cycle_id: currentCycle,
@@ -716,14 +794,15 @@ export const progressService = {
           completed_lessons: updatedProgress.completedIslands,
           unlocked_islands: updatedProgress.unlockedIslands,
           updated_at: new Date().toISOString(),
-        })
-        .eq('id', userId)
+        }, { onConflict: 'id' })
 
-      if (updateError) {
-        // Fallback jika kolom weekly_xp belum tersedia di profiles Supabase
+      if (upsertError) {
+        // Fallback jika kolom weekly_xp / weekly_cycle_id belum ada di schema database
         await supabase
           .from('profiles')
-          .update({
+          .upsert({
+            id: userId,
+            nama: progress.nama || undefined,
             xp: updatedProgress.xp,
             streak: updatedProgress.streak,
             last_activity_date: lastDate,
@@ -733,11 +812,10 @@ export const progressService = {
             completed_lessons: updatedProgress.completedIslands,
             unlocked_islands: updatedProgress.unlockedIslands,
             updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId)
+          }, { onConflict: 'id' })
       }
     } catch {
-      // Fallback jika error jaringan/eksepsi
+      // Fallback kedua jika upsert gagal
       try {
         await supabase
           .from('profiles')
@@ -762,74 +840,58 @@ export const progressService = {
   },
 
   // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles
-  // Di-reset otomatis tiap 1 minggu sekali (siklus Minggu s.d. Sabtu)
   async getLeaderboard(limit = 10) {
-    if (!supabase || !isSupabaseConfigured) {
-      return []
+    // Helper untuk mengambil cache profil lokal multi-akun jika Supabase offline/terkendala
+    const getCachedKnownProfiles = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+        return Object.values(stored).map(p => ({
+          ...p,
+          xp: Number(p.xp) || 0,
+          weekly_xp: Number(p.xp) || 0,
+        })).sort((a, b) => b.xp - a.xp)
+      } catch {
+        return []
+      }
     }
 
-    const currentCycle = getWeeklyCycleId()
-
-    // Tentukan waktu awal siklus minggu berjalan (Hari Minggu pukul 00:00:00 waktu lokal)
-    const now = new Date()
-    const sundayStart = new Date(now)
-    sundayStart.setDate(now.getDate() - now.getDay())
-    sundayStart.setHours(0, 0, 0, 0)
-    const weekCycleStartIso = sundayStart.toISOString()
+    if (!supabase || !isSupabaseConfigured) {
+      return getCachedKnownProfiles().slice(0, limit)
+    }
 
     try {
-      // Prioritaskan mengambil profil dengan kolom weekly_xp & weekly_cycle_id
+      // Ambil seluruh profil di database diurutkan berdasarkan total XP aktual
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, nama, email, xp, weekly_xp, weekly_cycle_id, current_unit, avatar_url, updated_at')
-        .order('weekly_xp', { ascending: false })
+        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
+        .order('xp', { ascending: false })
         .limit(limit)
 
       if (!error && Array.isArray(data) && data.length > 0) {
-        // Petakan XP liga mingguan: jika weekly_cycle_id berbeda, weekly_xp dianggap 0
-        return data.map((p) => {
-          let score = Number(p.weekly_xp)
-          if (p.weekly_cycle_id !== currentCycle) {
-            // Jika siklus berbeda tetapi updated_at masih minggu ini, fallback ke p.xp jika weekly_xp null
-            if (p.updated_at && p.updated_at >= weekCycleStartIso && isNaN(score)) {
-              score = Number(p.xp) || 0
-            } else {
-              score = 0
-            }
-          } else if (isNaN(score)) {
-            score = Number(p.xp) || 0
-          }
-          return {
-            ...p,
-            weekly_xp: score,
-            xp: score, // XP yang dipakai untuk sorting leaderboard mingguan
-          }
-        }).sort((a, b) => b.weekly_xp - a.weekly_xp)
+        const mapped = data.map((p) => ({
+          ...p,
+          xp: Number(p.xp) || 0,
+          weekly_xp: Number(p.xp) || 0,
+        }))
+
+        // Cache ke handoora_known_profiles
+        try {
+          const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+          mapped.forEach((p) => {
+            if (p.id) known[p.id] = { ...known[p.id], ...p }
+          })
+          localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
+        } catch {
+          // ignore
+        }
+
+        return mapped
       }
 
-      // Fallback: jika kolom weekly_xp belum tersedia di Supabase profiles, filter dengan updated_at mingguan
-      const { data: fallbackData } = await supabase
-        .from('profiles')
-        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
-        .gte('updated_at', weekCycleStartIso)
-        .order('xp', { ascending: false })
-        .limit(limit)
-
-      if (fallbackData && fallbackData.length > 0) {
-        return fallbackData
-      }
-
-      // Fallback kedua: ambil keseluruhan jika data baru kosong
-      const { data: allData } = await supabase
-        .from('profiles')
-        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
-        .order('xp', { ascending: false })
-        .limit(limit)
-
-      return allData || []
+      return getCachedKnownProfiles().slice(0, limit)
     } catch (err) {
       console.warn('Error fetching leaderboard:', err)
-      return []
+      return getCachedKnownProfiles().slice(0, limit)
     }
   },
 }

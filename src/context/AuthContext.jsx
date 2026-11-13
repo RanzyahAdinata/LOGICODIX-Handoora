@@ -151,8 +151,15 @@ export const AuthProvider = ({ children }) => {
 
   const updateProfile = async (updates) => {
     if (!user) return null
+    if (updates.avatar_url && user.id) {
+      localStorage.setItem(`handoora_avatar_${user.id}`, updates.avatar_url)
+    }
     const updated = await authService.updateProfile(user.id, updates)
-    setUser((prev) => ({ ...prev, ...updated }))
+    setUser((prev) => ({
+      ...prev,
+      ...updated,
+      avatar_url: updates.avatar_url || updated.avatar_url || prev?.avatar_url
+    }))
     return updated
   }
 
