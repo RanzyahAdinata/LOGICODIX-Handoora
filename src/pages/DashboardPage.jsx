@@ -424,20 +424,19 @@ function calculateLeagueCountdown() {
   saturdayEnd.setDate(now.getDate() + (6 - day))
   saturdayEnd.setHours(23, 59, 59, 999)
 
-  const diffMs = saturdayEnd.getTime() - now.getTime()
-  if (diffMs <= 0) {
-    return '0j 0m 0d'
-  }
+  const diffMs = Math.max(0, saturdayEnd.getTime() - now.getTime())
 
   const d = Math.floor(diffMs / (1000 * 60 * 60 * 24))
   const h = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
   const m = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
   const s = Math.floor((diffMs % (1000 * 60)) / 1000)
 
-  if (d > 0) {
-    return `${d} Hari ${h} Jam ${m} Menit ${s} Detik`
+  return {
+    days: String(d).padStart(2, '0'),
+    hours: String(h).padStart(2, '0'),
+    minutes: String(m).padStart(2, '0'),
+    seconds: String(s).padStart(2, '0'),
   }
-  return `${h} Jam ${m} Menit ${s} Detik`
 }
 
 // Helper: Resize foto yang di-upload user menjadi 240x240 JPEG agar ringan & cepat disimpan
@@ -3464,9 +3463,10 @@ const DashboardPage = () => {
                   <motion.div
                     initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 text-center shadow-sm"
+                    className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 text-center shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
                   >
-                    <div className="flex items-center justify-center gap-2 mb-3">
+                    {/* Badge Tingkatan Liga Perunggu */}
+                    <div className="flex items-center justify-center gap-2.5 mb-3.5">
                       <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#E59866] to-[#BA4A00] flex items-center justify-center text-white shadow-md border-2 border-[#F5B041]">
                         <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
@@ -3488,15 +3488,47 @@ const DashboardPage = () => {
                         </svg>
                       </div>
                     </div>
-                    <h2 className="text-xl font-black text-[#2B2B2B]">Liga Perunggu Handoora</h2>
-                    <p className="text-xs font-bold text-gray-400 mt-0.5">
-                      Top 10 pembelajar teraktif minggu ini (Mulai Minggu - Berakhir Sabtu)
+
+                    <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                      Liga Perunggu Handoora
+                    </h2>
+                    <p className="text-xs font-semibold text-gray-500 mt-0.5">
+                      Top 10 pembelajar bahasa isyarat teraktif minggu ini
                     </p>
-                    <div className="inline-flex items-center gap-1.5 mt-2.5 px-3.5 py-1.5 rounded-full bg-amber-50 text-amber-700 font-extrabold text-xs border border-amber-200/90 shadow-2xs">
-                      <svg className="w-4 h-4 text-amber-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span className="font-mono tracking-tight font-black">{leagueTimeRemaining}</span>
+
+                    {/* Widget Hitung Mundur Sebelum Reset Weekly */}
+                    <div className="mt-4 pt-4 border-t border-gray-100 flex flex-col items-center">
+                      <div className="flex items-center gap-1.5 text-[11px] font-black uppercase tracking-wider text-rose-600 mb-2.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+                        <span>Hitung Mundur Reset Mingguan</span>
+                      </div>
+
+                      <div className="grid grid-cols-4 gap-2 sm:gap-2.5 w-full max-w-xs">
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+                            {leagueTimeRemaining.days}
+                          </span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Hari</span>
+                        </div>
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+                            {leagueTimeRemaining.hours}
+                          </span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Jam</span>
+                        </div>
+                        <div className="bg-gray-50/90 border border-gray-200/90 rounded-2xl p-2 flex flex-col items-center">
+                          <span className="text-base sm:text-lg font-black text-gray-900 font-mono">
+                            {leagueTimeRemaining.minutes}
+                          </span>
+                          <span className="text-[9px] font-bold text-gray-400 uppercase">Menit</span>
+                        </div>
+                        <div className="bg-gray-50/90 border border-rose-200 bg-rose-50/40 rounded-2xl p-2 flex flex-col items-center">
+                          <span className="text-base sm:text-lg font-black text-[#E02424] font-mono">
+                            {leagueTimeRemaining.seconds}
+                          </span>
+                          <span className="text-[9px] font-bold text-rose-400 uppercase">Detik</span>
+                        </div>
+                      </div>
                     </div>
                   </motion.div>
 
