@@ -1960,6 +1960,10 @@ const DashboardPage = () => {
   const [savedSessionData, setSavedSessionData] = useState(null)
   const [guideUnit, setGuideUnit] = useState(null)
 
+  // Modal Konfirmasi Keluar Akun & Reset Level
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [showResetLevelModal, setShowResetLevelModal] = useState(false)
+
   // Form Profil Pengguna + Ganti Foto Profil
   const [profileForm, setProfileForm] = useState({
     nama: user?.nama || 'Sobat Handoora',
@@ -2229,8 +2233,20 @@ const DashboardPage = () => {
   }
 
   const handleLogout = async () => {
+    setShowLogoutModal(false)
     toast.success('Berhasil keluar dari akun')
     await logout()
+  }
+
+  const handleConfirmResetLevel = async () => {
+    setShowResetLevelModal(false)
+    const reset = progressService.resetProgress(user?.id)
+    setProgress(reset)
+    setSelectedUnitId(1)
+    if (user?.id) {
+      await progressService.saveProgressToSupabase(user.id, reset)
+    }
+    toast.success('Progres pembelajaran berhasil direset kembali ke Level 1')
   }
 
   // Evaluasi status Streak real-time
@@ -2350,7 +2366,7 @@ const DashboardPage = () => {
             </div>
 
             <button
-              onClick={handleLogout}
+              onClick={() => setShowLogoutModal(true)}
               className="w-full py-2.5 px-4 rounded-xl bg-white hover:bg-[#FFF0F0] text-[#888888] hover:text-[#E02424] border border-[#E6E6E6] hover:border-[#FCA5A5] text-xs font-extrabold tracking-wider uppercase transition-colors cursor-pointer"
             >
               KELUAR AKUN
@@ -3867,15 +3883,7 @@ const DashboardPage = () => {
                         </p>
                       </div>
                       <button
-                        onClick={async () => {
-                          const reset = progressService.resetProgress(user?.id)
-                          setProgress(reset)
-                          setSelectedUnitId(1)
-                          if (user?.id) {
-                            await progressService.saveProgressToSupabase(user.id, reset)
-                          }
-                          toast.success('Progres pembelajaran direset kembali ke Level 1')
-                        }}
+                        onClick={() => setShowResetLevelModal(true)}
                         className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-600 border border-rose-200 cursor-pointer transition shrink-0"
                       >
                         Reset ke Level 1
@@ -4066,6 +4074,95 @@ const DashboardPage = () => {
                     className="text-xs text-gray-400 hover:text-gray-700 font-bold py-1 transition"
                   >
                     Batal
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+        {/* ============================================================ */}
+        {/* MODAL KONFIRMASI KELUAR AKUN                                  */}
+        {/* ============================================================ */}
+        <AnimatePresence>
+          {showLogoutModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.92, y: 16, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.92, y: 16, opacity: 0 }}
+                className="w-full max-w-sm bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl text-center space-y-4"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-rose-50 text-[#E02424] border border-rose-200 flex items-center justify-center mx-auto shadow-xs">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-black text-gray-900">Yakin ingin keluar akun?</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1.5 leading-relaxed">
+                    Seluruh progres belajar, streak harian, dan XP kamu sudah tersimpan dengan aman di Handoora.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2.5 pt-2">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-b from-[#FF4754] to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-black text-sm uppercase tracking-wider shadow-md hover:brightness-105 active:border-b-0 active:translate-y-1 transition-all cursor-pointer"
+                  >
+                    YA, KELUAR AKUN
+                  </button>
+
+                  <button
+                    onClick={() => setShowLogoutModal(false)}
+                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-gray-200 hover:bg-gray-50 text-gray-600 font-extrabold text-xs uppercase tracking-wider cursor-pointer transition"
+                  >
+                    BATAL
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* ============================================================ */}
+        {/* MODAL KONFIRMASI RESET LEVEL KE LEVEL 1                      */}
+        {/* ============================================================ */}
+        <AnimatePresence>
+          {showResetLevelModal && (
+            <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+              <motion.div
+                initial={{ scale: 0.92, y: 16, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.92, y: 16, opacity: 0 }}
+                className="w-full max-w-sm bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl text-center space-y-4"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-xs">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                  </svg>
+                </div>
+
+                <div>
+                  <h3 className="text-xl font-black text-gray-900">Reset Level ke Level 1?</h3>
+                  <p className="text-xs sm:text-sm text-gray-500 font-bold mt-1.5 leading-relaxed">
+                    Tindakan ini akan mengulangi modul kepulauan dari Level 1 dan menghapus riwayat kuis tersimpan. Apakah kamu yakin?
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-2.5 pt-2">
+                  <button
+                    onClick={handleConfirmResetLevel}
+                    className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-b from-rose-500 to-[#E02424] border-b-4 border-b-[#991B1B] text-white font-black text-sm uppercase tracking-wider shadow-md hover:brightness-105 active:border-b-0 active:translate-y-1 transition-all cursor-pointer"
+                  >
+                    YA, RESET KE LEVEL 1
+                  </button>
+
+                  <button
+                    onClick={() => setShowResetLevelModal(false)}
+                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-gray-200 hover:bg-gray-50 text-gray-600 font-extrabold text-xs uppercase tracking-wider cursor-pointer transition"
+                  >
+                    BATAL
                   </button>
                 </div>
               </motion.div>
