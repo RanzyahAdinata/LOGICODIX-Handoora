@@ -505,7 +505,9 @@ export default function QuizPage() {
         {/* Badge Level & Tahap */}
         <div className="flex items-center gap-2 shrink-0">
           <div className="px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-extrabold text-xs flex items-center gap-1.5 shadow-xs">
-            <span>🔥</span>
+            <svg className="w-3.5 h-3.5 text-amber-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.527.82-1.115 1.956-1.522 3.036a14.28 14.28 0 00-.916 3.738A5.992 5.992 0 004 14c0 3.314 2.686 6 6 6s6-2.686 6-6a5.97 5.97 0 00-1.89-4.321c-.482-.455-1.02-.95-1.543-1.616-.44-.56-.81-1.226-1.025-1.92a7.065 7.065 0 01-.147-3.59zM10 16a2 2 0 100-4 2 2 0 000 4z" clipRule="evenodd" />
+            </svg>
             <span>Level {levelId} • Tahap {currentStageId}/3</span>
           </div>
         </div>
@@ -531,28 +533,25 @@ export default function QuizPage() {
               <div className="absolute inset-2 -z-10 rounded-full bg-gradient-to-tr from-[#FFE58F]/40 via-[#FFB8B8]/35 to-[#FFF0F0]/60 blur-xl scale-95" />
               <div className="absolute inset-6 -z-10 rounded-full bg-gradient-to-b from-[#FFF5F5] to-[#FFEBEB] border-2 border-[#FFD6D6]/60 shadow-[0_8px_24px_rgba(224,36,36,0.08)]" />
 
-              {/* Partikel Bintang & Sparkle Selebrasi */}
-              <motion.span
-                animate={{ scale: [1, 1.25, 1], rotate: [0, 15, 0] }}
-                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                className="absolute top-2 right-4 text-xl sm:text-2xl select-none pointer-events-none drop-shadow-sm"
+              {/* Partikel Cahaya Selebrasi Halus */}
+              <motion.div
+                animate={{ scale: [1, 1.2, 1], opacity: [0.6, 1, 0.6] }}
+                transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}
+                className="absolute top-2 right-4 text-amber-400 select-none pointer-events-none"
               >
-                ✨
-              </motion.span>
-              <motion.span
-                animate={{ scale: [1, 1.3, 1], rotate: [0, -20, 0] }}
-                transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.4 }}
-                className="absolute top-4 left-4 text-lg sm:text-xl select-none pointer-events-none drop-shadow-sm"
+                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </motion.div>
+              <motion.div
+                animate={{ scale: [1, 1.25, 1], opacity: [0.5, 0.9, 0.5] }}
+                transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                className="absolute top-4 left-4 text-rose-400 select-none pointer-events-none"
               >
-                ⭐
-              </motion.span>
-              <motion.span
-                animate={{ scale: [1, 1.2, 1], y: [0, -3, 0] }}
-                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: 0.8 }}
-                className="absolute bottom-6 right-3 text-base sm:text-lg select-none pointer-events-none drop-shadow-sm"
-              >
-                🎉
-              </motion.span>
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+              </motion.div>
 
               {/* Karakter Maskot Doora HD dengan Animasi Mengapung Halus */}
               <motion.div
@@ -599,10 +598,15 @@ export default function QuizPage() {
             <Button
               variant="primary"
               size="lg"
-              className="w-full py-4 text-base font-extrabold uppercase tracking-wider shadow-lg"
+              className="w-full py-4 text-base font-extrabold uppercase tracking-wider shadow-lg flex items-center justify-center gap-2"
               onClick={handleProceedNextStage}
             >
-              {currentStageId < 3 ? `LANJUT KE TAHAP ${currentStageId + 1} ▶` : `SELESAIKAN LEVEL ${levelId} 🏆`}
+              <span>
+                {currentStageId < 3 ? `LANJUT KE TAHAP ${currentStageId + 1}` : `SELESAIKAN LEVEL ${levelId}`}
+              </span>
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+              </svg>
             </Button>
           </motion.div>
         ) : (
@@ -618,7 +622,9 @@ export default function QuizPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="mb-4 px-4 py-1.5 rounded-full bg-rose-50 border border-rose-200 text-rose-600 font-extrabold text-xs flex items-center gap-1.5 shadow-xs"
                 >
-                  <span>🔄</span>
+                  <svg className="w-3.5 h-3.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                   <span>Yuk ulangi soal yang tadi terlewat agar semakin lancar!</span>
                 </motion.div>
               )}
@@ -659,8 +665,10 @@ export default function QuizPage() {
 
                     {!cameraActive && (
                       <div className="flex flex-col items-center text-center p-4 text-slate-300 z-20">
-                        <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 text-2xl">
-                          📷
+                        <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center mb-3 text-slate-300">
+                          <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
                         </div>
                         <p className="font-extrabold text-sm mb-1 text-white">
                           {cameraPermissionDenied ? 'Izin Kamera Belum Diberikan' : 'Kamera Sedang Disiapkan...'}
@@ -673,9 +681,12 @@ export default function QuizPage() {
                         <button
                           type="button"
                           onClick={startCameraStream}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF4754] to-[#E02424] text-white text-xs font-black shadow-md hover:scale-103 transition cursor-pointer"
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#FF4754] to-[#E02424] text-white text-xs font-black shadow-md hover:scale-103 transition cursor-pointer flex items-center gap-1.5"
                         >
-                          📹 Buka / Coba Kamera Lagi
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                          </svg>
+                          <span>Buka / Coba Kamera Lagi</span>
                         </button>
                       </div>
                     )}
@@ -979,8 +990,10 @@ export default function QuizPage() {
               exit={{ opacity: 0, scale: 0.92 }}
               className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl text-center border border-gray-100"
             >
-              <div className="w-16 h-16 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center text-3xl mx-auto mb-4 border border-rose-200">
-                ✋
+              <div className="w-14 h-14 rounded-2xl bg-rose-50 text-rose-500 flex items-center justify-center mx-auto mb-4 border border-rose-200">
+                <svg className="w-7 h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
               <h3 className="text-xl font-black text-gray-900 mb-2">Ingin istirahat dulu?</h3>
               <p className="text-sm text-gray-500 font-bold mb-6">

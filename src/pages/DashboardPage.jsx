@@ -1827,8 +1827,29 @@ const DashboardPage = () => {
   const [hoveredUnitId, setHoveredUnitId] = useState(null)
   const [clickedTooltipUnitId, setClickedTooltipUnitId] = useState(null)
 
+  // Settings preferences (Preferensi tersimpan di local storage & aktif secara fungsional)
+  const [settingsPref, setSettingsPref] = useState(() => {
+    try {
+      const saved = localStorage.getItem('handoora_user_settings')
+      if (saved) return JSON.parse(saved)
+    } catch {}
+    return {
+      hapticFeedback: true,
+      skyTheme: 'bright',
+    }
+  })
+
   const [mapZoom, setMapZoom] = useState(1)
-  const [skyMode, setSkyMode] = useState('bright')
+  const [skyMode, setSkyMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('handoora_user_settings')
+      if (saved) {
+        const parsed = JSON.parse(saved)
+        if (parsed.skyTheme) return parsed.skyTheme
+      }
+    } catch {}
+    return 'bright'
+  })
   const [showStreakPopover, setShowStreakPopover] = useState(false)
 
   // Submenu tab untuk menu LAINNYA: 'pengaturan' | 'bantuan' | 'faq'
@@ -1869,20 +1890,6 @@ const DashboardPage = () => {
     confirmPassword: '',
   })
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false)
-
-  // Settings preferences (Audio, Notifikasi, Mode Langit)
-  const [settingsPref, setSettingsPref] = useState(() => {
-    try {
-      const saved = localStorage.getItem('handoora_user_settings')
-      if (saved) return JSON.parse(saved)
-    } catch {}
-    return {
-      soundEffects: true,
-      hapticFeedback: true,
-      notifications: true,
-      skyTheme: 'bright',
-    }
-  })
 
   // State Blur per Pulau saat pulau benar-benar terpotong batas tepi atas/bawah layar scroll
   const [islandBlurs, setIslandBlurs] = useState({
@@ -2049,8 +2056,7 @@ const DashboardPage = () => {
   const startQuiz = (unit) => {
     // Selama masa pengembangan, Level 3-6 dibuat Coming Soon
     if (unit.id >= 3) {
-      toast('🚧 Level ini sedang dalam tahap pengembangan (Coming Soon)! Nantikan update terbarunya.', {
-        icon: '✨',
+      toast('Level ini sedang dalam tahap pengembangan (Coming Soon). Nantikan update berikutnya.', {
         duration: 3500,
       })
       return
@@ -2059,7 +2065,7 @@ const DashboardPage = () => {
     const isUnlocked = progress.unlockedIslands.includes(unit.id) || unit.id === 1
     if (!isUnlocked) {
       toast.error(
-        `Selesaikan Level ${unit.id - 1} terlebih dahulu untuk membuka ${unit.unitLabel}! 🔒`
+        `Selesaikan Level ${unit.id - 1} terlebih dahulu untuk membuka ${unit.unitLabel}.`
       )
       return
     }
@@ -2125,7 +2131,7 @@ const DashboardPage = () => {
         umur: parseInt(profileForm.umur, 10) || 20,
         avatar_url: profileForm.avatar_url,
       })
-      toast.success('Informasi profil berhasil diperbarui! ✨')
+      toast.success('Informasi profil berhasil disimpan')
     } catch {
       toast.error('Gagal memperbarui profil, silakan coba lagi.')
     } finally {
@@ -2147,7 +2153,7 @@ const DashboardPage = () => {
     setIsUpdatingPassword(true)
     try {
       await updatePassword(passwordForm.newPassword)
-      toast.success('Password akun Handoora berhasil diubah! 🔐')
+      toast.success('Password akun berhasil diperbarui')
       setPasswordForm({ newPassword: '', confirmPassword: '' })
     } catch (err) {
       toast.error(err.message || 'Gagal mengubah password.')
@@ -2424,12 +2430,17 @@ const DashboardPage = () => {
                             >
                               {progress.streak} hari beruntun
                             </h3>
-                            <p className="text-[11px] font-bold text-gray-500 mt-0.5">
-                              {isStreakActive
-                                ? '🔥 Api streak menyala hari ini!'
-                                : progress.streak === 0
-                                  ? 'Api belum menyala. Selesaikan 1 level!'
-                                  : 'Selesaikan 1 level hari ini agar streak bertambah!'}
+                            <p className="text-[11px] font-bold text-gray-500 mt-0.5 flex items-center gap-1">
+                              {isStreakActive ? (
+                                <>
+                                  <IconFlame className="w-3.5 h-3.5" color="#E02424" />
+                                  <span>Api streak menyala hari ini</span>
+                                </>
+                              ) : progress.streak === 0 ? (
+                                <span>Api belum menyala. Selesaikan 1 level!</span>
+                              ) : (
+                                <span>Selesaikan 1 level hari ini agar streak bertambah!</span>
+                              )}
                             </p>
                           </div>
                           <button
@@ -2715,8 +2726,11 @@ const DashboardPage = () => {
                                     <span className="text-[10px]">▶</span>
                                   </motion.button>
                                 ) : (
-                                  <div className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider text-center">
-                                    🔒 SELESAIKAN LEVEL {unit.id - 1}
+                                  <div className="w-full py-2 px-3 rounded-xl bg-[#F0ECE6] border-b-3 border-b-[#C9C0B5] text-[#78716C] font-extrabold text-[11px] uppercase tracking-wider text-center flex items-center justify-center gap-1.5">
+                                    <svg className="w-3.5 h-3.5 text-[#78716C]" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                    </svg>
+                                    <span>SELESAIKAN LEVEL {unit.id - 1}</span>
                                   </div>
                                 )}
                               </div>
@@ -2872,32 +2886,36 @@ const DashboardPage = () => {
           )}
 
           {/* ========================================================== */}
-          {/* VIEW B: PROFIL PENGGUNA (DENGAN FITUR GANTI FOTO PROFIL)   */}
+          {/* VIEW B: PROFIL PENGGUNA (CLEAN PROFESSIONAL EDTECH DESIGN) */}
           {/* ========================================================== */}
           {activeMenu === 'profil' && (
-            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-24">
-              <div className="max-w-3xl mx-auto w-full">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-8 pb-28">
+              <div className="max-w-4xl mx-auto w-full space-y-6">
+                {/* 1. Header Ringkasan Profil Pengguna */}
                 <motion.div
-                  initial={{ opacity: 0, y: 12 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 space-y-6 shadow-[0_16px_44px_rgba(0,0,0,0.10)]"
+                  className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-8 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
                 >
-                  {/* Header Foto Profil & Informasi Akun */}
-                  <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-[#EEEEEE]">
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    {/* Foto Profil & Tombol Ubah */}
                     <div className="relative group shrink-0">
-                      <img
-                        src={currentAvatar}
-                        alt={user?.nama || 'Foto Profil'}
-                        className="w-24 h-24 rounded-3xl object-cover border-2 border-gray-200 shadow-sm bg-gray-50"
-                      />
+                      <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden bg-gray-50 border-2 border-gray-200/90 shadow-sm">
+                        <img
+                          src={currentAvatar}
+                          alt={user?.nama || 'Foto Profil'}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
                       <button
                         type="button"
                         onClick={() => fileInputRef.current?.click()}
-                        className="absolute -bottom-2 -right-2 bg-[#E02424] hover:bg-[#C91A1A] text-white text-[11px] font-black px-2.5 py-1 rounded-xl border-2 border-white shadow-sm cursor-pointer transition-transform hover:scale-105 flex items-center gap-1"
+                        className="absolute -bottom-2 -right-2 bg-white hover:bg-gray-50 text-gray-700 text-xs font-extrabold px-2.5 py-1.5 rounded-xl border border-gray-200 shadow-sm cursor-pointer transition-all hover:scale-105 flex items-center gap-1.5"
+                        title="Ganti foto profil"
                       >
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <svg className="w-3.5 h-3.5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                         <span>Ubah</span>
                       </button>
@@ -2910,179 +2928,243 @@ const DashboardPage = () => {
                       />
                     </div>
 
-                    <div className="text-center sm:text-left flex-1">
-                      <h1 className="text-2xl font-black text-gray-900">
-                        {user?.nama || 'Sobat Handoora'}
-                      </h1>
-                      <p className="text-xs sm:text-sm text-gray-500 font-bold mt-0.5">
-                        {user?.email || 'sobat@handoora.id'} • {user?.umur || 20} Tahun
-                      </p>
-                      <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mt-3">
-                        <span
-                          className={`px-3 py-1 rounded-full border text-[11px] font-black flex items-center gap-1.5 ${
-                            isStreakActive
-                              ? 'bg-rose-50 border-rose-200 text-[#E02424]'
-                              : 'bg-gray-100 border-gray-200 text-gray-500'
-                          }`}
-                        >
-                          <IconFlame
-                            className="w-3.5 h-3.5"
-                            color={isStreakActive ? '#E02424' : '#9CA3AF'}
-                            innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
-                          />
-                          <span>
-                            {progress.streak} Hari Beruntun {isStreakActive ? '(Aktif)' : '(Mati)'}
+                    {/* Informasi Utama & Badge Metrik */}
+                    <div className="flex-1 text-center sm:text-left min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <div>
+                          <h1 className="text-2xl font-black text-gray-900 tracking-tight">
+                            {user?.nama || 'Sobat Handoora'}
+                          </h1>
+                          <p className="text-xs sm:text-sm text-gray-500 font-semibold mt-0.5">
+                            {user?.email || 'sobat@handoora.id'} • {user?.umur ? `${user.umur} Tahun` : 'Pelajar BISINDO'}
+                          </p>
+                        </div>
+                        <span className="self-center sm:self-start inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-emerald-700 text-xs font-extrabold">
+                          <span className="w-2 h-2 rounded-full bg-emerald-500" />
+                          <span>Akun Aktif</span>
+                        </span>
+                      </div>
+
+                      {/* Stat Cards Mini */}
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4 pt-4 border-t border-gray-100">
+                        <div className="p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                            Streak Belajar
                           </span>
-                        </span>
-                        <span className="px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-[11px] font-black text-emerald-700 flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                          <span>{progress.completedIslands.length} dari {ISLAND_UNITS.length} Level Selesai</span>
-                        </span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <IconFlame
+                              className="w-4 h-5"
+                              color={isStreakActive ? '#E02424' : '#9CA3AF'}
+                              innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
+                            />
+                            <span className="text-base font-black text-gray-900">
+                              {progress.streak} Hari
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                            Total XP
+                          </span>
+                          <div className="flex items-center gap-1 mt-1">
+                            <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                            </svg>
+                            <span className="text-base font-black text-gray-900">
+                              {progress.xp} XP
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="col-span-2 sm:col-span-1 p-3 rounded-2xl bg-gray-50/80 border border-gray-200/70">
+                          <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider block">
+                            Progres Level
+                          </span>
+                          <div className="flex items-center gap-1.5 mt-1">
+                            <span className="text-base font-black text-gray-900">
+                              {progress.completedIslands.length} / {ISLAND_UNITS.length}
+                            </span>
+                            <span className="text-xs text-gray-500 font-bold">Level</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </motion.div>
 
-                  {/* Pilihan Foto Profil / Avatar */}
-                  <div className="space-y-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h2 className="text-sm font-extrabold text-[#333333]">
-                        Pilih Foto Profil
+                {/* 2. Pemilihan Karakter Avatar */}
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.05 }}
+                  className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] space-y-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 className="text-base font-black text-gray-900">
+                        Karakter Maskot Handoora
                       </h2>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="text-xs font-extrabold text-[#E02424] hover:underline cursor-pointer"
-                      >
-                        + Unggah Foto dari Perangkat
-                      </button>
+                      <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                        Pilih maskot pendamping belajar favoritmu atau unggah avatar sendiri
+                      </p>
                     </div>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                      {AVATAR_PRESETS.map((av) => {
-                        const isSelected = profileForm.avatar_url === av.src
-                        return (
-                          <button
-                            key={av.id}
-                            type="button"
-                            onClick={() =>
-                              setProfileForm((p) => ({ ...p, avatar_url: av.src }))
-                            }
-                            className={`flex items-center gap-2.5 p-2 pr-3.5 rounded-2xl border-2 transition-all cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#FFF0F0] border-[#E02424] shadow-2xs'
-                                : 'bg-[#FAFAFA] border-[#E6E6E6] hover:border-[#CCCCCC]'
-                            }`}
-                          >
-                            <img
-                              src={av.src}
-                              alt={av.label}
-                              className="w-10 h-10 rounded-xl object-cover"
-                            />
-                            <span className="text-xs font-extrabold text-[#333333]">
-                              {av.label}
-                            </span>
-                          </button>
-                        )
-                      })}
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs font-bold text-[#E02424] hover:text-[#C91A1A] hover:underline cursor-pointer flex items-center gap-1"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                      </svg>
+                      <span>Unggah Gambar Kustom</span>
+                    </button>
                   </div>
 
-                  {/* Form Perbarui Informasi Profil */}
-                  <form onSubmit={handleSaveProfile} className="space-y-4 pt-2 border-t border-[#EEEEEE]">
-                    <h2 className="text-base font-extrabold text-[#333333]">
-                      Perbarui Informasi Profil
-                    </h2>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    {AVATAR_PRESETS.map((av) => {
+                      const isSelected = profileForm.avatar_url === av.src
+                      return (
+                        <button
+                          key={av.id}
+                          type="button"
+                          onClick={() => setProfileForm((p) => ({ ...p, avatar_url: av.src }))}
+                          className={`p-3 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-3 text-left ${
+                            isSelected
+                              ? 'bg-rose-50/70 border-[#E02424] shadow-xs'
+                              : 'bg-gray-50/60 border-gray-200/80 hover:border-gray-300 hover:bg-gray-50'
+                          }`}
+                        >
+                          <img
+                            src={av.src}
+                            alt={av.label}
+                            className="w-12 h-12 rounded-xl object-cover border border-white shadow-xs"
+                          />
+                          <div className="min-w-0">
+                            <span className="text-xs font-black text-gray-900 block truncate">
+                              {av.label}
+                            </span>
+                            <span className="text-[11px] text-gray-400 font-semibold">
+                              {isSelected ? 'Sedang Digunakan' : 'Klik untuk Pilih'}
+                            </span>
+                          </div>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </motion.div>
+
+                {/* 3. Form Informasi Profil & Keamanan Password */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Form Profil */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                  >
+                    <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                      <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                      </div>
                       <div>
-                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                        <h2 className="text-sm font-black text-gray-900">Informasi Pribadi</h2>
+                        <p className="text-[11px] text-gray-400 font-semibold">Sesuaikan identitas profil belajarmu</p>
+                      </div>
+                    </div>
+
+                    <form onSubmit={handleSaveProfile} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5">
                           Nama Lengkap
                         </label>
                         <Input
                           value={profileForm.nama}
-                          onChange={(e) =>
-                            setProfileForm((p) => ({ ...p, nama: e.target.value }))
-                          }
-                          placeholder="Nama Lengkap"
+                          onChange={(e) => setProfileForm((p) => ({ ...p, nama: e.target.value }))}
+                          placeholder="Nama lengkap kamu"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5">
                           Umur
                         </label>
                         <Input
                           type="number"
                           value={profileForm.umur}
-                          onChange={(e) =>
-                            setProfileForm((p) => ({ ...p, umur: e.target.value }))
-                          }
-                          placeholder="Umur"
+                          onChange={(e) => setProfileForm((p) => ({ ...p, umur: e.target.value }))}
+                          placeholder="Contoh: 20"
                         />
                       </div>
-                    </div>
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="md"
-                      disabled={isSavingProfile}
-                    >
-                      {isSavingProfile ? 'MENYIMPAN...' : 'SIMPAN PERUBAHAN'}
-                    </Button>
-                  </form>
-
-                  {/* Form Set & Ubah Password Akun Handoora */}
-                  <form onSubmit={handleUpdatePassword} className="space-y-4 pt-5 border-t border-[#EEEEEE]">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h2 className="text-base font-extrabold text-[#333333]">
-                          Keamanan & Password Akun
-                        </h2>
-                        <p className="text-xs text-gray-500 font-bold">
-                          Atur atau ubah password baru untuk akun Handoora kamu.
-                        </p>
+                      <div className="pt-2">
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="md"
+                          disabled={isSavingProfile}
+                          className="w-full"
+                        >
+                          {isSavingProfile ? 'Menyimpan...' : 'Simpan Informasi'}
+                        </Button>
                       </div>
-                      <span className="text-lg">🔐</span>
+                    </form>
+                  </motion.div>
+
+                  {/* Form Keamanan Password */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)]"
+                  >
+                    <div className="flex items-center gap-2.5 mb-4 pb-3 border-b border-gray-100">
+                      <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h2 className="text-sm font-black text-gray-900">Keamanan Akun</h2>
+                        <p className="text-[11px] text-gray-400 font-semibold">Atur atau ubah kata sandi akunmu</p>
+                      </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <form onSubmit={handleUpdatePassword} className="space-y-4">
                       <div>
-                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5">
                           Password Baru
                         </label>
                         <Input
                           type="password"
                           value={passwordForm.newPassword}
-                          onChange={(e) =>
-                            setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))
-                          }
+                          onChange={(e) => setPasswordForm((p) => ({ ...p, newPassword: e.target.value }))}
                           placeholder="Minimal 6 karakter"
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-extrabold text-[#666666] mb-1.5">
-                          Konfirmasi Password Baru
+                        <label className="block text-xs font-bold text-gray-600 mb-1.5">
+                          Konfirmasi Password
                         </label>
                         <Input
                           type="password"
                           value={passwordForm.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))
-                          }
-                          placeholder="Ketik ulang password baru"
+                          onChange={(e) => setPasswordForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                          placeholder="Ulangi password baru"
                         />
                       </div>
-                    </div>
-
-                    <Button
-                      type="submit"
-                      variant="primary"
-                      size="md"
-                      disabled={isUpdatingPassword}
-                      className="bg-[#2B2B2B] hover:bg-[#111111]"
-                    >
-                      {isUpdatingPassword ? 'MENYIMPAN...' : 'PERBARUI PASSWORD'}
-                    </Button>
-                  </form>
-                </motion.div>
+                      <div className="pt-2">
+                        <button
+                          type="submit"
+                          disabled={isUpdatingPassword}
+                          className="w-full py-3 px-4 rounded-2xl bg-gray-900 hover:bg-black text-white text-xs font-black tracking-wider uppercase transition cursor-pointer shadow-sm disabled:opacity-50"
+                        >
+                          {isUpdatingPassword ? 'Memperbarui...' : 'Perbarui Password'}
+                        </button>
+                      </div>
+                    </form>
+                  </motion.div>
+                </div>
               </div>
             </div>
           )}
@@ -3100,8 +3182,11 @@ const DashboardPage = () => {
                   className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6"
                 >
                   <div className="space-y-2 text-center md:text-left">
-                    <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider">
-                      📖 Ensiklopedia Visual BISINDO
+                    <span className="px-3 py-1 rounded-full bg-[#FFF0F0] text-xs font-black text-[#E02424] uppercase tracking-wider flex items-center gap-1.5 w-fit">
+                      <svg className="w-3.5 h-3.5 text-[#E02424]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                      </svg>
+                      <span>Ensiklopedia Visual BISINDO</span>
                     </span>
                     <h1 className="text-2xl sm:text-3xl font-black text-[#2B2B2B] tracking-tight">
                       Kamus Bentuk Tangan BISINDO
@@ -3122,8 +3207,10 @@ const DashboardPage = () => {
                         placeholder="Cari huruf atau isyarat..."
                         className="w-full pl-10 pr-4 py-3 rounded-2xl bg-[#F7F7F7] border-2 border-[#EAEAEA] focus:border-[#E02424] text-xs font-bold text-gray-800 placeholder-gray-400 outline-none transition"
                       />
-                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm">
-                        🔍
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
                       </span>
                     </div>
                   </div>
@@ -3203,7 +3290,11 @@ const DashboardPage = () => {
                   if (activeEntries.length === 0) {
                     return (
                       <div className="bg-white/90 rounded-3xl p-12 text-center border-2 border-[#EBEBEB]">
-                        <p className="text-4xl mb-3">🔍</p>
+                        <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-400 mx-auto mb-3">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
                         <h3 className="text-base font-black text-gray-700">Tidak ada isyarat ditemukan</h3>
                         <p className="text-xs text-gray-400 font-bold mt-1">
                           Coba gunakan kata kunci pencarian lain.
@@ -3241,8 +3332,10 @@ const DashboardPage = () => {
                                 {isSecretComingSoon ? (
                                   /* UI Rahasia & Estetik untuk Isyarat Coming Soon */
                                   <div className="w-full h-full rounded-xl bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 flex flex-col items-center justify-center p-3 text-center">
-                                    <div className="w-12 h-12 rounded-2xl bg-white border border-amber-200 shadow-sm flex items-center justify-center text-xl mb-1 text-amber-600">
-                                      🔒
+                                    <div className="w-12 h-12 rounded-2xl bg-white border border-amber-200 shadow-sm flex items-center justify-center mb-1 text-amber-600">
+                                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                      </svg>
                                     </div>
                                     <span className="text-[10px] font-black text-amber-700 uppercase tracking-wider">
                                       Dirahasiakan
@@ -3310,25 +3403,36 @@ const DashboardPage = () => {
                     className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 text-center shadow-sm"
                   >
                     <div className="flex items-center justify-center gap-2 mb-3">
-                      <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#E59866] to-[#BA4A00] flex items-center justify-center text-white text-2xl shadow-md border-2 border-[#F5B041]">
-                        🪶
+                      <div className="w-12 h-14 rounded-2xl bg-gradient-to-b from-[#E59866] to-[#BA4A00] flex items-center justify-center text-white shadow-md border-2 border-[#F5B041]">
+                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                        </svg>
                       </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
-                        🛡️
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+                        <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
+                        </svg>
                       </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
-                        🛡️
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+                        <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
+                        </svg>
                       </div>
-                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 text-lg border border-gray-200">
-                        🛡️
+                      <div className="w-9 h-11 rounded-2xl bg-gray-100 flex items-center justify-center text-gray-300 border border-gray-200">
+                        <svg className="w-4 h-4 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 1.944A11.954 11.954 0 012.166 5C2.056 5.649 2 6.319 2 7c0 5.225 3.34 9.67 8 11.317C14.66 16.67 18 12.225 18 7c0-.682-.057-1.35-.166-2.001A11.954 11.954 0 0110 1.944z" clipRule="evenodd" />
+                        </svg>
                       </div>
                     </div>
                     <h2 className="text-xl font-black text-[#2B2B2B]">Liga Perunggu Handoora</h2>
                     <p className="text-xs font-bold text-gray-400 mt-0.5">
                       Top 10 pembelajar bahasa isyarat teraktif minggu ini
                     </p>
-                    <span className="inline-block mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 font-extrabold text-[11px] border border-amber-200">
-                      ⏱️ 6 Hari Tersisa
+                    <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full bg-amber-50 text-amber-600 font-extrabold text-[11px] border border-amber-200">
+                      <svg className="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>6 Hari Tersisa</span>
                     </span>
                   </motion.div>
 
@@ -3338,7 +3442,7 @@ const DashboardPage = () => {
                       if (isLoadingLeaderboard) {
                         return (
                           <div className="py-12 text-center text-gray-400 font-bold text-xs flex flex-col items-center gap-2">
-                            <span className="animate-spin text-2xl">⏳</span>
+                            <div className="w-8 h-8 border-3 border-gray-300 border-t-[#E02424] rounded-full animate-spin" />
                             <span>Memuat peringkat aktual dari database Supabase...</span>
                           </div>
                         )
@@ -3356,7 +3460,7 @@ const DashboardPage = () => {
                             xp: Number(p.xp) || 0,
                             level: Number(p.current_unit) || 1,
                             avatar: p.avatar_url || '/assets/avatar-orangutan.png',
-                            status: p.id === user?.id ? userLeaderboardStatus : '✨',
+                            status: p.id === user?.id ? userLeaderboardStatus : '🌟',
                             isMe: p.id === user?.id,
                           })
                         })
@@ -3542,44 +3646,43 @@ const DashboardPage = () => {
                   ))}
                 </div>
 
-                {/* TAB 1: PENGATURAN APLIKASI & SUARA */}
+                {/* TAB 1: PENGATURAN APLIKASI */}
                 {lainnyaTab === 'pengaturan' && (
                   <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="space-y-4"
                   >
-                    <div className="bg-white/95 backdrop-blur-md border-2 border-[#EBEBEB] rounded-3xl p-6 shadow-sm space-y-5">
-                      <h3 className="text-base font-black text-[#2B2B2B]">
-                        Preferensi Pembelajaran & Efek
-                      </h3>
+                    <div className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 sm:p-7 shadow-[0_10px_30px_rgba(0,0,0,0.04)] space-y-5">
+                      <div>
+                        <h3 className="text-base font-black text-gray-900">
+                          Preferensi Pembelajaran & Tampilan
+                        </h3>
+                        <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                          Sesuaikan umpan balik visual dan suasana tema aplikasi
+                        </p>
+                      </div>
 
                       <div className="divide-y divide-gray-100">
-                        <div className="py-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-extrabold text-gray-800">Efek Suara Kuis</p>
-                            <p className="text-xs text-gray-400 font-bold">Mainkan audio bel & sinyal saat jawaban benar/salah</p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSetting('soundEffects')}
-                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
-                              settingsPref.soundEffects ? 'bg-emerald-500' : 'bg-gray-300'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.soundEffects ? 'translate-x-5' : 'translate-x-0'}`} />
-                          </button>
-                        </div>
-
-                        <div className="py-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-extrabold text-gray-800">Umpan Balik Kamera Real-time</p>
-                            <p className="text-xs text-gray-400 font-bold">Animasi border hijau & merah saat mendeteksi gestur tangan</p>
+                        {/* 1. Umpan Balik Kamera Real-time */}
+                        <div className="py-4 flex items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700 shrink-0 mt-0.5">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-gray-900">Umpan Balik Kamera Real-time</p>
+                              <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                                Tampilkan animasi bingkai sinyal hijau dan merah saat AI mendeteksi isyarat tangan
+                              </p>
+                            </div>
                           </div>
                           <button
                             type="button"
                             onClick={() => handleToggleSetting('hapticFeedback')}
-                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
+                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer shrink-0 ${
                               settingsPref.hapticFeedback ? 'bg-emerald-500' : 'bg-gray-300'
                             }`}
                           >
@@ -3587,47 +3690,70 @@ const DashboardPage = () => {
                           </button>
                         </div>
 
-                        <div className="py-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-extrabold text-gray-800">Notifikasi Pengingat Belajar</p>
-                            <p className="text-xs text-gray-400 font-bold">Ingatkan latihan harian agar streak tidak padam</p>
+                        {/* 2. Tema Langit Pulau */}
+                        <div className="py-4 flex items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gray-100 flex items-center justify-center text-gray-700 shrink-0 mt-0.5">
+                              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                              </svg>
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-gray-900">Tema Langit Peta Pulau</p>
+                              <p className="text-xs text-gray-500 font-semibold mt-0.5">
+                                Beralih antara suasana Langit Siang (Cerah) atau Langit Senja (Sunset)
+                              </p>
+                            </div>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => handleToggleSetting('notifications')}
-                            className={`w-12 h-7 rounded-full p-1 transition cursor-pointer ${
-                              settingsPref.notifications ? 'bg-emerald-500' : 'bg-gray-300'
-                            }`}
-                          >
-                            <div className={`w-5 h-5 rounded-full bg-white transition-transform ${settingsPref.notifications ? 'translate-x-5' : 'translate-x-0'}`} />
-                          </button>
-                        </div>
-
-                        <div className="py-3.5 flex items-center justify-between">
-                          <div>
-                            <p className="text-sm font-extrabold text-gray-800">Tema Langit Pulau</p>
-                            <p className="text-xs text-gray-400 font-bold">Beralih antara Langit Cerah (Siang) atau Senja (Autumn)</p>
+                          <div className="flex items-center bg-gray-100 p-1 rounded-2xl border border-gray-200">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSkyMode('bright')
+                                setSettingsPref((prev) => {
+                                  const updated = { ...prev, skyTheme: 'bright' }
+                                  localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
+                                  return updated
+                                })
+                                toast.success('Tema Langit Siang diaktifkan')
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                                skyMode === 'bright'
+                                  ? 'bg-[#0A84EC] text-white shadow-xs'
+                                  : 'text-gray-600 hover:text-gray-900'
+                              }`}
+                            >
+                              Siang
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setSkyMode('sunset')
+                                setSettingsPref((prev) => {
+                                  const updated = { ...prev, skyTheme: 'sunset' }
+                                  localStorage.setItem('handoora_user_settings', JSON.stringify(updated))
+                                  return updated
+                                })
+                                toast.success('Tema Langit Senja diaktifkan')
+                              }}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-black transition cursor-pointer ${
+                                skyMode === 'sunset'
+                                  ? 'bg-[#E15814] text-white shadow-xs'
+                                  : 'text-gray-600 hover:text-gray-900'
+                              }`}
+                            >
+                              Senja
+                            </button>
                           </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newMode = skyMode === 'bright' ? 'sunset' : 'bright'
-                              setSkyMode(newMode)
-                              handleToggleSetting('skyTheme')
-                            }}
-                            className="px-4 py-2 rounded-xl bg-gray-100 hover:bg-gray-200 text-xs font-black text-gray-700 transition cursor-pointer border border-gray-200"
-                          >
-                            {skyMode === 'bright' ? 'Langit Siang' : 'Langit Senja'}
-                          </button>
                         </div>
                       </div>
                     </div>
 
                     {/* Reset Progres Pembelajaran */}
-                    <div className="bg-white/95 backdrop-blur-md border border-gray-200 rounded-3xl p-6 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-3xl p-6 shadow-[0_10px_30px_rgba(0,0,0,0.04)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                       <div>
                         <h3 className="text-base font-black text-gray-900">Reset Progres Belajar</h3>
-                        <p className="text-xs text-gray-500 font-bold mt-0.5">
+                        <p className="text-xs text-gray-500 font-semibold mt-0.5">
                           Ulangi seluruh modul dari Level 1 dan kosongkan riwayat kuis tersimpan.
                         </p>
                       </div>
@@ -3641,7 +3767,7 @@ const DashboardPage = () => {
                           }
                           toast.success('Progres pembelajaran direset kembali ke Level 1')
                         }}
-                        className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-600 border border-rose-200 cursor-pointer transition"
+                        className="px-4 py-2.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-xs font-black text-rose-600 border border-rose-200 cursor-pointer transition shrink-0"
                       >
                         Reset ke Level 1
                       </button>
@@ -3785,8 +3911,10 @@ const DashboardPage = () => {
                 exit={{ scale: 0.92, y: 16, opacity: 0 }}
                 className="w-full max-w-md bg-white border-2 border-[#EBEBEB] rounded-[32px] p-6 sm:p-7 shadow-2xl text-center space-y-5"
               >
-                <div className="w-16 h-16 rounded-3xl bg-amber-50 text-amber-500 border border-amber-200 flex items-center justify-center text-3xl mx-auto shadow-inner">
-                  ⏱️
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-xs">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                 </div>
 
                 <div>
@@ -3813,9 +3941,12 @@ const DashboardPage = () => {
 
                   <button
                     onClick={handleRestartQuizFromBeginning}
-                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-gray-200 hover:bg-gray-50 text-gray-600 font-extrabold text-xs uppercase tracking-wider cursor-pointer transition"
+                    className="w-full py-2.5 px-4 rounded-2xl border-2 border-gray-200 hover:bg-gray-50 text-gray-600 font-extrabold text-xs uppercase tracking-wider cursor-pointer transition flex items-center justify-center gap-1.5"
                   >
-                    🔄 ULANGI KUIS DARI AWAL
+                    <svg className="w-3.5 h-3.5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    <span>ULANGI KUIS DARI AWAL</span>
                   </button>
 
                   <button
