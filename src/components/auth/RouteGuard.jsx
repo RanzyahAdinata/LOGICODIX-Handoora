@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import SplashScreen from '../common/SplashScreen'
 
 /**
  * ProtectedRoute: Menjaga halaman agar hanya dapat diakses pengguna terautentikasi.
@@ -10,14 +11,7 @@ export const ProtectedRoute = ({ children }) => {
   const location = useLocation()
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center font-nunito">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#E02424] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-black text-gray-500 uppercase tracking-wider">Memuat Handoora...</p>
-        </div>
-      </div>
-    )
+    return <SplashScreen text="MEMUAT..." />
   }
 
   if (!isAuthenticated) {
@@ -35,14 +29,7 @@ export const PublicOnlyRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth()
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#FDFBF7] flex items-center justify-center font-nunito">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 border-4 border-[#E02424] border-t-transparent rounded-full animate-spin" />
-          <p className="text-xs font-black text-gray-500 uppercase tracking-wider">Memuat Handoora...</p>
-        </div>
-      </div>
-    )
+    return <SplashScreen text="MEMUAT..." />
   }
 
   if (isAuthenticated) {
