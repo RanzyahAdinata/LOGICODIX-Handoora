@@ -3720,27 +3720,28 @@ const DashboardPage = () => {
                         )
                       }
 
-                      // Susun list dari data Supabase profiles apa adanya
+                      // Susun list peserta dari data leaderboard global yang konsisten
                       const userMap = new Map()
 
-                      // Masukkan seluruh data pengguna aktual dari database Supabase / synced profiles
+                      // Masukkan seluruh peserta dari leaderboard
                       if (Array.isArray(supabaseLeaderboard) && supabaseLeaderboard.length > 0) {
                         supabaseLeaderboard.forEach((p) => {
                           const displayXp = Number(p.xp) || 0
+                          const isCurrentUser = Boolean(user?.id && (p.id === user.id || p.email === user.email))
                           userMap.set(p.id, {
                             id: p.id,
-                            name: p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora'),
-                            xp: displayXp,
-                            level: Number(p.current_unit) || 1,
-                            avatar: p.avatar_url || '/assets/avatar-orangutan.png',
-                            status: p.id === user?.id ? userLeaderboardStatus : '🌟',
-                            isMe: p.id === user?.id,
+                            name: isCurrentUser ? `${user?.nama || p.nama || 'Sobat Handoora'} (Kamu)` : (p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora')),
+                            xp: isCurrentUser ? (Number(progress.xp) || displayXp) : displayXp,
+                            level: isCurrentUser ? currentActiveUnitId : (Number(p.current_unit) || 1),
+                            avatar: isCurrentUser ? currentAvatar : (p.avatar_url || '/assets/avatar-orangutan.png'),
+                            status: isCurrentUser ? userLeaderboardStatus : (p.status || '🌟'),
+                            isMe: isCurrentUser,
                           })
                         })
                       }
 
-                      // Sinkronkan data pengguna yang sedang login dengan state progres aktual
-                      if (user?.id) {
+                      // Jika pengguna aktif saat ini belum ada di daftar, masukkan dengan XP real-time miliknya
+                      if (user?.id && !userMap.has(user.id)) {
                         const currentXp = Number(progress.xp) || 0
                         userMap.set(user.id, {
                           id: user.id,
@@ -3751,8 +3752,8 @@ const DashboardPage = () => {
                           status: userLeaderboardStatus,
                           isMe: true,
                         })
-                      } else if (userMap.size === 0) {
-                        // Jika mode tamu / belum login sama sekali dan database kosong
+                      } else if (!user?.id && userMap.size === 0) {
+                        // Jika mode tamu / belum login sama sekali dan leaderboard kosong
                         const currentXp = Number(progress.xp) || 0
                         userMap.set('guest', {
                           id: 'guest',
@@ -3766,7 +3767,7 @@ const DashboardPage = () => {
                       }
 
                       // Urutkan murni berdasarkan XP terbanyak (Descending)
-                      // Tampilkan tepat sebanyak data yang ada di database (maksimal 10 orang teratas: jika ada 2 ya 2, jika 3 ya 3, dst)
+                      // Tampilkan tepat 10 besar terbaik yang konsisten secara global
                       const sortedList = Array.from(userMap.values())
                         .sort((a, b) => b.xp - a.xp)
                         .slice(0, 10)

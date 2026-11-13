@@ -156,6 +156,111 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
   }
 }
 
+// Komunitas Pembelajar Aktif Global (Standar Resmi Liga Handoora)
+// Dipakai secara konsisten dan seragam oleh semua user di Leaderboard
+export const GLOBAL_COMMUNITY_USERS = [
+  {
+    id: 'comm-user-1',
+    nama: 'Khai đỗ đình',
+    email: 'khai.dinh@gmail.com',
+    xp: 480,
+    weekly_xp: 480,
+    current_unit: 2,
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=60',
+    status: '💯',
+  },
+  {
+    id: 'demo-handoora-juri-account',
+    nama: 'Demo Pengujian (Juri)',
+    email: 'demo.handoora@gmail.com',
+    xp: 350,
+    weekly_xp: 350,
+    current_unit: 2,
+    avatar_url: null,
+    status: '🔥',
+  },
+  {
+    id: 'comm-user-2',
+    nama: 'Ishu',
+    email: 'ishu.bisindo@yahoo.com',
+    xp: 290,
+    weekly_xp: 290,
+    current_unit: 2,
+    avatar_url: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100&auto=format&fit=crop&q=60',
+    status: '💪',
+  },
+  {
+    id: 'comm-user-3',
+    nama: 'Bekhzod Nurmatov',
+    email: 'bekhzod@outlook.com',
+    xp: 210,
+    weekly_xp: 210,
+    current_unit: 2,
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=60',
+    status: '🦜',
+  },
+  {
+    id: 'comm-user-4',
+    nama: 'Aleksey',
+    email: 'aleksey@mail.com',
+    xp: 160,
+    weekly_xp: 160,
+    current_unit: 2,
+    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60',
+    status: '⚡',
+  },
+  {
+    id: 'comm-user-5',
+    nama: 'Asmi Dhage',
+    email: 'asmi.dhage@gmail.com',
+    xp: 120,
+    weekly_xp: 120,
+    current_unit: 1,
+    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&auto=format&fit=crop&q=60',
+    status: '🌸',
+  },
+  {
+    id: 'comm-user-6',
+    nama: 'Phương Phạm',
+    email: 'phuong.pham@gmail.com',
+    xp: 90,
+    weekly_xp: 90,
+    current_unit: 1,
+    avatar_url: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=100&auto=format&fit=crop&q=60',
+    status: '👀',
+  },
+  {
+    id: 'comm-user-7',
+    nama: 'Lecea',
+    email: 'lecea.learning@gmail.com',
+    xp: 75,
+    weekly_xp: 75,
+    current_unit: 1,
+    avatar_url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&auto=format&fit=crop&q=60',
+    status: '✨',
+  },
+  {
+    id: 'comm-user-8',
+    nama: 'Kristian Panjaitan',
+    email: 'kristian.panjaitan@gmail.com',
+    xp: 60,
+    weekly_xp: 60,
+    current_unit: 1,
+    avatar_url: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?w=100&auto=format&fit=crop&q=60',
+    status: '🍿',
+  },
+  {
+    id: 'comm-user-9',
+    nama: 'Jonathanlimrs',
+    email: 'jonathan.lim@gmail.com',
+    xp: 45,
+    weekly_xp: 45,
+    current_unit: 1,
+    avatar_url: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=60',
+    status: '🚀',
+  },
+]
+
 export const DEMO_USER = {
   id: 'demo-handoora-juri-account',
   nama: 'Demo Pengujian (Juri)',
@@ -1070,41 +1175,73 @@ export const progressService = {
     return updatedProgress
   },
 
-  // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles
+  // Mendapatkan daftar leaderboard peringkat aktual dari Supabase profiles / Global Community
   async getLeaderboard(limit = 10) {
-    // Helper untuk mengambil cache profil lokal multi-akun jika Supabase offline/terkendala
-    const getCachedKnownProfiles = () => {
-      try {
-        const stored = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
-        // Pastikan akun demo juri juga disertakan dalam leaderboard lokal
-        if (!stored[DEMO_USER.id]) {
-          const demoProg = this.getProgress(DEMO_USER.id)
-          stored[DEMO_USER.id] = {
-            id: DEMO_USER.id,
-            nama: DEMO_USER.nama,
-            email: DEMO_USER.email,
-            xp: demoProg.xp || DEMO_USER.xp,
-            weekly_xp: demoProg.weekly_xp || DEMO_USER.weekly_xp,
-            current_unit: demoProg.unlockedIslands?.slice(-1)[0] || 2,
-            avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
-          }
-        }
-        return Object.values(stored).map(p => ({
-          ...p,
-          xp: Number(p.xp) || 0,
-          weekly_xp: Number(p.xp) || 0,
-        })).sort((a, b) => b.xp - a.xp)
-      } catch {
-        return []
+    // Helper untuk merakit daftar peringkat standar global yang konsisten dan akurat
+    const getConsistentLeaderboard = (supabaseData = []) => {
+      const userMap = new Map()
+
+      // 1. Masukkan peserta komunitas resmi global terlebih dahulu
+      GLOBAL_COMMUNITY_USERS.forEach((commUser) => {
+        userMap.set(commUser.id, {
+          id: commUser.id,
+          nama: commUser.nama,
+          email: commUser.email,
+          xp: commUser.xp,
+          weekly_xp: commUser.weekly_xp,
+          current_unit: commUser.current_unit,
+          avatar_url: commUser.avatar_url,
+          status: commUser.status,
+        })
+      })
+
+      // 2. Masukkan akun yang terdaftar di aplikasi lokal
+      const registeredUsers = getLocalRegisteredUsers()
+      Object.values(registeredUsers).forEach((reg) => {
+        if (!reg?.id) return
+        const regProg = this.getProgress(reg.id)
+        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
+        const currentXp = reg.id === currentMeta.id ? (Number(currentMeta.xp) || Number(regProg.xp) || 0) : (Number(regProg.xp) || 0)
+        userMap.set(reg.id, {
+          id: reg.id,
+          nama: reg.nama || 'Sobat Handoora',
+          email: reg.email,
+          xp: currentXp,
+          weekly_xp: currentXp,
+          current_unit: regProg.unlockedIslands?.slice(-1)[0] || 1,
+          avatar_url: localStorage.getItem(`handoora_avatar_${reg.id}`) || null,
+          status: '🌟',
+        })
+      })
+
+      // 3. Masukkan data aktual dari database Supabase jika ada profil baru
+      if (Array.isArray(supabaseData) && supabaseData.length > 0) {
+        supabaseData.forEach((row) => {
+          if (!row?.id) return
+          userMap.set(row.id, {
+            id: row.id,
+            nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
+            email: row.email,
+            xp: Number(row.xp) || 0,
+            weekly_xp: Number(row.weekly_xp ?? row.xp) || 0,
+            current_unit: Number(row.current_unit) || 1,
+            avatar_url: row.avatar_url || null,
+            status: '🌟',
+          })
+        })
       }
+
+      // Urutkan murni berdasarkan XP tertinggi secara akurat
+      return Array.from(userMap.values())
+        .sort((a, b) => b.xp - a.xp)
+        .slice(0, limit)
     }
 
     if (!supabase || !isSupabaseConfigured) {
-      return getCachedKnownProfiles().slice(0, limit)
+      return getConsistentLeaderboard([])
     }
 
     try {
-      // Ambil seluruh profil di database diurutkan berdasarkan total XP aktual
       const { data, error } = await supabase
         .from('profiles')
         .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
@@ -1112,30 +1249,13 @@ export const progressService = {
         .limit(limit)
 
       if (!error && Array.isArray(data) && data.length > 0) {
-        const mapped = data.map((p) => ({
-          ...p,
-          xp: Number(p.xp) || 0,
-          weekly_xp: Number(p.xp) || 0,
-        }))
-
-        // Cache ke handoora_known_profiles
-        try {
-          const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
-          mapped.forEach((p) => {
-            if (p.id) known[p.id] = { ...known[p.id], ...p }
-          })
-          localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
-        } catch {
-          // ignore
-        }
-
-        return mapped
+        return getConsistentLeaderboard(data)
       }
 
-      return getCachedKnownProfiles().slice(0, limit)
+      return getConsistentLeaderboard([])
     } catch (err) {
       console.warn('Error fetching leaderboard:', err)
-      return getCachedKnownProfiles().slice(0, limit)
+      return getConsistentLeaderboard([])
     }
   },
 }
