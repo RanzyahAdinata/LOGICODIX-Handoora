@@ -716,6 +716,41 @@ export function getCalendarDayDiff(dateStrA, dateStrB) {
   return Math.round((utc2 - utc1) / (1000 * 60 * 60 * 24))
 }
 
+// Helper: Hitung jumlah hari beruntun aktual dari riwayat tanggal (streak_history)
+function computeConsecutiveStreakFromHistory(streakHistory = [], todayStr = getLocalDateString()) {
+  if (!Array.isArray(streakHistory) || streakHistory.length === 0) {
+    return { count: 0, isActiveToday: false }
+  }
+  const historySet = new Set(streakHistory.filter((d) => typeof d === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d)))
+  if (historySet.size === 0) {
+    return { count: 0, isActiveToday: false }
+  }
+
+  const shiftDate = (dateStr, deltaDays) => {
+    const [y, m, d] = dateStr.split('-').map(Number)
+    const dt = new Date(Date.UTC(y, m - 1, d + deltaDays))
+    const yy = dt.getUTCFullYear()
+    const mm = String(dt.getUTCMonth() + 1).padStart(2, '0')
+    const dd = String(dt.getUTCDate()).padStart(2, '0')
+    return `${yy}-${mm}-${dd}`
+  }
+
+  const isActiveToday = historySet.has(todayStr)
+  let cursor = isActiveToday ? todayStr : shiftDate(todayStr, -1)
+
+  if (!historySet.has(cursor)) {
+    return { count: 0, isActiveToday: false }
+  }
+
+  let count = 0
+  while (historySet.has(cursor)) {
+    count += 1
+    cursor = shiftDate(cursor, -1)
+  }
+
+  return { count, isActiveToday }
+}
+
 // Menghitung status streak terkini secara real-time
 // Aturan:
 // 1. User baru streak = 0 (api mati)
@@ -726,35 +761,37 @@ export function getCalendarDayDiff(dateStrA, dateStrB) {
 export function calculateCurrentStreak(streak = 0, lastActivityDate = null, streakHistory = []) {
   const todayStr = getLocalDateString()
   const numStreak = Number(streak) || 0
+  const safeHistory = Array.isArray(streakHistory) ? streakHistory : []
+  const historyStats = computeConsecutiveStreakFromHistory(safeHistory, todayStr)
 
-  if (!lastActivityDate) {
+  if (!lastActivityDate && historyStats.count === 0) {
     return {
       streak: 0,
       isStreakActiveToday: false,
       lastActivityDate: null,
-      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+      streakHistory: safeHistory,
     }
   }
 
-  const diff = getCalendarDayDiff(lastActivityDate, todayStr)
+  const diff = lastActivityDate ? getCalendarDayDiff(lastActivityDate, todayStr) : null
 
-  if (diff === 0) {
+  if (diff === 0 || historyStats.isActiveToday) {
     // Hari ini sudah mengerjakan minimal 1 level -> api streak aktif & menyala
     return {
-      streak: Math.max(1, numStreak),
+      streak: Math.max(1, numStreak, historyStats.count),
       isStreakActiveToday: true,
-      lastActivityDate,
-      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+      lastActivityDate: lastActivityDate || todayStr,
+      streakHistory: safeHistory,
     }
   }
 
-  if (diff === 1) {
+  if (diff === 1 || historyStats.count > 0) {
     // Kemarin mengerjakan, hari ini belum -> streak kemarin masih tersimpan tapi api belum menyala hari ini
     return {
-      streak: numStreak,
+      streak: Math.max(numStreak, historyStats.count),
       isStreakActiveToday: false,
       lastActivityDate,
-      streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+      streakHistory: safeHistory,
     }
   }
 
@@ -763,7 +800,7 @@ export function calculateCurrentStreak(streak = 0, lastActivityDate = null, stre
     streak: 0,
     isStreakActiveToday: false,
     lastActivityDate,
-    streakHistory: Array.isArray(streakHistory) ? streakHistory : [],
+    streakHistory: safeHistory,
   }
 }
 
@@ -787,11 +824,14 @@ export function recordDailyLessonCompletion(currentProgress) {
     }
   }
 
+  const historyStats = computeConsecutiveStreakFromHistory(history, todayStr)
+
   // Jika hari ini sudah tercatat penambahan streak, pertahankan streak hari ini (maks 1 per hari)
   if (lastDate === todayStr) {
+    const resolvedStreak = Math.max(1, currentStreakVal, historyStats.count)
     return {
       ...currentProgress,
-      streak: Math.max(1, currentStreakVal),
+      streak: resolvedStreak,
       isStreakActiveToday: true,
       last_activity_date: todayStr,
       lastActivityDate: todayStr,
@@ -805,10 +845,10 @@ export function recordDailyLessonCompletion(currentProgress) {
   let nextStreak = 1
   if (diff === 1) {
     // Konsisten beruntun dari kemarin! Tambah 1
-    nextStreak = currentStreakVal + 1
+    nextStreak = Math.max(currentStreakVal + 1, historyStats.count)
   } else {
-    // Baru mulai / sempat putus kemarin
-    nextStreak = 1
+    // Baru mulai / sempat putus kemarin, tetap validasi terhadap history beruntun
+    nextStreak = Math.max(1, historyStats.count)
   }
 
   return {
@@ -957,7 +997,7 @@ export const progressService = {
 
       // Hitung streak real-time
       const streakState = calculateCurrentStreak(
-        data.streak ?? cached?.streak ?? 0,
+        Math.max(Number(data.streak) || 0, Number(cached?.streak) || 0),
         data.last_activity_date || cached?.last_activity_date,
         data.streak_history || cached?.streak_history
       )
@@ -995,8 +1035,13 @@ export const progressService = {
 
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
 
-      // Jika ada perbedaan antara database & cache lokal (termasuk setelah reset atau perolehan XP), sinkronkan balik ke database
-      if (isPendingResetSync || norm.wasNormalized || resolvedXp !== Number(data.xp ?? 0)) {
+      // Jika ada perbedaan antara database & cache lokal (termasuk setelah reset, perolehan XP, atau pemulihan streak), sinkronkan balik ke database
+      if (
+        isPendingResetSync ||
+        norm.wasNormalized ||
+        resolvedXp !== Number(data.xp ?? 0) ||
+        streakState.streak !== Number(data.streak ?? 0)
+      ) {
         localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
         localStorage.setItem(resetSyncKey, 'done')
         await this.saveProgressToSupabase(userId, result)
