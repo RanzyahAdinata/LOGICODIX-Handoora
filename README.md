@@ -11,9 +11,14 @@
 </p>
 
 <p align="center">
+  <a href="https://handoora.vercel.app"><img src="https://img.shields.io/badge/Live%20Demo-handoora.vercel.app-000000?style=for-the-badge&logo=vercel" alt="Live Demo"/></a>
   <a href="https://github.com/RanzyahAdinata/LOGICODIX-Handoora"><img src="https://img.shields.io/badge/Repository-LOGICODIX--Handoora-red?style=for-the-badge&logo=github" alt="Repo"/></a>
   <a href="#-panduan-instalasi--menjalankan-aplikasi"><img src="https://img.shields.io/badge/Platform-Web%20Application-blue?style=for-the-badge" alt="Web App"/></a>
   <a href="#-teknologi-yang-digunakan"><img src="https://img.shields.io/badge/Tech-React%20%7C%20Vite%20%7C%20Supabase-emerald?style=for-the-badge" alt="Tech Stack"/></a>
+</p>
+
+<p align="center">
+  🌐 <b>Live Web App:</b> <a href="https://handoora.vercel.app">https://handoora.vercel.app</a>
 </p>
 
 ---
@@ -28,7 +33,7 @@
 | **Institusi / Universitas** | **Telkom University** |
 | **Fakultas / Departemen** | **Informatika** |
 | **Ketua Tim** | **Ranzyah Adinata Aldo Ala Alfreda** (Hustler & Hacker) |
-| **Informasi Kontak** | `ranzyah9@gmail.com` • [Repository GitHub](https://github.com/RanzyahAdinata/LOGICODIX-Handoora) |
+| **Informasi Kontak** | `ranzyah9@gmail.com` • [Repository GitHub](https://github.com/RanzyahAdinata/LOGICODIX-Handoora) • [Live App (Vercel)](https://handoora.vercel.app) |
 | **Subtema Utama** | **1. Smart & Fun Education**<br/>Solusi digital yang menjadikan proses belajar-mengajar interaktif, aksesibel, dan menyenangkan melalui gamifikasi serta AI asisten visualisasi isyarat.<br/>**2. Inclusive Health & Well-being**<br/>Membantu penyandang disabilitas Tuli dan masyarakat dengar dalam menjembatani komunikasi inklusif sehari-hari. |
 
 ### Susunan Anggota Tim:
