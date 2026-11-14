@@ -526,21 +526,21 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {/* 1. TOP HEADER (Progress, Stage, Close Button) */}
       {/* ========================================================= */}
-      <header className="w-full max-w-5xl mx-auto px-4 sm:px-8 pt-7 pb-5 flex items-center justify-between gap-4 sm:gap-8">
+      <header className="w-full max-w-5xl mx-auto px-3.5 sm:px-8 pt-4 sm:pt-7 pb-3 sm:pb-5 flex items-center justify-between gap-2.5 sm:gap-8">
         {/* Tombol Keluar (✕) */}
         <button
           onClick={() => setShowExitModal(true)}
-          className="w-11 h-11 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100/90 transition cursor-pointer shrink-0 border border-gray-200/80 shadow-2xs"
+          className="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-100/90 transition cursor-pointer shrink-0 border border-gray-200/80 shadow-2xs"
           title="Keluar dari Kuis"
         >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Dynamic Animated Progress Bar Modern & Clean */}
         <div className="flex-1 max-w-xl">
-          <div className="w-full h-3.5 sm:h-4 bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-200/70 shadow-xs relative">
+          <div className="w-full h-3 sm:h-4 bg-gray-100 rounded-full overflow-hidden p-0.5 border border-gray-200/70 shadow-xs relative">
             <motion.div
               initial={false}
               animate={{ width: `${progressPercent}%` }}
@@ -561,11 +561,11 @@ export default function QuizPage() {
 
         {/* Badge Level & Tahap Modern, Jelas & Proporsional */}
         <div className="flex items-center gap-2 shrink-0">
-          <div className="px-4 py-2 rounded-2xl bg-white border border-gray-200/90 text-gray-800 font-black text-sm flex items-center gap-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)]">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#E02424] animate-pulse" />
-            <span className="tracking-wide">Level {levelId}</span>
+          <div className="px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-2xl bg-white border border-gray-200/90 text-gray-800 font-black text-xs sm:text-sm flex items-center gap-1.5 sm:gap-2.5 shadow-[0_2px_10px_rgba(0,0,0,0.04)] whitespace-nowrap">
+            <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#E02424] animate-pulse shrink-0" />
+            <span className="tracking-wide">Lv {levelId}</span>
             <span className="text-gray-300 font-normal">|</span>
-            <span className="text-gray-500 font-extrabold">Tahap {currentStageId}/3</span>
+            <span className="text-gray-500 font-extrabold">{currentStageId}/3</span>
           </div>
         </div>
       </header>
@@ -573,7 +573,7 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {/* 2. BODY CONTENT (Result Page OR Active Question) */}
       {/* ========================================================= */}
-      <main className="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-8 py-4 sm:py-6 flex flex-col justify-center items-center">
+      <main className="flex-1 max-w-5xl w-full mx-auto px-3.5 sm:px-8 py-2 sm:py-6 flex flex-col justify-center items-center">
         {isQuizCompleted ? (
           /* ========================================================= */
           /* RESULT PAGE CELEBRATION (Sesuai Web - Result page.png) */
@@ -585,7 +585,7 @@ export default function QuizPage() {
             className="w-full max-w-lg bg-white rounded-3xl p-6 sm:p-8 text-center shadow-xl border border-gray-100 flex flex-col items-center"
           >
             {/* Maskot Doora Selebrasi Berdiri Ramah */}
-            <div className="relative w-48 h-48 sm:w-56 sm:h-56 mb-4 flex items-center justify-center">
+            <div className="relative w-36 h-36 sm:w-56 sm:h-56 mb-3 sm:mb-4 flex items-center justify-center">
               {/* Efek Lingkaran Cahaya Selebrasi Lembut di Belakang Maskot */}
               <div className="absolute inset-2 -z-10 rounded-full bg-gradient-to-tr from-[#FFE58F]/40 via-[#FFB8B8]/35 to-[#FFF0F0]/60 blur-xl scale-95" />
               <div className="absolute inset-6 -z-10 rounded-full bg-gradient-to-b from-[#FFF5F5] to-[#FFEBEB] border-2 border-[#FFD6D6]/60 shadow-[0_8px_24px_rgba(224,36,36,0.08)]" />
@@ -626,28 +626,28 @@ export default function QuizPage() {
             </div>
 
             {/* Judul Besar Hasil */}
-            <h1 className="text-3xl sm:text-4xl font-black text-[#E02424] tracking-tight mb-2">
+            <h1 className="text-2xl sm:text-4xl font-black text-[#E02424] tracking-tight mb-2">
               Pelajaran selesai!
             </h1>
-            <p className="text-gray-500 font-bold text-sm sm:text-base mb-6">
+            <p className="text-gray-500 font-bold text-xs sm:text-base mb-5 sm:mb-6">
               {currentStageId === 3
                 ? `Luar biasa! Kamu telah menguasai seluruh materi pada Level ${levelId}!`
                 : `Hebat sekali! Kamu berhasil menuntaskan ${currentStage.stageTitle}.`}
             </p>
 
             {/* Kotak Ringkasan XP & Akurasi */}
-            <div className="grid grid-cols-3 gap-3 w-full mb-8">
-              <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center">
-                <span className="text-xs font-black text-amber-600 uppercase tracking-wider mb-1">Total XP</span>
-                <span className="text-2xl font-black text-amber-600">+{resultStats.xpEarned}</span>
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 w-full mb-6 sm:mb-8">
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col items-center">
+                <span className="text-[10px] sm:text-xs font-black text-amber-600 uppercase tracking-wider mb-1">Total XP</span>
+                <span className="text-lg sm:text-2xl font-black text-amber-600">+{resultStats.xpEarned}</span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col items-center">
-                <span className="text-xs font-black text-emerald-600 uppercase tracking-wider mb-1">Akurasi</span>
-                <span className="text-2xl font-black text-emerald-600">{resultStats.accuracy}%</span>
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 flex flex-col items-center">
+                <span className="text-[10px] sm:text-xs font-black text-emerald-600 uppercase tracking-wider mb-1">Akurasi</span>
+                <span className="text-lg sm:text-2xl font-black text-emerald-600">{resultStats.accuracy}%</span>
               </div>
-              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col items-center">
-                <span className="text-xs font-black text-[#E02424] uppercase tracking-wider mb-1">Tuntas</span>
-                <span className="text-2xl font-black text-[#E02424]">{resultStats.correctTotal} Soal</span>
+              <div className="p-2.5 sm:p-3.5 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col items-center">
+                <span className="text-[10px] sm:text-xs font-black text-[#E02424] uppercase tracking-wider mb-1">Tuntas</span>
+                <span className="text-lg sm:text-2xl font-black text-[#E02424] whitespace-nowrap">{resultStats.correctTotal} Soal</span>
               </div>
             </div>
 
@@ -686,7 +686,7 @@ export default function QuizPage() {
               )}
 
               {/* Teks Instruksi Soal - Lebih Besar & Jelas Terbaca */}
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900 text-center mb-7 sm:mb-9 tracking-tight max-w-3xl leading-snug">
+              <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-gray-900 text-center mb-4 sm:mb-9 tracking-tight max-w-3xl leading-snug px-1">
                 {currentQuestion.prompt}
               </h2>
 
@@ -694,10 +694,10 @@ export default function QuizPage() {
               {/* TIPE 1: 'peragakan' (Kamera Preview Otomatis + AI Feedback) */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'peragakan' && (
-                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-stretch">
+                <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-stretch">
                   {/* Kartu Kiri: Kamera Live Viewfinder Clean */}
                   <div
-                    className={`relative min-h-[340px] sm:min-h-[420px] aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
+                    className={`relative min-h-[250px] sm:min-h-[380px] md:min-h-[420px] aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
                       visionStatus === 'success'
                         ? 'border-emerald-500 shadow-[0_0_28px_rgba(16,185,129,0.45)] ring-4 ring-emerald-400/25'
                         : visionStatus === 'wrong'
@@ -803,18 +803,18 @@ export default function QuizPage() {
                   </div>
 
                   {/* Kartu Kanan: Target Isyarat & Gambar Referensi HD Clean Modern - Jauh Lebih Besar & Jelas */}
-                  <div className="relative min-h-[340px] sm:min-h-[420px] aspect-4/3 sm:aspect-square flex items-center justify-center">
-                    <div className="w-full h-full bg-white rounded-3xl p-6 sm:p-7 text-gray-900 shadow-[0_16px_40px_rgba(0,0,0,0.05)] flex flex-col justify-between border border-gray-200/90 hover:border-gray-300 transition">
-                      <div className="flex items-center justify-between pb-3.5 border-b border-gray-100">
-                        <span className="text-xs font-black tracking-wider uppercase bg-rose-50 border border-rose-100 text-[#E02424] px-3 py-1 rounded-lg">
+                  <div className="relative min-h-0 sm:min-h-[380px] md:min-h-[420px] sm:aspect-square flex items-center justify-center">
+                    <div className="w-full h-full bg-white rounded-3xl p-4 sm:p-7 text-gray-900 shadow-[0_16px_40px_rgba(0,0,0,0.05)] flex flex-col justify-between border border-gray-200/90 hover:border-gray-300 transition">
+                      <div className="flex items-center justify-between pb-2.5 sm:pb-3.5 border-b border-gray-100">
+                        <span className="text-[11px] sm:text-xs font-black tracking-wider uppercase bg-rose-50 border border-rose-100 text-[#E02424] px-2.5 sm:px-3 py-1 rounded-lg">
                           Target BISINDO
                         </span>
-                        <span className="text-2xl sm:text-3xl md:text-4xl font-black text-gray-900">{currentQuestion.targetLetter}</span>
+                        <span className="text-xl sm:text-3xl md:text-4xl font-black text-gray-900">{currentQuestion.targetLetter}</span>
                       </div>
 
                       {/* Gambar Isyarat HD Utuh & Jauh Lebih Besar */}
-                      <div className="w-full flex-1 flex items-center justify-center my-3 sm:my-4">
-                        <div className="w-48 h-48 sm:w-60 sm:h-60 md:w-64 md:h-64 bg-gray-50/90 rounded-3xl p-4 sm:p-5 border border-gray-100 flex items-center justify-center shadow-inner">
+                      <div className="w-full flex-1 flex items-center justify-center my-2.5 sm:my-4">
+                        <div className="w-36 h-36 sm:w-60 sm:h-60 md:w-64 md:h-64 bg-gray-50/90 rounded-3xl p-3 sm:p-5 border border-gray-100 flex items-center justify-center shadow-inner">
                           <img
                             src={currentQuestion.signImg}
                             alt={`Isyarat ${currentQuestion.targetLetter}`}
@@ -835,7 +835,7 @@ export default function QuizPage() {
               {/* TIPE 2: 'pilih_isyarat' (Grid 4 Kartu Isyarat Merah) */}
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'pilih_isyarat' && (
-                <div className="w-full max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-5">
+                <div className="w-full max-w-3xl grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-5">
                   {currentQuestion.options.map((opt, idx) => {
                     const isSelected = selectedIndex === idx
                     return (
@@ -845,7 +845,7 @@ export default function QuizPage() {
                         whileTap={!isAnswerChecked ? { scale: 0.98 } : {}}
                         onClick={() => handleSelectOption(idx)}
                         disabled={isAnswerChecked}
-                        className={`relative aspect-3/4 rounded-3xl p-4 flex flex-col items-center justify-between transition cursor-pointer border-2 shadow-xs ${
+                        className={`relative aspect-square sm:aspect-3/4 rounded-2xl sm:rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-between transition cursor-pointer border-2 shadow-xs ${
                           isSelected
                             ? 'bg-rose-50/70 border-[#E02424] text-[#E02424] shadow-sm ring-2 ring-[#E02424]/20'
                             : 'bg-white hover:bg-gray-50/80 border-gray-200 text-gray-800'
@@ -892,18 +892,18 @@ export default function QuizPage() {
               {/* ----------------------------------------------------- */}
               {currentQuestion.type === 'tebak_huruf' && (
                 <div className="w-full max-w-2xl flex flex-col items-center">
-                  <div className="w-56 h-56 sm:w-68 sm:h-68 bg-white rounded-3xl border border-gray-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.05)] p-5 flex items-center justify-center mb-8 relative">
+                  <div className="w-44 h-44 sm:w-68 sm:h-68 bg-white rounded-3xl border border-gray-200/90 shadow-[0_12px_32px_rgba(0,0,0,0.05)] p-4 sm:p-5 flex items-center justify-center mb-5 sm:mb-8 relative">
                     <img
                       src={currentQuestion.signImg}
                       alt="Tebak Isyarat"
                       className="max-h-full max-w-full object-contain filter drop-shadow-md"
                     />
-                    <div className="absolute top-3.5 right-3.5 text-xs font-black text-gray-500 bg-gray-100 px-3 py-1 rounded-lg">
+                    <div className="absolute top-3 right-3 sm:top-3.5 sm:right-3.5 text-[11px] sm:text-xs font-black text-gray-500 bg-gray-100 px-2.5 sm:px-3 py-1 rounded-lg">
                       BISINDO
                     </div>
                   </div>
 
-                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-4">
                     {currentQuestion.options.map((optionText, idx) => {
                       const isSelected = selectedIndex === idx
                       return (
@@ -913,7 +913,7 @@ export default function QuizPage() {
                           whileTap={!isAnswerChecked ? { scale: 0.98 } : {}}
                           onClick={() => handleSelectOption(idx)}
                           disabled={isAnswerChecked}
-                          className={`py-4 px-5 rounded-2xl font-black text-base sm:text-lg border-2 transition cursor-pointer shadow-xs text-center ${
+                          className={`py-3 sm:py-4 px-4 sm:px-5 rounded-2xl font-black text-sm sm:text-lg border-2 transition cursor-pointer shadow-xs text-center ${
                             isSelected
                               ? 'bg-rose-50 border-[#E02424] text-[#E02424] shadow-sm'
                               : 'bg-white text-gray-800 border-gray-200 hover:border-gray-300 hover:bg-gray-50'
@@ -936,7 +936,7 @@ export default function QuizPage() {
       {/* ========================================================= */}
       {!isQuizCompleted && (
         <footer
-          className={`w-full transition-colors duration-300 border-t ${
+          className={`sticky bottom-0 z-30 w-full transition-colors duration-300 border-t ${
             isAnswerChecked
               ? isCorrect
                 ? 'bg-[#EBFDE6] border-[#A8E677]'
@@ -944,8 +944,12 @@ export default function QuizPage() {
               : 'bg-white border-gray-200/90'
           }`}
         >
-          <div className="max-w-5xl mx-auto px-4 sm:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex-1 w-full flex items-center gap-4">
+          <div
+            className={`max-w-5xl mx-auto px-3.5 sm:px-8 py-3.5 sm:py-5 pb-[max(0.875rem,env(safe-area-inset-bottom))] flex ${
+              isAnswerChecked ? 'flex-col sm:flex-row' : 'flex-row'
+            } items-center justify-between gap-2.5 sm:gap-4`}
+          >
+            <div className={`${isAnswerChecked ? 'flex-1 w-full' : 'shrink-0 sm:flex-1'} flex items-center gap-3 sm:gap-4`}>
               {isAnswerChecked ? (
                 isCorrect ? (
                   <motion.div
@@ -987,7 +991,7 @@ export default function QuizPage() {
                 /* Tombol LOMPATI di sisi kiri */
                 <button
                   onClick={handleSkipQuestion}
-                  className="px-6 py-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-100/70 text-gray-500 font-black text-xs uppercase tracking-wider transition cursor-pointer"
+                  className="px-4 sm:px-6 py-3 rounded-2xl border-2 border-gray-200 hover:border-gray-300 hover:bg-gray-100/70 text-gray-500 font-black text-xs uppercase tracking-wider transition cursor-pointer whitespace-nowrap"
                 >
                   LOMPATI
                 </button>
@@ -995,7 +999,7 @@ export default function QuizPage() {
             </div>
 
             {/* Tombol Aksi Utama: Untuk peragakan otomatis deteksi, saat benar muncul LANJUTKAN */}
-            <div className="w-full sm:w-auto shrink-0">
+            <div className={`${isAnswerChecked ? 'w-full sm:w-auto' : 'flex-1 sm:flex-none sm:w-auto'} shrink-0`}>
               {isAnswerChecked ? (
                 <motion.button
                   whileHover={{ scale: 1.02 }}
@@ -1011,9 +1015,9 @@ export default function QuizPage() {
                 </motion.button>
               ) : currentQuestion?.type === 'peragakan' ? (
                 /* Pada tipe peragakan, kamera mendeteksi otomatis */
-                <div className="px-6 py-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2.5 shadow-2xs">
-                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
-                  <span>Mendeteksi Gerakan Kamera...</span>
+                <div className="px-3.5 sm:px-6 py-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-800 font-extrabold text-[11px] sm:text-xs uppercase tracking-wider text-center flex items-center justify-center gap-2 shadow-2xs">
+                  <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                  <span className="truncate">Mendeteksi Kamera...</span>
                 </div>
               ) : (
                 /* Soal pilihan kartu / tebak huruf: pakai tombol CEK */
