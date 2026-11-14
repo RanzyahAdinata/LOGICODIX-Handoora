@@ -12,8 +12,6 @@ import {
   FaSignOutAlt,
   FaFire,
   FaStar,
-  FaGem,
-  FaHeart,
   FaSyncAlt,
   FaArrowLeft,
   FaEye,
@@ -33,8 +31,6 @@ const EMPTY_FORM = {
   password: '',
   xp: 0,
   streak: 0,
-  gems: 500,
-  hearts: 5,
   current_unit: 1,
   completed_lessons: [],
   unlocked_islands: [1],
@@ -124,8 +120,6 @@ export default function AdminPage() {
       password: '',
       xp: Number(user.xp) || 0,
       streak: Number(user.streak) || 0,
-      gems: Number(user.gems) || 0,
-      hearts: Number(user.hearts ?? 5),
       current_unit: Number(user.current_unit) || 1,
       completed_lessons: Array.isArray(user.completed_lessons) ? user.completed_lessons : [],
       unlocked_islands:
@@ -468,8 +462,6 @@ export default function AdminPage() {
                   <th className="py-3.5 px-3 text-center">Umur</th>
                   <th className="py-3.5 px-3 text-center">XP</th>
                   <th className="py-3.5 px-3 text-center">Streak</th>
-                  <th className="py-3.5 px-3 text-center">Gems</th>
-                  <th className="py-3.5 px-3 text-center">Heart</th>
                   <th className="py-3.5 px-3 text-center">Level</th>
                   <th className="py-3.5 px-3 text-center">Sumber</th>
                   <th className="py-3.5 px-4 text-right">Aksi</th>
@@ -478,13 +470,13 @@ export default function AdminPage() {
               <tbody className="divide-y divide-[#F1F5F9] text-sm">
                 {loadingUsers && users.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-[#64748B] font-semibold">
+                    <td colSpan={7} className="py-12 text-center text-[#64748B] font-semibold">
                       Memuat data pengguna...
                     </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-12 text-center text-[#64748B] font-semibold">
+                    <td colSpan={7} className="py-12 text-center text-[#64748B] font-semibold">
                       Tidak ada pengguna yang sesuai dengan pencarian.
                     </td>
                   </tr>
@@ -526,16 +518,6 @@ export default function AdminPage() {
                         <td className="py-3.5 px-3 text-center">
                           <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#D32F2F]/10 text-[#D32F2F] font-extrabold text-xs">
                             <FaFire className="text-[11px]" /> {user.streak}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-3 text-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1CB0F6]/10 text-[#0284C7] font-extrabold text-xs">
-                            <FaGem className="text-[11px]" /> {user.gems}
-                          </span>
-                        </td>
-                        <td className="py-3.5 px-3 text-center">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-[#E11D48] font-extrabold text-xs">
-                            <FaHeart className="text-[11px]" /> {user.hearts}
                           </span>
                         </td>
                         <td className="py-3.5 px-3 text-center">
@@ -677,7 +659,7 @@ export default function AdminPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                <div className="grid grid-cols-3 gap-3">
                   <div>
                     <label className="block text-xs font-bold text-[#475569] mb-1">XP</label>
                     <input
@@ -695,27 +677,6 @@ export default function AdminPage() {
                       min={0}
                       value={formData.streak}
                       onChange={(e) => setFormData((p) => ({ ...p, streak: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#475569] mb-1">Gems</label>
-                    <input
-                      type="number"
-                      min={0}
-                      value={formData.gems}
-                      onChange={(e) => setFormData((p) => ({ ...p, gems: e.target.value }))}
-                      className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm font-bold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-bold text-[#475569] mb-1">Hearts</label>
-                    <input
-                      type="number"
-                      min={0}
-                      max={5}
-                      value={formData.hearts}
-                      onChange={(e) => setFormData((p) => ({ ...p, hearts: e.target.value }))}
                       className="w-full px-3 py-2 rounded-xl border border-[#E2E8F0] text-sm font-bold"
                     />
                   </div>

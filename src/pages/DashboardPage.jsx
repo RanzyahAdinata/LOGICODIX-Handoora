@@ -2405,44 +2405,7 @@ const DashboardPage = () => {
           </div>
         </aside>
 
-        {/* ============================================================ */}
-        {/* HEADER MOBILE (< lg) — HANYA LOGO & API STREAK               */}
-        {/* ============================================================ */}
-        <header className="lg:hidden sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-white/60 px-4 py-2.5 flex items-center justify-between shadow-xs">
-          <div
-            onClick={() => setActiveMenu('beranda')}
-            className="flex items-center cursor-pointer"
-          >
-            <img
-              src="/assets/logo-full.png"
-              alt="Handoora"
-              className="h-5 w-auto object-contain"
-              draggable={false}
-            />
-          </div>
-
-          <button
-            onClick={() => setShowStreakPopover((v) => !v)}
-            className={`px-3.5 py-1.5 rounded-xl border flex items-center gap-1.5 cursor-pointer transition-colors ${
-              isStreakActive
-                ? 'bg-[#F8EFEF] border-[#F5D0D0] text-[#E02424]'
-                : 'bg-white/90 border-gray-200 text-gray-400'
-            }`}
-          >
-            <IconFlame
-              className="w-4 h-5"
-              color={isStreakActive ? '#E02424' : '#9CA3AF'}
-              innerColor={isStreakActive ? '#FFFFFF' : '#E5E7EB'}
-            />
-            <span
-              className={`text-xs font-black ${
-                isStreakActive ? 'text-[#E02424]' : 'text-gray-500'
-              }`}
-            >
-              {progress.streak}
-            </span>
-          </button>
-        </header>
+        {/* Header mobile dihilangkan agar tampilan peta lebih lega */}
 
         {/* ============================================================ */}
         {/* 2. AREA UTAMA (BERANDA MAP / PROFIL / LAINNYA)               */}
@@ -2900,7 +2863,7 @@ const DashboardPage = () => {
               {/* FLOATING BOTTOM CONTROLS: Navigasi Level, Mode Langit & Zoom */}
               {/* Diposisikan Center / Tengah Sempurna & Rapi Sesuai Permintaan */}
               {/* ========================================================== */}
-              <div className="pointer-events-none fixed lg:absolute bottom-16 lg:bottom-5 left-0 right-0 z-40 px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3">
+              <div className="pointer-events-none fixed lg:absolute bottom-[88px] lg:bottom-5 left-0 right-0 z-40 px-4 sm:px-6 flex flex-wrap items-center justify-center gap-3">
                 {/* Segmen Quick Jump Peta Level (Pill Modern di Tengah) */}
                 <div className="pointer-events-auto flex items-center bg-white/95 backdrop-blur-md border border-gray-200/90 rounded-2xl p-1.5 shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
                   <span className="hidden sm:inline-block px-3 py-1 text-[11px] font-black uppercase tracking-wider text-gray-500 border-r border-gray-200 mr-1.5">
@@ -4154,6 +4117,19 @@ const DashboardPage = () => {
                     </div>
                   </motion.div>
                 )}
+                {/* Tombol Keluar Akun Khusus Tampilan Mobile */}
+                <div className="lg:hidden pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowLogoutModal(true)}
+                    className="w-full py-3.5 px-5 rounded-2xl border-2 border-[#FFD4D4] bg-white hover:bg-[#FFF5F5] text-[#D32F2F] font-extrabold text-sm flex items-center justify-center gap-2.5 shadow-xs transition-colors cursor-pointer"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.4" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>KELUAR AKUN</span>
+                  </button>
+                </div>
               </div>
             </div>
           )}

@@ -359,6 +359,7 @@ export const authService = {
           email: cleanEmail,
           password,
           options: {
+            emailRedirectTo: `${window.location.origin}/belajar`,
             data: {
               nama: cleanNama,
               full_name: cleanNama,
@@ -1523,7 +1524,8 @@ export const adminService = {
 
     // 1. Akun Demo Pengujian (Juri)
     if (!deletedIds.has(DEMO_USER.id)) {
-      const demoProg = progressService.getProgress(DEMO_USER.id)
+      const hasDemoProgress = Boolean(localStorage.getItem(`handoora_progress_${DEMO_USER.id}`))
+      const demoProg = hasDemoProgress ? progressService.getProgress(DEMO_USER.id) : null
       userMap.set(DEMO_USER.id, {
         id: DEMO_USER.id,
         nama: DEMO_USER.nama,
@@ -1531,13 +1533,13 @@ export const adminService = {
         umur: DEMO_USER.umur,
         auth_provider: 'demo',
         avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
-        xp: Number(demoProg.xp ?? DEMO_USER.xp) || 0,
-        streak: Number(demoProg.streak ?? DEMO_USER.streak) || 0,
-        gems: Number(demoProg.gems ?? DEMO_USER.gems) || 0,
-        hearts: Number(demoProg.hearts ?? DEMO_USER.hearts) || 5,
-        current_unit: Number(demoProg.unlockedIslands?.slice(-1)[0] || DEMO_USER.current_unit) || 2,
-        completed_lessons: Array.isArray(demoProg.completedIslands) ? demoProg.completedIslands : [1],
-        unlocked_islands: Array.isArray(demoProg.unlockedIslands) ? demoProg.unlockedIslands : [1, 2],
+        xp: Number(demoProg ? demoProg.xp : DEMO_USER.xp) || 0,
+        streak: Number(demoProg ? demoProg.streak : DEMO_USER.streak) || 0,
+        gems: Number(demoProg ? demoProg.gems : DEMO_USER.gems) || 0,
+        hearts: Number(demoProg ? demoProg.hearts : DEMO_USER.hearts) || 5,
+        current_unit: Number(demoProg?.unlockedIslands?.slice(-1)[0] || DEMO_USER.current_unit) || 2,
+        completed_lessons: Array.isArray(demoProg?.completedIslands) ? demoProg.completedIslands : DEMO_USER.completed_lessons,
+        unlocked_islands: Array.isArray(demoProg?.unlockedIslands) ? demoProg.unlockedIslands : DEMO_USER.unlocked_islands,
         updated_at: new Date().toISOString(),
         source: 'Demo',
       })
