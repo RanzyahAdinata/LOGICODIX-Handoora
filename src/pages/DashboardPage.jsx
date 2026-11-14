@@ -2191,17 +2191,30 @@ const DashboardPage = () => {
       setProfileForm((p) => ({ ...p, avatar_url: dataUrl }))
       if (user?.id) {
         localStorage.setItem(`handoora_avatar_${user.id}`, dataUrl)
+        await updateProfile({ avatar_url: dataUrl })
+        progressService.getLeaderboard(10).then((rows) => {
+          if (Array.isArray(rows)) setSupabaseLeaderboard(rows)
+        }).catch(() => {})
       }
-      toast.success('Foto profil dipilih! Klik Simpan Perubahan untuk menerapkan.')
+      toast.success('Foto profil berhasil diperbarui!')
     } catch {
       toast.error('Gagal memuat gambar, silakan coba foto lain.')
     }
   }
 
-  const handleSelectPresetAvatar = (avatarSrc) => {
+  const handleSelectPresetAvatar = async (avatarSrc) => {
     setProfileForm((p) => ({ ...p, avatar_url: avatarSrc }))
     if (user?.id) {
       localStorage.setItem(`handoora_avatar_${user.id}`, avatarSrc)
+      try {
+        await updateProfile({ avatar_url: avatarSrc })
+        progressService.getLeaderboard(10).then((rows) => {
+          if (Array.isArray(rows)) setSupabaseLeaderboard(rows)
+        }).catch(() => {})
+        toast.success('Avatar berhasil diperbarui!')
+      } catch {
+        // ignore
+      }
     }
   }
 
