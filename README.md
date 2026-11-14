@@ -263,10 +263,10 @@ Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim
 ### A. Pelatihan Mandiri Gesture Detection BISINDO (oleh Wafiq Aditiya Wiyono)
 Sistem pengenalan gestur bahasa isyarat pada Handoora dikembangkan dari hasil pelatihan dan riset mandiri oleh anggota tim **Wafiq Aditiya Wiyono**:
 - **Dataset Kaggle BISINDO**: [Indonesian Sign Language (BISINDO) Dataset — Wafiq Aditiya](https://www.kaggle.com/datasets/wafiqaditiya/indonesian-sign-language-bisindo-dataset)
-- **Pipeline & File Pelatihan Mandiri (`Bisindo_Handoora`)**:
-  - **Ekstraksi & Pengumpulan Dataset**: `collect_alphabet.py`, `collect_words.py`, `kata_label.csv`, serta utilitas kurasi data (`clean_dataset.py`, `hapus_label.py`, `reset_kata.py`, `undo_dataset.py`).
-  - **Pelatihan Model**: `train_model.py`, `train_level2.py`, dan `train_words.py` menggunakan representasi **127 fitur koordinat MediaPipe Hands** (*Hand 1 [63] + Hand 2 [63] + Num Hands [1]*).
-  - **Pengujian Real-Time**: `test_realtime.py`, `test_words.py`, dan `app_level2.py` untuk validasi akurasi gestur abjad (A–Z) dan kosakata Level 2 secara *real-time*.
+- **Pipeline & File Pelatihan Mandiri ([`./dataset`](./dataset))**:
+  - **Ekstraksi & Pengumpulan Dataset**: [`collect_alphabet.py`](./dataset/collect_alphabet.py), [`collect_words.py`](./dataset/collect_words.py), [`kata_label.csv`](./dataset/kata_label.csv), serta utilitas kurasi data ([`clean_dataset.py`](./dataset/clean_dataset.py), [`hapus_label.py`](./dataset/hapus_label.py), [`reset_kata.py`](./dataset/reset_kata.py), [`undo_dataset.py`](./dataset/undo_dataset.py)).
+  - **Pelatihan Model**: [`train_model.py`](./dataset/train_model.py), [`train_level2.py`](./dataset/train_level2.py), dan [`train_words.py`](./dataset/train_words.py) menggunakan representasi **127 fitur koordinat MediaPipe Hands** (*Hand 1 [63] + Hand 2 [63] + Num Hands [1]*).
+  - **Pengujian Real-Time**: [`test_realtime.py`](./dataset/test_realtime.py), [`test_words.py`](./dataset/test_words.py), dan [`app_level2.py`](./dataset/app_level2.py) untuk validasi akurasi gestur abjad (A–Z) dan kosakata Level 2 secara *real-time*.
 - **Integrasi ke Aplikasi Web**: Logika ekstraksi 127 fitur dan aturan evaluasi gestur tersebut diadaptasi ke peramban pada [`src/utils/gestureDetector.js`](./src/utils/gestureDetector.js) dan [`src/utils/mediapipeLoader.js`](./src/utils/mediapipeLoader.js) agar berjalan instan tanpa latensi server.
 
 ### B. Penggunaan AI Sesuai Pedoman Kompetisi
