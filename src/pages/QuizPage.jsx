@@ -687,10 +687,13 @@ export default function QuizPage() {
 
               {/* Teks Instruksi Soal - Lebih Besar & Jelas Terbaca */}
               <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-gray-900 text-center mb-4 sm:mb-9 tracking-tight max-w-3xl leading-snug px-1">
-                {currentQuestion.prompt === 'Peragakan huruf di samping!' ? (
+                {currentQuestion.prompt === 'Peragakan huruf di samping!' ||
+                currentQuestion.prompt === 'Huruf apakah isyarat tangan di samping?' ? (
                   <>
-                    <span className="md:hidden">Peragakan huruf di bawah!</span>
-                    <span className="hidden md:inline">Peragakan huruf di samping!</span>
+                    <span className="md:hidden">
+                      {currentQuestion.prompt.replace('di samping', 'di bawah')}
+                    </span>
+                    <span className="hidden md:inline">{currentQuestion.prompt}</span>
                   </>
                 ) : (
                   currentQuestion.prompt
