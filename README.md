@@ -50,7 +50,7 @@
 - **Ketiadaan AI Praktik Mandiri**: Pembelajar kesulitan memverifikasi apakah gerakan tangan yang mereka peragakan sudah benar tanpa kehadiran guru pembimbing.
 
 ### B. Solusi Inovatif: Handoora
-**Handoora** adalah platform web aplikasi pembelajaran Bahasa Isyarat Indonesia (BISINDO) interaktif berbasis gamifikasi modern (*Duolingo-style learning adventure*) yang dipadukan dengan **Real-Time Computer Vision AI Gesture Recognition**:
+**Handoora** adalah platform web aplikasi pembelajaran Bahasa Isyarat Indonesia (BISINDO) interaktif berbasis gamifikasi modern (*gamified learning adventure*) yang dipadukan dengan **Real-Time Computer Vision AI Gesture Recognition**:
 1. **Kurikulum Terstruktur Berbasis Level & Tahap**: Mulai dari pengenalan abjad jari dua tangan (Level 1: A–Z), frasa percakapan sehari-hari, hingga komunikasi lanjutan.
 2. **AI Real-Time Gesture Detection Loop**: Pengguna dapat mempraktikkan isyarat tangan langsung di depan kamera laptop/webcam dengan deteksi gestur real-time berakurasi tinggi secara instan di peramban tanpa perlu instalasi rumit.
 3. **Ekosistem Gamifikasi Lengkap**: Peta kepulauan Nusantara interaktif, sistem *Daily Streak* (nyala api harian), *XP*, *Gems*, *Hearts/Nyawa*, *Papan Skor Liga Mingguan*, serta *Misi Harian*.
@@ -71,7 +71,7 @@
 - **Google OAuth 2.0 Integration**: Masuk satu klik menggunakan akun Google resmi dengan sinkronisasi profil, avatar, dan nama pengguna otomatis.
 - **Route Guarding**: Perlindungan rute terintegrasi (`ProtectedRoute` dan `PublicOnlyRoute`) untuk menjamin keamanan akses sesi pengguna.
 
-### 2. Loading & Splash Screen Animatif Khas Duolingo
+### 2. Loading & Splash Screen Animatif Khas Handoora
 - **Animated Mascot Group**: Menampilkan animasi melayang (*floating/bouncing*) maskot Doora dan teman-teman Handoora dengan partikel nada musik biru cerah dan bayangan dinamis.
 - **Smart Loading Delay**: Memastikan splash screen tampil elegan minimal 1,8 detik saat memuat data, memberikan transisi visual yang menyenangkan.
 
@@ -92,7 +92,7 @@
 
 ### 5. Liga Papan Skor Mingguan Real-Time & Sistem Streak Beruntun
 - **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*) dan badge Liga Perunggu *Wings of Victory*, hanya menampilkan pengguna yang terdaftar di aplikasi Handoora (mengecualikan akun admin).
-- **Sinkronisasi XP & Streak Beruntun Akurat**: Perolehan XP antara Profil, Dashboard, dan Leaderboard tersinkronisasi secara konsisten, serta pelacakan api streak harian (`streak_history`) otomatis bertambah beruntun setiap kali menyelesaikan pelajaran di hari berturut-turut.
+- **Sinkronisasi XP, Avatar, & Streak Beruntun Akurat**: Perolehan XP, foto profil/avatar kustom maupun maskot, serta pelacakan api streak harian (`streak_history`) antara Profil, Dashboard, Admin, dan Leaderboard tersinkronisasi secara konsisten di Supabase `public.profiles`.
 
 ### 6. Kamus Digital BISINDO Lengkap (`/kamus`)
 - **Katalog Isyarat Resolusi Tinggi Ultra-HD**: Aset visual gerakan isyarat tangan Level 1 (A–Z) dan kosakata Level 2 (Halo, Terima Kasih, Sama-sama, Minta Maaf, Selamat Pagi, Selamat Malam, Nama Saya, Sampai Jumpa Lagi) dengan posisi kanvas yang bersih dan simetris.
@@ -101,7 +101,7 @@
 
 ### 7. Panel Admin CRUD Data Pengguna (`/adminhandoora`)
 - **Akses Terproteksi Khusus Admin**: Rute `/adminhandoora` dilengkapi gerbang autentikasi khusus administrator (`admin@gmail.com`).
-- **Manajemen CRUD Lengkap**: Admin dapat melihat ringkasan statistik pengguna (Total User, Total XP, Streak Aktif, Rata-rata Level), mencari dan memfilter sumber data pengguna, serta melakukan **Tambah**, **Edit** (nama, email, umur, password opsional, XP, streak, gems, hearts, unit, dan progres level), dan **Hapus** data pengguna secara terpusat.
+- **Manajemen CRUD Lengkap**: Admin dapat melihat ringkasan statistik pengguna (Total User, Total XP, Streak Aktif, Rata-rata Level), mencari dan memfilter sumber data pengguna, serta melakukan **Tambah**, **Edit** (nama, email, umur, password opsional, XP, streak, unit, dan progres level), dan **Hapus** data pengguna secara terpusat langsung ke `public.profiles` dan `auth.users` melalui fungsi RPC `SECURITY DEFINER`.
 
 ---
 
