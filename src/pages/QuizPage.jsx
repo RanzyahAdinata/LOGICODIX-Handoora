@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../context/AuthContext'
 import { progressService, recordDailyLessonCompletion } from '../services/storage'
@@ -58,6 +58,7 @@ function triggerLuxuryConfetti() {
 export default function QuizPage() {
   const { levelId: paramLevelId, stageId: paramStageId } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const { user } = useAuth()
 
   const levelId = parseInt(paramLevelId || '1', 10)
@@ -123,10 +124,23 @@ export default function QuizPage() {
     const stages = getLevelStages(levelId)
     const stage = stages.find((s) => s.stageId === currentStageId) || stages[0]
 
-    // Cek apakah ada saved in-progress session untuk stage ini
-    const savedProgressKey = `handoora_session_progress_${user?.id || 'guest'}_L${levelId}_S${currentStageId}`
+    // Cek apakah ada saved in-progress session untuk stage ini (kecuali diminta restart dari awal)
+    const isRestart = Boolean(location.state?.restart)
+    const activeUserId = user?.id || 'guest'
+    const savedProgressKey = `handoora_session_progress_${activeUserId}_L${levelId}_S${currentStageId}`
     const legacyGuestKey = `handoora_session_progress_guest_L${levelId}_S${currentStageId}`
-    const savedData = localStorage.getItem(savedProgressKey) || localStorage.getItem(legacyGuestKey)
+
+    if (isRestart) {
+      for (let s = 1; s <= 5; s++) {
+        localStorage.removeItem(`handoora_session_progress_${activeUserId}_L${levelId}_S${s}`)
+        localStorage.removeItem(`handoora_session_progress_guest_L${levelId}_S${s}`)
+      }
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+
+    const savedData = isRestart
+      ? null
+      : localStorage.getItem(savedProgressKey) || (activeUserId === 'guest' ? localStorage.getItem(legacyGuestKey) : null)
     let initialQueue = [...stage.questions]
     let initialCorrect = new Set()
     let initialWrong = 0
@@ -181,9 +195,6 @@ export default function QuizPage() {
         updatedAt: Date.now(),
       })
       localStorage.setItem(userKey, payload)
-      if (activeUserId !== 'guest') {
-        localStorage.setItem(guestKey, payload)
-      }
     } else {
       localStorage.removeItem(userKey)
       localStorage.removeItem(guestKey)

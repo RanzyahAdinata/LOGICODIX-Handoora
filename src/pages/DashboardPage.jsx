@@ -2169,13 +2169,14 @@ const DashboardPage = () => {
     if (!levelSessionModalUnit) return
     const uId = levelSessionModalUnit.id
     const userId = user?.id || 'guest'
-    // Bersihkan sesi tersimpan untuk level ini
-    for (let s = 1; s <= 3; s++) {
+    // Bersihkan seluruh sesi tersimpan (user & guest) untuk semua tahap pada level ini
+    for (let s = 1; s <= 5; s++) {
       localStorage.removeItem(`handoora_session_progress_${userId}_L${uId}_S${s}`)
+      localStorage.removeItem(`handoora_session_progress_guest_L${uId}_S${s}`)
     }
     setLevelSessionModalUnit(null)
     setSavedSessionData(null)
-    navigate(`/quiz/${uId}/1`)
+    navigate(`/quiz/${uId}/1`, { state: { restart: true } })
   }
 
   const handlePhotoUpload = async (e) => {
