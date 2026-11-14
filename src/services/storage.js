@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from './supabaseClient'
 
 // ============================================================
@@ -173,6 +174,10 @@ export const DEMO_USER = {
   last_activity_date: getLocalDateString(),
   streak_history: [getLocalDateString()],
 }
+
+export const ADMIN_EMAIL = 'admin@gmail.com'
+const ADMIN_PASSWORD_HASH_PROMISE = hashPasswordSecure('admin123', ADMIN_EMAIL)
+const ADMIN_SESSION_KEY = 'handoora_admin_session'
 
 export function isDemoUser(userOrId) {
   if (!userOrId) return false
@@ -1337,8 +1342,9 @@ export const progressService = {
         }
       }
 
-      // Urutkan murni berdasarkan XP tertinggi secara akurat
+      // Urutkan murni berdasarkan XP tertinggi secara akurat (kecualikan akun admin)
       return Array.from(userMap.values())
+        .filter((u) => u.email?.toLowerCase() !== ADMIN_EMAIL)
         .sort((a, b) => b.xp - a.xp)
         .slice(0, limit)
     }
@@ -1363,5 +1369,623 @@ export const progressService = {
       console.warn('Error fetching leaderboard:', err)
       return getRegisteredOnlyLeaderboard([])
     }
+  },
+}
+
+// ============================================================
+// Layanan Khusus Admin (/adminhandoora) untuk CRUD Data User
+// ============================================================
+function getDeletedAdminUserIds() {
+  try {
+    return JSON.parse(localStorage.getItem('handoora_admin_deleted_ids') || '[]')
+  } catch {
+    return []
+  }
+}
+
+function addDeletedAdminUserId(userId) {
+  try {
+    const list = getDeletedAdminUserIds()
+    if (!list.includes(userId)) {
+      list.push(userId)
+      localStorage.setItem('handoora_admin_deleted_ids', JSON.stringify(list))
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function removeDeletedAdminUserId(userId) {
+  try {
+    const list = getDeletedAdminUserIds().filter((id) => id !== userId)
+    localStorage.setItem('handoora_admin_deleted_ids', JSON.stringify(list))
+  } catch {
+    // ignore
+  }
+}
+
+export const adminService = {
+  isAdminAuthenticated() {
+    try {
+      const raw = localStorage.getItem(ADMIN_SESSION_KEY)
+      if (!raw) return false
+      const parsed = JSON.parse(raw)
+      return Boolean(parsed?.active && parsed?.email?.toLowerCase() === ADMIN_EMAIL)
+    } catch {
+      return false
+    }
+  },
+
+  async loginAdmin({ email, password }) {
+    const cleanEmail = String(email || '').trim().toLowerCase()
+    if (cleanEmail !== ADMIN_EMAIL) {
+      throw new Error('Akses ditolak. Hanya akun admin yang dapat masuk ke halaman ini.')
+    }
+
+    const [incomingHash, expectedHash] = await Promise.all([
+      hashPasswordSecure(String(password || ''), ADMIN_EMAIL),
+      ADMIN_PASSWORD_HASH_PROMISE,
+    ])
+
+    if (incomingHash !== expectedHash) {
+      throw new Error('Password admin salah. Silakan periksa kembali.')
+    }
+
+    const sessionPayload = {
+      email: ADMIN_EMAIL,
+      role: 'admin',
+      active: true,
+      loggedInAt: new Date().toISOString(),
+    }
+    localStorage.setItem(ADMIN_SESSION_KEY, JSON.stringify(sessionPayload))
+
+    // Jika akun admin@gmail.com juga terdaftar di Supabase Auth, coba sinkronkan sesi
+    if (isSupabaseConfigured && supabase) {
+      try {
+        await supabase.auth.signInWithPassword({
+          email: ADMIN_EMAIL,
+          password: String(password || ''),
+        })
+      } catch {
+        // Tetap izinkan sesi admin lokal jika belum ada di Supabase Auth
+      }
+    }
+
+    return sessionPayload
+  },
+
+  logoutAdmin() {
+    localStorage.removeItem(ADMIN_SESSION_KEY)
+  },
+
+  async listUsers() {
+    const userMap = new Map()
+    const deletedIds = new Set(getDeletedAdminUserIds())
+
+    // 1. Akun Demo Pengujian (Juri)
+    if (!deletedIds.has(DEMO_USER.id)) {
+      const demoProg = progressService.getProgress(DEMO_USER.id)
+      userMap.set(DEMO_USER.id, {
+        id: DEMO_USER.id,
+        nama: DEMO_USER.nama,
+        email: DEMO_USER.email,
+        umur: DEMO_USER.umur,
+        auth_provider: 'demo',
+        avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
+        xp: Number(demoProg.xp ?? DEMO_USER.xp) || 0,
+        streak: Number(demoProg.streak ?? DEMO_USER.streak) || 0,
+        gems: Number(demoProg.gems ?? DEMO_USER.gems) || 0,
+        hearts: Number(demoProg.hearts ?? DEMO_USER.hearts) || 5,
+        current_unit: Number(demoProg.unlockedIslands?.slice(-1)[0] || DEMO_USER.current_unit) || 2,
+        completed_lessons: Array.isArray(demoProg.completedIslands) ? demoProg.completedIslands : [1],
+        unlocked_islands: Array.isArray(demoProg.unlockedIslands) ? demoProg.unlockedIslands : [1, 2],
+        updated_at: new Date().toISOString(),
+        source: 'Demo',
+      })
+    }
+
+    // 2. Akun dari local registry
+    const localUsers = getLocalRegisteredUsers()
+    Object.values(localUsers).forEach((reg) => {
+      if (!reg?.id || deletedIds.has(reg.id)) return
+      if (reg.email?.toLowerCase() === ADMIN_EMAIL) return
+      const prog = progressService.getProgress(reg.id)
+      const p = reg.profile || {}
+      userMap.set(reg.id, {
+        id: reg.id,
+        nama: reg.nama || p.nama || 'Sobat Handoora',
+        email: reg.email,
+        umur: reg.umur ?? p.umur ?? null,
+        auth_provider: p.auth_provider || 'email',
+        avatar_url: localStorage.getItem(`handoora_avatar_${reg.id}`) || p.avatar_url || null,
+        xp: Number(prog.xp ?? p.xp ?? 0) || 0,
+        streak: Number(prog.streak ?? p.streak ?? 0) || 0,
+        gems: Number(prog.gems ?? p.gems ?? 500) || 0,
+        hearts: Number(prog.hearts ?? p.hearts ?? 5) || 5,
+        current_unit: Number(prog.unlockedIslands?.slice(-1)[0] || p.current_unit || 1) || 1,
+        completed_lessons: Array.isArray(prog.completedIslands) ? prog.completedIslands : (p.completed_lessons || []),
+        unlocked_islands: Array.isArray(prog.unlockedIslands) ? prog.unlockedIslands : (p.unlocked_islands || [1]),
+        updated_at: p.updated_at || reg.created_at || new Date().toISOString(),
+        source: 'Lokal',
+      })
+    })
+
+    // 3. Known profiles lokal
+    try {
+      const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+      Object.values(knownProfiles).forEach((kp) => {
+        if (!kp?.id || deletedIds.has(kp.id) || userMap.has(kp.id)) return
+        if (kp.email?.toLowerCase() === ADMIN_EMAIL) return
+        const prog = progressService.getProgress(kp.id)
+        userMap.set(kp.id, {
+          id: kp.id,
+          nama: kp.nama || (kp.email ? kp.email.split('@')[0] : 'Sobat Handoora'),
+          email: kp.email || '-',
+          umur: kp.umur ?? null,
+          auth_provider: kp.auth_provider || 'email',
+          avatar_url: kp.avatar_url || localStorage.getItem(`handoora_avatar_${kp.id}`) || null,
+          xp: Number(kp.xp ?? prog.xp ?? 0) || 0,
+          streak: Number(prog.streak ?? kp.streak ?? 0) || 0,
+          gems: Number(prog.gems ?? kp.gems ?? 500) || 0,
+          hearts: Number(prog.hearts ?? kp.hearts ?? 5) || 5,
+          current_unit: Number(kp.current_unit ?? prog.unlockedIslands?.slice(-1)[0] ?? 1) || 1,
+          completed_lessons: Array.isArray(prog.completedIslands) ? prog.completedIslands : [],
+          unlocked_islands: Array.isArray(prog.unlockedIslands) ? prog.unlockedIslands : [1],
+          updated_at: kp.updated_at || new Date().toISOString(),
+          source: 'Lokal',
+        })
+      })
+    } catch {
+      // ignore
+    }
+
+    // 4. Data aktual dari tabel profiles Supabase
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('id, nama, umur, email, auth_provider, avatar_url, xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, updated_at')
+          .order('updated_at', { ascending: false })
+
+        if (!error && Array.isArray(data)) {
+          data.forEach((row) => {
+            if (!row?.id || deletedIds.has(row.id)) return
+            if (row.email?.toLowerCase() === ADMIN_EMAIL) return
+            const existing = userMap.get(row.id)
+            userMap.set(row.id, {
+              id: row.id,
+              nama: row.nama || existing?.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
+              email: row.email || existing?.email || '-',
+              umur: row.umur ?? existing?.umur ?? null,
+              auth_provider: row.auth_provider || existing?.auth_provider || 'email',
+              avatar_url: row.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
+              xp: Number(row.xp ?? existing?.xp ?? 0) || 0,
+              streak: Number(row.streak ?? existing?.streak ?? 0) || 0,
+              gems: Number(row.gems ?? existing?.gems ?? 500) || 0,
+              hearts: Number(row.hearts ?? existing?.hearts ?? 5) || 5,
+              current_unit: Number(row.current_unit ?? existing?.current_unit ?? 1) || 1,
+              completed_lessons: Array.isArray(row.completed_lessons) ? row.completed_lessons : (existing?.completed_lessons || []),
+              unlocked_islands: Array.isArray(row.unlocked_islands) && row.unlocked_islands.length > 0 ? row.unlocked_islands : (existing?.unlocked_islands || [1]),
+              updated_at: row.updated_at || existing?.updated_at || new Date().toISOString(),
+              source: existing?.source === 'Demo' ? 'Demo' : 'Supabase',
+            })
+          })
+        }
+      } catch (err) {
+        console.warn('Gagal mengambil daftar user dari Supabase:', err)
+      }
+    }
+
+    return Array.from(userMap.values()).sort((a, b) => (b.xp || 0) - (a.xp || 0))
+  },
+
+  async createUser({
+    nama,
+    email,
+    umur,
+    password,
+    xp = 0,
+    streak = 0,
+    gems = 500,
+    hearts = 5,
+    current_unit = 1,
+    completed_lessons = [],
+    unlocked_islands = [1],
+  }) {
+    const cleanNama = String(nama || '').trim()
+    const cleanEmail = String(email || '').trim().toLowerCase()
+    const parsedUmur = umur !== '' && umur !== null && umur !== undefined ? parseInt(umur, 10) : null
+
+    if (!cleanNama) throw new Error('Nama lengkap wajib diisi.')
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      throw new Error('Format email tidak valid.')
+    }
+    if (cleanEmail === ADMIN_EMAIL) {
+      throw new Error('Email admin tidak dapat dibuat sebagai user biasa.')
+    }
+    if (!password || String(password).length < 6) {
+      throw new Error('Password minimal 6 karakter.')
+    }
+
+    const existingUsers = await this.listUsers()
+    if (existingUsers.some((u) => u.email?.toLowerCase() === cleanEmail)) {
+      throw new Error('Email sudah terdaftar di aplikasi Handoora.')
+    }
+
+    const passwordHash = await hashPasswordSecure(password, cleanEmail)
+    let userId = null
+    let remoteSynced = false
+    let remoteWarning = null
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        // Gunakan client terpisah dengan persistSession: false agar sesi admin/user aktif tidak tertimpa
+        const url = import.meta.env.VITE_SUPABASE_URL
+        const key = import.meta.env.VITE_SUPABASE_ANON_KEY
+        const ephemeralClient = createClient(url, key, {
+          auth: { persistSession: false, autoRefreshToken: false },
+        })
+        const { data: signUpData, error: signUpErr } = await ephemeralClient.auth.signUp({
+          email: cleanEmail,
+          password,
+          options: {
+            data: {
+              nama: cleanNama,
+              full_name: cleanNama,
+              umur: parsedUmur,
+              password_hash: passwordHash,
+              auth_provider: 'email',
+            },
+          },
+        })
+        if (!signUpErr && signUpData?.user?.id) {
+          userId = signUpData.user.id
+        }
+      } catch {
+        // fallback ke ID lokal
+      }
+    }
+
+    if (!userId) {
+      userId = (typeof crypto !== 'undefined' && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+    }
+
+    removeDeletedAdminUserId(userId)
+
+    const cleanXp = Math.max(0, Number(xp) || 0)
+    const cleanStreak = Math.max(0, Number(streak) || 0)
+    const cleanGems = Math.max(0, Number(gems) || 0)
+    const cleanHearts = Math.min(5, Math.max(0, Number(hearts) || 5))
+    const cleanUnit = Math.min(6, Math.max(1, Number(current_unit) || 1))
+    const cleanCompleted = Array.isArray(completed_lessons) ? completed_lessons : []
+    const cleanUnlocked = Array.isArray(unlocked_islands) && unlocked_islands.length > 0
+      ? (unlocked_islands.includes(1) ? unlocked_islands : [1, ...unlocked_islands])
+      : [1]
+
+    const currentCycle = getWeeklyCycleId()
+    const newProfile = {
+      id: userId,
+      nama: cleanNama,
+      umur: parsedUmur,
+      email: cleanEmail,
+      password_hash: passwordHash,
+      auth_provider: 'email',
+      avatar_url: null,
+      xp: cleanXp,
+      weekly_xp: cleanXp,
+      weekly_cycle_id: currentCycle,
+      streak: cleanStreak,
+      gems: cleanGems,
+      hearts: cleanHearts,
+      current_unit: cleanUnit,
+      completed_lessons: cleanCompleted,
+      unlocked_islands: cleanUnlocked,
+      updated_at: new Date().toISOString(),
+    }
+
+    saveLocalRegisteredUser({
+      id: userId,
+      nama: cleanNama,
+      umur: parsedUmur,
+      email: cleanEmail,
+      password_hash: passwordHash,
+      profile: newProfile,
+    })
+
+    localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+    localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify({
+      xp: cleanXp,
+      weekly_xp: cleanXp,
+      weekly_cycle_id: currentCycle,
+      streak: cleanStreak,
+      isStreakActiveToday: cleanStreak > 0,
+      last_activity_date: cleanStreak > 0 ? getLocalDateString() : null,
+      streak_history: cleanStreak > 0 ? [getLocalDateString()] : [],
+      gems: cleanGems,
+      hearts: cleanHearts,
+      completedIslands: cleanCompleted,
+      unlockedIslands: cleanUnlocked,
+      dailyQuests: {
+        xpEarned: Math.min(20, cleanXp),
+        xpEarnedToday: Math.min(50, cleanXp),
+        highScoreLessons: cleanCompleted.length,
+      },
+    }))
+
+    if (isSupabaseConfigured && supabase) {
+      try {
+        const { error: upsertErr } = await supabase.from('profiles').upsert({
+          id: userId,
+          nama: cleanNama,
+          umur: parsedUmur,
+          email: cleanEmail,
+          password_hash: passwordHash,
+          auth_provider: 'email',
+          avatar_url: null,
+          xp: cleanXp,
+          streak: cleanStreak,
+          gems: cleanGems,
+          hearts: cleanHearts,
+          current_unit: cleanUnit,
+          completed_lessons: cleanCompleted,
+          unlocked_islands: cleanUnlocked,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: 'id' })
+
+        if (!upsertErr) {
+          remoteSynced = true
+        } else {
+          remoteWarning = upsertErr.message
+        }
+      } catch (err) {
+        remoteWarning = err.message
+      }
+    }
+
+    return { user: newProfile, remoteSynced, remoteWarning }
+  },
+
+  async updateUser(userId, updates) {
+    const cleanNama = String(updates.nama || '').trim()
+    const cleanEmail = String(updates.email || '').trim().toLowerCase()
+    const parsedUmur = updates.umur !== '' && updates.umur !== null && updates.umur !== undefined
+      ? parseInt(updates.umur, 10)
+      : null
+
+    if (!cleanNama) throw new Error('Nama lengkap wajib diisi.')
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      throw new Error('Format email tidak valid.')
+    }
+
+    const cleanXp = Math.max(0, Number(updates.xp) || 0)
+    const cleanStreak = Math.max(0, Number(updates.streak) || 0)
+    const cleanGems = Math.max(0, Number(updates.gems) || 0)
+    const cleanHearts = Math.min(5, Math.max(0, Number(updates.hearts) || 0))
+    const cleanUnit = Math.min(6, Math.max(1, Number(updates.current_unit) || 1))
+    const cleanCompleted = Array.isArray(updates.completed_lessons) ? updates.completed_lessons : []
+    const cleanUnlocked = Array.isArray(updates.unlocked_islands) && updates.unlocked_islands.length > 0
+      ? (updates.unlocked_islands.includes(1) ? updates.unlocked_islands : [1, ...updates.unlocked_islands])
+      : [1]
+
+    const newPasswordHash = updates.password && String(updates.password).trim().length >= 6
+      ? await hashPasswordSecure(String(updates.password).trim(), cleanEmail)
+      : null
+
+    // 1. Update handoora_registered_users
+    const registeredUsers = getLocalRegisteredUsers()
+    let matchedKey = null
+    Object.keys(registeredUsers).forEach((k) => {
+      if (registeredUsers[k]?.id === userId || k.toLowerCase() === cleanEmail) {
+        matchedKey = k
+      }
+    })
+    if (matchedKey) {
+      const oldRecord = registeredUsers[matchedKey]
+      if (matchedKey.toLowerCase() !== cleanEmail) {
+        delete registeredUsers[matchedKey]
+      }
+      registeredUsers[cleanEmail] = {
+        ...oldRecord,
+        id: userId,
+        nama: cleanNama,
+        umur: parsedUmur,
+        email: cleanEmail,
+        password_hash: newPasswordHash || oldRecord.password_hash,
+        profile: {
+          ...(oldRecord.profile || {}),
+          id: userId,
+          nama: cleanNama,
+          umur: parsedUmur,
+          email: cleanEmail,
+          ...(newPasswordHash ? { password_hash: newPasswordHash } : {}),
+          xp: cleanXp,
+          weekly_xp: cleanXp,
+          streak: cleanStreak,
+          gems: cleanGems,
+          hearts: cleanHearts,
+          current_unit: cleanUnit,
+          completed_lessons: cleanCompleted,
+          unlocked_islands: cleanUnlocked,
+          updated_at: new Date().toISOString(),
+        },
+      }
+      localStorage.setItem('handoora_registered_users', JSON.stringify(registeredUsers))
+    }
+
+    // 2. Update handoora_known_profiles
+    try {
+      const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+      known[userId] = {
+        ...(known[userId] || {}),
+        id: userId,
+        nama: cleanNama,
+        umur: parsedUmur,
+        email: cleanEmail,
+        xp: cleanXp,
+        weekly_xp: cleanXp,
+        streak: cleanStreak,
+        gems: cleanGems,
+        hearts: cleanHearts,
+        current_unit: cleanUnit,
+        updated_at: new Date().toISOString(),
+      }
+      localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
+    } catch {
+      // ignore
+    }
+
+    // 3. Update handoora_progress_${userId}
+    const existingProg = progressService.getProgress(userId)
+    localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify({
+      ...existingProg,
+      xp: cleanXp,
+      weekly_xp: cleanXp,
+      streak: cleanStreak,
+      gems: cleanGems,
+      hearts: cleanHearts,
+      completedIslands: cleanCompleted,
+      unlockedIslands: cleanUnlocked,
+      dailyQuests: {
+        ...(existingProg.dailyQuests || {}),
+        xpEarned: Math.min(20, cleanXp),
+        xpEarnedToday: Math.min(50, cleanXp),
+        highScoreLessons: cleanCompleted.length,
+      },
+    }))
+
+    // 4. Update handoora_user jika user yang sedang aktif sama
+    try {
+      const activeUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+      if (activeUser?.id === userId) {
+        localStorage.setItem('handoora_user', JSON.stringify({
+          ...activeUser,
+          nama: cleanNama,
+          umur: parsedUmur,
+          email: cleanEmail,
+          xp: cleanXp,
+          weekly_xp: cleanXp,
+          streak: cleanStreak,
+          gems: cleanGems,
+          hearts: cleanHearts,
+          current_unit: cleanUnit,
+          completed_lessons: cleanCompleted,
+          unlocked_islands: cleanUnlocked,
+        }))
+      }
+    } catch {
+      // ignore
+    }
+
+    // 5. Update ke Supabase profiles
+    let remoteSynced = false
+    let remoteWarning = null
+    if (isSupabaseConfigured && supabase && userId !== DEMO_USER.id) {
+      try {
+        const updatePayload = {
+          nama: cleanNama,
+          umur: parsedUmur,
+          email: cleanEmail,
+          xp: cleanXp,
+          streak: cleanStreak,
+          gems: cleanGems,
+          hearts: cleanHearts,
+          current_unit: cleanUnit,
+          completed_lessons: cleanCompleted,
+          unlocked_islands: cleanUnlocked,
+          updated_at: new Date().toISOString(),
+        }
+        if (newPasswordHash) {
+          updatePayload.password_hash = newPasswordHash
+        }
+
+        const { data: updatedRows, error: updateErr } = await supabase
+          .from('profiles')
+          .update(updatePayload)
+          .eq('id', userId)
+          .select('id')
+
+        if (!updateErr && Array.isArray(updatedRows) && updatedRows.length > 0) {
+          remoteSynced = true
+        } else {
+          remoteWarning = updateErr?.message || 'Kebijakan RLS Supabase membatasi update profil user lain.'
+        }
+      } catch (err) {
+        remoteWarning = err.message
+      }
+    }
+
+    return {
+      user: {
+        id: userId,
+        nama: cleanNama,
+        umur: parsedUmur,
+        email: cleanEmail,
+        xp: cleanXp,
+        streak: cleanStreak,
+        gems: cleanGems,
+        hearts: cleanHearts,
+        current_unit: cleanUnit,
+        completed_lessons: cleanCompleted,
+        unlocked_islands: cleanUnlocked,
+      },
+      remoteSynced,
+      remoteWarning,
+    }
+  },
+
+  async deleteUser(userId) {
+    if (!userId) throw new Error('ID user tidak valid.')
+
+    // 1. Hapus dari handoora_registered_users
+    const registeredUsers = getLocalRegisteredUsers()
+    Object.keys(registeredUsers).forEach((emailKey) => {
+      if (registeredUsers[emailKey]?.id === userId) {
+        delete registeredUsers[emailKey]
+      }
+    })
+    localStorage.setItem('handoora_registered_users', JSON.stringify(registeredUsers))
+
+    // 2. Hapus dari handoora_known_profiles
+    try {
+      const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+      if (known[userId]) {
+        delete known[userId]
+        localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
+      }
+    } catch {
+      // ignore
+    }
+
+    // 3. Bersihkan progress, avatar, dan flag user
+    localStorage.removeItem(`handoora_progress_${userId}`)
+    localStorage.removeItem(`handoora_avatar_${userId}`)
+    localStorage.removeItem(`handoora_lvl1_init_${userId}`)
+    localStorage.removeItem(`handoora_xp_reset_synced_${userId}`)
+    addDeletedAdminUserId(userId)
+
+    // 4. Hapus dari Supabase profiles
+    let remoteDeleted = false
+    let remoteWarning = null
+    if (isSupabaseConfigured && supabase && userId !== DEMO_USER.id) {
+      try {
+        const { data: deletedRows, error: delErr } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', userId)
+          .select('id')
+
+        if (!delErr && Array.isArray(deletedRows) && deletedRows.length > 0) {
+          remoteDeleted = true
+        } else {
+          remoteWarning = delErr?.message || 'Kebijakan RLS Supabase membatasi penghapusan profil user lain.'
+        }
+      } catch (err) {
+        remoteWarning = err.message
+      }
+    }
+
+    return { remoteDeleted, remoteWarning }
   },
 }

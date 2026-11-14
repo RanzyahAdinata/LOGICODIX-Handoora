@@ -8,6 +8,7 @@ import RegisterPage from './pages/RegisterPage'
 import DashboardPage from './pages/DashboardPage'
 import QuizPage from './pages/QuizPage'
 import TrainingPage from './pages/TrainingPage'
+import AdminPage from './pages/AdminPage'
 
 function App() {
   return (
@@ -88,6 +89,9 @@ function App() {
             </ProtectedRoute>
           }
         />
+
+        {/* Admin Route (Hanya dapat diakses oleh Admin) */}
+        <Route path="/adminhandoora" element={<AdminPage />} />
 
         {/* Fallback Wildcard Route */}
         <Route path="*" element={<Navigate to="/" replace />} />

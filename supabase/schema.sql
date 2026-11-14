@@ -38,7 +38,7 @@ create index if not exists profiles_weekly_xp_idx on public.profiles (weekly_xp 
 
 -- 2. Berikan hak akses tabel ke role Data API Supabase
 grant select on table public.profiles to anon;
-grant select, insert, update on table public.profiles to authenticated;
+grant select, insert, update, delete on table public.profiles to authenticated;
 
 -- 3. Aktifkan Row Level Security (RLS) yang aman sesuai standar Supabase
 alter table public.profiles enable row level security;
@@ -59,8 +59,20 @@ drop policy if exists "Pengguna hanya dapat mengubah profil miliknya sendiri" on
 create policy "Pengguna hanya dapat mengubah profil miliknya sendiri"
   on public.profiles for update
   to authenticated
-  using ( (select auth.uid()) = id )
-  with check ( (select auth.uid()) = id );
+  using ( (select auth.uid()) = id or (select auth.jwt() ->> 'email') = 'admin@gmail.com' )
+  with check ( (select auth.uid()) = id or (select auth.jwt() ->> 'email') = 'admin@gmail.com' );
+
+drop policy if exists "Admin dapat membuat profil pengguna" on public.profiles;
+create policy "Admin dapat membuat profil pengguna"
+  on public.profiles for insert
+  to authenticated
+  with check ( (select auth.uid()) = id or (select auth.jwt() ->> 'email') = 'admin@gmail.com' );
+
+drop policy if exists "Admin dapat menghapus profil pengguna" on public.profiles;
+create policy "Admin dapat menghapus profil pengguna"
+  on public.profiles for delete
+  to authenticated
+  using ( (select auth.jwt() ->> 'email') = 'admin@gmail.com' );
 
 -- 4. Trigger otomatis: Saat user daftar/login dengan Google atau Email di auth.users,
 --    otomatis simpan Nama, Email, Avatar, Umur, dan Password Hash ke public.profiles!
