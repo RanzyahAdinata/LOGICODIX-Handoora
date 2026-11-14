@@ -1990,6 +1990,9 @@ const DashboardPage = () => {
       progressService.syncFromSupabase(user.id).then((remote) => {
         if (remote) {
           setProgress(remote)
+          if (activeMenu === 'leaderboard') {
+            fetchRealLeaderboard()
+          }
         }
       })
     }
@@ -3727,11 +3730,15 @@ const DashboardPage = () => {
                       if (Array.isArray(supabaseLeaderboard) && supabaseLeaderboard.length > 0) {
                         supabaseLeaderboard.forEach((p) => {
                           const displayXp = Number(p.xp) || 0
-                          const isCurrentUser = Boolean(user?.id && (p.id === user.id || p.email === user.email))
+                          const isCurrentUser = Boolean(
+                            user?.id &&
+                              (p.id === user.id ||
+                                (user.email && p.email?.toLowerCase() === user.email.toLowerCase()))
+                          )
                           userMap.set(p.id, {
                             id: p.id,
                             name: isCurrentUser ? `${user?.nama || p.nama || 'Sobat Handoora'} (Kamu)` : (p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora')),
-                            xp: isCurrentUser ? (Number(progress.xp) || displayXp) : displayXp,
+                            xp: isCurrentUser ? (Number(progress?.xp) || 0) : displayXp,
                             level: isCurrentUser ? currentActiveUnitId : (Number(p.current_unit) || 1),
                             avatar: isCurrentUser ? currentAvatar : (p.avatar_url || '/assets/avatar-orangutan.png'),
                             status: isCurrentUser ? userLeaderboardStatus : (p.status || '🌟'),

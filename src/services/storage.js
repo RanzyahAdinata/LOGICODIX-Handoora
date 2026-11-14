@@ -917,7 +917,7 @@ export const progressService = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('xp, weekly_xp, weekly_cycle_id, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
+      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
       .eq('id', userId)
       .maybeSingle()
 
@@ -929,8 +929,18 @@ export const progressService = {
         userId
       )
 
-      // Ambil XP tertinggi antara database dan cache lokal agar perolehan kuis tidak hilang
-      const resolvedXp = Math.max(norm.xp, Number(cached?.xp) || 0)
+      const resetSyncKey = `handoora_xp_reset_synced_${userId}`
+      const hasLocalProgress = Boolean(localStorage.getItem(`handoora_progress_${userId}`))
+      const isPendingResetSync =
+        localStorage.getItem(XP_RESET_VERSION_KEY) === 'done' &&
+        !localStorage.getItem(resetSyncKey) &&
+        hasLocalProgress &&
+        Number(cached?.xp) === 0
+
+      // Ambil XP tertinggi antara database dan cache lokal, kecuali jika baru saja direset ke 0
+      const resolvedXp = isPendingResetSync
+        ? 0
+        : Math.max(norm.xp, Number(cached?.xp) || 0)
 
       // Hitung streak real-time
       const streakState = calculateCurrentStreak(
@@ -938,6 +948,18 @@ export const progressService = {
         data.last_activity_date || cached?.last_activity_date,
         data.streak_history || cached?.streak_history
       )
+
+      const resolvedCompleted =
+        Array.isArray(cached?.completedIslands) && cached.completedIslands.length > (data.completed_lessons || []).length
+          ? cached.completedIslands
+          : Array.isArray(data.completed_lessons) && data.completed_lessons.length > 0
+            ? data.completed_lessons
+            : (cached?.completedIslands || [])
+
+      const resolvedUnlocked =
+        Array.isArray(cached?.unlockedIslands) && cached.unlockedIslands.length > norm.unlockedIslands.length
+          ? cached.unlockedIslands
+          : norm.unlockedIslands
 
       const result = {
         xp: resolvedXp,
@@ -949,21 +971,24 @@ export const progressService = {
         streak_history: streakState.streakHistory,
         gems: data.gems ?? cached?.gems ?? 500,
         hearts: data.hearts ?? cached?.hearts ?? 5,
-        completedIslands: Array.isArray(data.completed_lessons) && data.completed_lessons.length > 0 ? data.completed_lessons : (cached?.completedIslands || []),
-        unlockedIslands: norm.unlockedIslands,
+        completedIslands: resolvedCompleted,
+        unlockedIslands: resolvedUnlocked,
         dailyQuests: {
           xpEarned: Math.min(20, resolvedXp),
           xpEarnedToday: Math.min(50, resolvedXp),
-          highScoreLessons: (data.completed_lessons || []).length,
+          highScoreLessons: resolvedCompleted.length,
         },
       }
 
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
 
-      // Jika ada perbedaan atau normalisasi, sinkronkan balik ke database
-      if (norm.wasNormalized || resolvedXp > norm.xp) {
+      // Jika ada perbedaan antara database & cache lokal (termasuk setelah reset atau perolehan XP), sinkronkan balik ke database
+      if (isPendingResetSync || norm.wasNormalized || resolvedXp !== Number(data.xp ?? 0)) {
         localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
+        localStorage.setItem(resetSyncKey, 'done')
         await this.saveProgressToSupabase(userId, result)
+      } else {
+        localStorage.setItem(resetSyncKey, 'done')
       }
 
       return result
@@ -1030,23 +1055,40 @@ export const progressService = {
       weekly_cycle_id: currentCycle,
     }
 
+    const computedCurrentUnit =
+      progress.current_unit ||
+      Math.max(1, ...(Array.isArray(updatedProgress.unlockedIslands) && updatedProgress.unlockedIslands.length > 0 ? updatedProgress.unlockedIslands : [1]))
+
     if (userId) {
       localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(updatedProgress))
-      
+
+      // Sinkronkan juga ke handoora_user jika user ini sedang aktif
+      try {
+        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+        if (currentMeta && currentMeta.id === userId) {
+          currentMeta.xp = updatedProgress.xp
+          currentMeta.weekly_xp = finalWeeklyXp
+          currentMeta.current_unit = computedCurrentUnit
+          localStorage.setItem('handoora_user', JSON.stringify(currentMeta))
+        }
+      } catch {
+        // ignore
+      }
+
       // Simpan juga ke known local profiles untuk sinkronisasi fallback multi-akun
       try {
         const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
         const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
         knownProfiles[userId] = {
           id: userId,
-          nama: currentMeta.nama || progress.nama || 'Sobat Handoora',
-          email: currentMeta.email || '',
+          nama: (currentMeta.id === userId ? currentMeta.nama : null) || knownProfiles[userId]?.nama || progress.nama || 'Sobat Handoora',
+          email: (currentMeta.id === userId ? currentMeta.email : null) || knownProfiles[userId]?.email || '',
           xp: updatedProgress.xp,
           weekly_xp: finalWeeklyXp,
           weekly_cycle_id: currentCycle,
-          current_unit: updatedProgress.current_unit || (updatedProgress.unlockedIslands?.slice(-1)[0] || 1),
-          avatar_url: currentMeta.avatar_url || localStorage.getItem(`handoora_avatar_${userId}`) || null,
+          current_unit: computedCurrentUnit,
+          avatar_url: (currentMeta.id === userId ? currentMeta.avatar_url : null) || knownProfiles[userId]?.avatar_url || localStorage.getItem(`handoora_avatar_${userId}`) || null,
           updated_at: new Date().toISOString()
         }
         localStorage.setItem('handoora_known_profiles', JSON.stringify(knownProfiles))
@@ -1064,28 +1106,9 @@ export const progressService = {
     const lastDate = updatedProgress.last_activity_date || updatedProgress.lastActivityDate || null
     const history = updatedProgress.streak_history || updatedProgress.streakHistory || []
 
-    await supabase.auth.updateUser({
-      data: {
-        xp: updatedProgress.xp,
-        weekly_xp: finalWeeklyXp,
-        weekly_cycle_id: currentCycle,
-        streak: updatedProgress.streak,
-        last_activity_date: lastDate,
-        streak_history: history,
-        gems: updatedProgress.gems,
-        hearts: updatedProgress.hearts,
-        completed_lessons: updatedProgress.completedIslands,
-        unlocked_islands: updatedProgress.unlockedIslands,
-      },
-    })
-
-    // Upsert ke tabel profiles agar row akun dipastikan ada di database (bukan sekadar update)
     try {
-      const { error: upsertError } = await supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          nama: progress.nama || undefined,
+      await supabase.auth.updateUser({
+        data: {
           xp: updatedProgress.xp,
           weekly_xp: finalWeeklyXp,
           weekly_cycle_id: currentCycle,
@@ -1096,47 +1119,64 @@ export const progressService = {
           hearts: updatedProgress.hearts,
           completed_lessons: updatedProgress.completedIslands,
           unlocked_islands: updatedProgress.unlockedIslands,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' })
+        },
+      })
+    } catch {
+      // ignore auth metadata error if session is local-only
+    }
 
-      if (upsertError) {
-        // Fallback jika kolom weekly_xp / weekly_cycle_id belum ada di schema database
+    // Update langsung ke tabel profiles menggunakan kolom yang valid pada schema
+    const profilePayload = {
+      xp: updatedProgress.xp,
+      streak: updatedProgress.streak,
+      last_activity_date: lastDate,
+      streak_history: history,
+      gems: updatedProgress.gems,
+      hearts: updatedProgress.hearts,
+      current_unit: computedCurrentUnit,
+      completed_lessons: updatedProgress.completedIslands,
+      unlocked_islands: updatedProgress.unlockedIslands,
+      updated_at: new Date().toISOString(),
+    }
+
+    try {
+      const { data: updatedRows, error: updateErr } = await supabase
+        .from('profiles')
+        .update(profilePayload)
+        .eq('id', userId)
+        .select('id')
+
+      // Jika belum ada baris di tabel profiles (0 row ter-update), lakukan upsert dengan nama & email wajib
+      if (updateErr || !Array.isArray(updatedRows) || updatedRows.length === 0) {
+        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
+        const { data: authData } = await supabase.auth.getUser()
+        const authUser = authData?.user
+        const resolvedEmail =
+          (currentMeta.id === userId ? currentMeta.email : null) ||
+          authUser?.email ||
+          `${userId}@handoora.local`
+        const resolvedNama =
+          progress.nama ||
+          (currentMeta.id === userId ? currentMeta.nama : null) ||
+          authUser?.user_metadata?.nama ||
+          authUser?.user_metadata?.full_name ||
+          resolvedEmail.split('@')[0] ||
+          'Sobat Handoora'
+
         await supabase
           .from('profiles')
-          .upsert({
-            id: userId,
-            nama: progress.nama || undefined,
-            xp: updatedProgress.xp,
-            streak: updatedProgress.streak,
-            last_activity_date: lastDate,
-            streak_history: history,
-            gems: updatedProgress.gems,
-            hearts: updatedProgress.hearts,
-            completed_lessons: updatedProgress.completedIslands,
-            unlocked_islands: updatedProgress.unlockedIslands,
-            updated_at: new Date().toISOString(),
-          }, { onConflict: 'id' })
+          .upsert(
+            {
+              id: userId,
+              nama: resolvedNama,
+              email: resolvedEmail,
+              ...profilePayload,
+            },
+            { onConflict: 'id' }
+          )
       }
     } catch {
-      // Fallback kedua jika upsert gagal
-      try {
-        await supabase
-          .from('profiles')
-          .update({
-            xp: updatedProgress.xp,
-            streak: updatedProgress.streak,
-            last_activity_date: lastDate,
-            streak_history: history,
-            gems: updatedProgress.gems,
-            hearts: updatedProgress.hearts,
-            completed_lessons: updatedProgress.completedIslands,
-            unlocked_islands: updatedProgress.unlockedIslands,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId)
-      } catch {
-        // ignore
-      }
+      // ignore
     }
 
     return updatedProgress
@@ -1206,14 +1246,15 @@ export const progressService = {
       if (Array.isArray(supabaseData) && supabaseData.length > 0) {
         supabaseData.forEach((row) => {
           if (!row?.id) return
+          const rowXp = Number(row.xp) || 0
           userMap.set(row.id, {
             id: row.id,
             nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
             email: row.email,
-            xp: Number(row.xp) || 0,
-            weekly_xp: Number(row.weekly_xp ?? row.xp) || 0,
+            xp: rowXp,
+            weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
             current_unit: Number(row.current_unit) || 1,
-            avatar_url: row.avatar_url || null,
+            avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
             status: '🌟',
           })
         })
