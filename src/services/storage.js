@@ -108,41 +108,92 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     authUser.user_metadata?.picture ||
     null
 
+  removeDeletedAdminUserId(authUser.id)
+
   const { data: existingProfile, error: selectErr } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', authUser.id)
     .maybeSingle()
 
-  if (!selectErr && existingProfile) {
-    const mergedProfile = {
-      ...existingProfile,
-      avatar_url: existingProfile.avatar_url || localAvatar || defaultAvatar,
-    }
+  const syncLocalCacheFromProfile = (profileObj) => {
+    const currentCycle = getWeeklyCycleId()
     try {
       const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
       known[authUser.id] = {
         ...(known[authUser.id] || {}),
-        id: mergedProfile.id,
-        nama: mergedProfile.nama,
-        umur: mergedProfile.umur ?? null,
-        email: mergedProfile.email,
-        xp: Number(mergedProfile.xp) || 0,
-        streak: Number(mergedProfile.streak) || 0,
-        gems: Number(mergedProfile.gems ?? 500),
-        hearts: Number(mergedProfile.hearts ?? 5),
-        current_unit: Number(mergedProfile.current_unit) || 1,
-        avatar_url: mergedProfile.avatar_url || null,
-        updated_at: mergedProfile.updated_at || new Date().toISOString(),
+        id: profileObj.id,
+        nama: profileObj.nama,
+        umur: profileObj.umur ?? null,
+        email: profileObj.email,
+        auth_provider: profileObj.auth_provider || defaultProvider,
+        xp: Number(profileObj.xp) || 0,
+        weekly_xp: Number(profileObj.weekly_xp ?? profileObj.xp) || 0,
+        streak: Number(profileObj.streak) || 0,
+        gems: Number(profileObj.gems ?? 500),
+        hearts: Number(profileObj.hearts ?? 5),
+        current_unit: Number(profileObj.current_unit) || 1,
+        completed_lessons: Array.isArray(profileObj.completed_lessons) ? profileObj.completed_lessons : [],
+        unlocked_islands: Array.isArray(profileObj.unlocked_islands) && profileObj.unlocked_islands.length > 0 ? profileObj.unlocked_islands : [1],
+        avatar_url: profileObj.avatar_url || null,
+        updated_at: profileObj.updated_at || new Date().toISOString(),
       }
       localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
     } catch {
       // ignore
     }
+
+    try {
+      const progKey = `handoora_progress_${authUser.id}`
+      const existingProg = JSON.parse(localStorage.getItem(progKey) || 'null')
+      const remoteTs = profileObj.updated_at ? new Date(profileObj.updated_at).getTime() : 0
+      const localTs = existingProg?.updated_at ? new Date(existingProg.updated_at).getTime() : 0
+
+      if (!existingProg || remoteTs >= localTs) {
+        const completedArr = Array.isArray(profileObj.completed_lessons) ? profileObj.completed_lessons : []
+        const unlockedArr = Array.isArray(profileObj.unlocked_islands) && profileObj.unlocked_islands.length > 0
+          ? profileObj.unlocked_islands
+          : [1]
+        const syncedXp = Number(profileObj.xp) || 0
+        const syncedStreak = Number(profileObj.streak) || 0
+        localStorage.setItem(`handoora_lvl1_init_${authUser.id}`, 'true')
+        localStorage.setItem(progKey, JSON.stringify({
+          ...(existingProg || {}),
+          xp: syncedXp,
+          weekly_xp: Number(profileObj.weekly_xp ?? syncedXp) || 0,
+          weekly_cycle_id: profileObj.weekly_cycle_id || currentCycle,
+          streak: syncedStreak,
+          isStreakActiveToday: syncedStreak > 0 && Boolean(existingProg?.isStreakActiveToday),
+          last_activity_date: profileObj.last_activity_date || existingProg?.last_activity_date || null,
+          streak_history: Array.isArray(profileObj.streak_history) ? profileObj.streak_history : (existingProg?.streak_history || []),
+          gems: Number(profileObj.gems ?? 500),
+          hearts: Number(profileObj.hearts ?? 5),
+          completedIslands: completedArr,
+          unlockedIslands: unlockedArr.includes(1) ? unlockedArr : [1, ...unlockedArr],
+          dailyQuests: {
+            xpEarned: Math.min(20, syncedXp),
+            xpEarnedToday: Math.min(50, syncedXp),
+            highScoreLessons: completedArr.length,
+          },
+          updated_at: profileObj.updated_at || new Date().toISOString(),
+        }))
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  if (!selectErr && existingProfile) {
+    const mergedProfile = {
+      ...existingProfile,
+      avatar_url: existingProfile.avatar_url || localAvatar || defaultAvatar,
+    }
+    syncLocalCacheFromProfile(mergedProfile)
     return mergedProfile
   }
 
   // Baris baru mulai dari Level 1 (completed_lessons: [], unlocked_islands: [1])
+  const nowIso = new Date().toISOString()
   const newProfileRow = {
     id: authUser.id,
     nama: defaultNama,
@@ -152,12 +203,15 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     auth_provider: defaultProvider,
     avatar_url: defaultAvatar,
     xp: 0,
+    weekly_xp: 0,
+    weekly_cycle_id: getWeeklyCycleId(),
     streak: 0,
     gems: 500,
     hearts: 5,
     current_unit: 1,
     completed_lessons: [],
     unlocked_islands: [1],
+    updated_at: nowIso,
   }
 
   const { data: insertedProfile, error: insertErr } = await supabase
@@ -167,9 +221,11 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     .maybeSingle()
 
   if (!insertErr && insertedProfile) {
+    syncLocalCacheFromProfile(insertedProfile)
     return insertedProfile
   }
 
+  syncLocalCacheFromProfile(newProfileRow)
   return {
     ...newProfileRow,
     _tableMissing: Boolean(insertErr || selectErr),
@@ -353,6 +409,7 @@ export const authService = {
 
     // 2. Coba daftarkan ke Supabase Auth
     let supabaseUser = null
+    let supabaseSession = null
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase.auth.signUp({
@@ -395,6 +452,7 @@ export const authService = {
           throw new Error('Email sudah terdaftar. Silakan masuk melalui halaman Login.')
         } else if (data?.user) {
           supabaseUser = data.user
+          supabaseSession = data.session || null
         }
       } catch (err) {
         if (err.message?.includes('Email sudah terdaftar')) {
@@ -407,6 +465,9 @@ export const authService = {
     // 3. Buat profil pengguna lengkap
     const userId = supabaseUser?.id || `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
     const currentCycle = getWeeklyCycleId()
+    const nowIso = new Date().toISOString()
+
+    removeDeletedAdminUserId(userId)
 
     const newProfile = {
       id: userId,
@@ -427,7 +488,8 @@ export const authService = {
       unlocked_islands: [1],
       last_activity_date: null,
       streak_history: [],
-      created_at: new Date().toISOString(),
+      created_at: nowIso,
+      updated_at: nowIso,
     }
 
     // Simpan akun ke local registry agar selalu bisa login
@@ -440,9 +502,14 @@ export const authService = {
       profile: newProfile,
     })
 
-    // Set sesi aktif
+    // Set sesi aktif (gunakan sesi Supabase jika tersedia, fallback ke sesi lokal jika SMTP/konfirmasi belum aktif)
     localStorage.setItem('handoora_user', JSON.stringify(newProfile))
-    localStorage.setItem('handoora_local_active', 'true')
+    localStorage.removeItem('handoora_demo_active')
+    if (supabaseSession) {
+      localStorage.removeItem('handoora_local_active')
+    } else {
+      localStorage.setItem('handoora_local_active', 'true')
+    }
     localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
     localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify({
       xp: 0,
@@ -461,6 +528,7 @@ export const authService = {
         xpEarnedToday: 0,
         highScoreLessons: 0,
       },
+      updated_at: nowIso,
     }))
 
     // Jika Supabase terhubung, simpan juga ke tabel profiles Supabase dengan kolom yang valid
@@ -475,12 +543,15 @@ export const authService = {
           auth_provider: 'email',
           avatar_url: null,
           xp: 0,
+          weekly_xp: 0,
+          weekly_cycle_id: currentCycle,
           streak: 0,
           gems: 500,
           hearts: 5,
           current_unit: 1,
           completed_lessons: [],
           unlocked_islands: [1],
+          updated_at: nowIso,
         }, { onConflict: 'id' })
       } catch {
         // ignore
@@ -540,17 +611,56 @@ export const authService = {
       }
     }
 
-    // Cek apakah akun terdaftar di penyimpanan lokal/aplikasi
+    // 1. Prioritaskan Supabase Auth agar sesi & data profiles selalu sinkron dengan Admin/Leaderboard
+    let authError = null
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: cleanEmail,
+        password,
+      })
+
+      if (!error && data?.user) {
+        localStorage.removeItem('handoora_local_active')
+        localStorage.removeItem('handoora_demo_active')
+        const profile = await fetchOrCreateSupabaseProfile(data.user)
+        if (profile) {
+          localStorage.setItem('handoora_user', JSON.stringify(profile))
+        }
+        return profile
+      }
+      authError = error
+    }
+
+    // 2. Fallback ke registry lokal (untuk akun yang dibuat saat offline/rate-limit email konfirmasi)
     const localUsers = getLocalRegisteredUsers()
     const localAccount = localUsers[cleanEmail]
     if (localAccount) {
       const incomingHash = await hashPasswordSecure(password, cleanEmail)
       if (localAccount.password_hash === incomingHash) {
         const currentCycle = getWeeklyCycleId()
+        let remoteProfile = null
+        if (isSupabaseConfigured && supabase) {
+          try {
+            const { data: rp } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('email', cleanEmail)
+              .maybeSingle()
+            remoteProfile = rp || null
+          } catch {
+            // ignore
+          }
+        }
+
         const profile = {
           ...localAccount.profile,
+          ...(remoteProfile || {}),
           weekly_cycle_id: currentCycle,
-          avatar_url: localStorage.getItem(`handoora_avatar_${localAccount.id}`) || localAccount.profile?.avatar_url || null,
+          avatar_url:
+            remoteProfile?.avatar_url ||
+            localStorage.getItem(`handoora_avatar_${localAccount.id}`) ||
+            localAccount.profile?.avatar_url ||
+            null,
         }
         localStorage.setItem('handoora_user', JSON.stringify(profile))
         localStorage.setItem('handoora_local_active', 'true')
@@ -564,22 +674,12 @@ export const authService = {
       throw new Error('Email tidak ditemukan atau layanan belum aktif.')
     }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: cleanEmail,
-      password,
-    })
-
-    if (error) {
-      if (error.message?.toLowerCase().includes('email not confirmed')) {
-        throw new Error(
-          'Email kamu belum dikonfirmasi. Silakan cek kotak masuk email kamu.'
-        )
-      }
-      throw new Error('Email atau password salah. Silakan periksa kembali.')
+    if (authError?.message?.toLowerCase().includes('email not confirmed')) {
+      throw new Error(
+        'Email kamu belum dikonfirmasi. Silakan cek kotak masuk email kamu.'
+      )
     }
-
-    const profile = await fetchOrCreateSupabaseProfile(data.user)
-    return profile
+    throw new Error('Email atau password salah. Silakan periksa kembali.')
   },
 
   // 3. LOGIN DENGAN GOOGLE OAUTH 2.0
@@ -1039,7 +1139,7 @@ export const progressService = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands')
+      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history, updated_at')
       .eq('id', userId)
       .maybeSingle()
 
@@ -1059,29 +1159,42 @@ export const progressService = {
         hasLocalProgress &&
         Number(cached?.xp) === 0
 
-      // Ambil XP tertinggi antara database dan cache lokal, kecuali jika baru saja direset ke 0
+      const remoteUpdatedTs = data.updated_at ? new Date(data.updated_at).getTime() : 0
+      const localUpdatedTs = cached?.updated_at ? new Date(cached.updated_at).getTime() : 0
+      const remoteIsAuthoritative = !hasLocalProgress || remoteUpdatedTs >= localUpdatedTs
+
+      // Jika data di Supabase lebih baru (misal diedit oleh Admin atau login dari perangkat baru),
+      // gunakan data Supabase secara langsung agar perubahan Admin selalu berpengaruh ke akun.
       const resolvedXp = isPendingResetSync
         ? 0
-        : Math.max(norm.xp, Number(cached?.xp) || 0)
+        : remoteIsAuthoritative
+          ? norm.xp
+          : Math.max(norm.xp, Number(cached?.xp) || 0)
+
+      const baseStreak = remoteIsAuthoritative
+        ? Number(data.streak) || 0
+        : Math.max(Number(data.streak) || 0, Number(cached?.streak) || 0)
 
       // Hitung streak real-time
       const streakState = calculateCurrentStreak(
-        Math.max(Number(data.streak) || 0, Number(cached?.streak) || 0),
+        baseStreak,
         data.last_activity_date || cached?.last_activity_date,
         data.streak_history || cached?.streak_history
       )
 
-      const resolvedCompleted =
-        Array.isArray(cached?.completedIslands) && cached.completedIslands.length > (data.completed_lessons || []).length
-          ? cached.completedIslands
-          : Array.isArray(data.completed_lessons) && data.completed_lessons.length > 0
-            ? data.completed_lessons
-            : (cached?.completedIslands || [])
+      const resolvedCompleted = remoteIsAuthoritative
+        ? (Array.isArray(data.completed_lessons) ? data.completed_lessons : [])
+        : (Array.isArray(cached?.completedIslands) && cached.completedIslands.length > (data.completed_lessons || []).length
+            ? cached.completedIslands
+            : Array.isArray(data.completed_lessons) && data.completed_lessons.length > 0
+              ? data.completed_lessons
+              : (cached?.completedIslands || []))
 
-      const resolvedUnlocked =
-        Array.isArray(cached?.unlockedIslands) && cached.unlockedIslands.length > norm.unlockedIslands.length
-          ? cached.unlockedIslands
-          : norm.unlockedIslands
+      const resolvedUnlocked = remoteIsAuthoritative
+        ? norm.unlockedIslands
+        : (Array.isArray(cached?.unlockedIslands) && cached.unlockedIslands.length > norm.unlockedIslands.length
+            ? cached.unlockedIslands
+            : norm.unlockedIslands)
 
       const result = {
         xp: resolvedXp,
@@ -1100,6 +1213,7 @@ export const progressService = {
           xpEarnedToday: Math.min(50, resolvedXp),
           highScoreLessons: resolvedCompleted.length,
         },
+        updated_at: data.updated_at || new Date().toISOString(),
       }
 
       localStorage.setItem(`handoora_progress_${userId}`, JSON.stringify(result))
@@ -1108,8 +1222,7 @@ export const progressService = {
       if (
         isPendingResetSync ||
         norm.wasNormalized ||
-        resolvedXp !== Number(data.xp ?? 0) ||
-        streakState.streak !== Number(data.streak ?? 0)
+        (!remoteIsAuthoritative && (resolvedXp !== Number(data.xp ?? 0) || streakState.streak !== Number(data.streak ?? 0)))
       ) {
         localStorage.setItem(`handoora_lvl1_init_${userId}`, 'true')
         localStorage.setItem(resetSyncKey, 'done')
@@ -1176,10 +1289,12 @@ export const progressService = {
       finalWeeklyXp = Number(progress.xp) || 0
     }
 
+    const nowIso = new Date().toISOString()
     const updatedProgress = {
       ...progress,
       weekly_xp: finalWeeklyXp,
       weekly_cycle_id: currentCycle,
+      updated_at: nowIso,
     }
 
     const computedCurrentUnit =
@@ -1255,13 +1370,17 @@ export const progressService = {
     // Update langsung ke tabel profiles menggunakan kolom yang valid pada schema
     const profilePayload = {
       xp: updatedProgress.xp,
+      weekly_xp: finalWeeklyXp,
+      weekly_cycle_id: currentCycle,
       streak: updatedProgress.streak,
+      last_activity_date: lastDate,
+      streak_history: history,
       gems: updatedProgress.gems,
       hearts: updatedProgress.hearts,
       current_unit: computedCurrentUnit,
       completed_lessons: updatedProgress.completedIslands,
       unlocked_islands: updatedProgress.unlockedIslands,
-      updated_at: new Date().toISOString(),
+      updated_at: nowIso,
     }
 
     try {
@@ -1558,8 +1677,9 @@ export const adminService = {
 
         if (!error && Array.isArray(data)) {
           data.forEach((row) => {
-            if (!row?.id || deletedIds.has(row.id)) return
+            if (!row?.id) return
             if (row.email?.toLowerCase() === ADMIN_EMAIL) return
+            removeDeletedAdminUserId(row.id)
 
             // Cocokkan berdasarkan ID atau email agar tidak ada duplikat dengan ID lokal lama
             let existing = userMap.get(row.id)
@@ -1744,28 +1864,52 @@ export const adminService = {
 
     if (isSupabaseConfigured && supabase) {
       try {
-        const { error: upsertErr } = await supabase.from('profiles').upsert({
-          id: userId,
-          nama: cleanNama,
-          umur: parsedUmur,
-          email: cleanEmail,
-          password_hash: passwordHash,
-          auth_provider: 'email',
-          avatar_url: null,
-          xp: cleanXp,
-          streak: cleanStreak,
-          gems: cleanGems,
-          hearts: cleanHearts,
-          current_unit: cleanUnit,
-          completed_lessons: cleanCompleted,
-          unlocked_islands: cleanUnlocked,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: 'id' })
+        const adminToken = await ADMIN_PASSWORD_HASH_PROMISE
+        const { error: rpcErr } = await supabase.rpc('admin_upsert_profile', {
+          p_admin_email: ADMIN_EMAIL,
+          p_admin_token: adminToken,
+          p_user_id: userId,
+          p_nama: cleanNama,
+          p_umur: parsedUmur,
+          p_email: cleanEmail,
+          p_password_hash: passwordHash,
+          p_auth_provider: 'email',
+          p_xp: cleanXp,
+          p_streak: cleanStreak,
+          p_gems: cleanGems,
+          p_hearts: cleanHearts,
+          p_current_unit: cleanUnit,
+          p_completed_lessons: cleanCompleted,
+          p_unlocked_islands: cleanUnlocked,
+        })
 
-        if (!upsertErr) {
+        if (!rpcErr) {
           remoteSynced = true
         } else {
-          remoteWarning = upsertErr.message
+          const { error: upsertErr } = await supabase.from('profiles').upsert({
+            id: userId,
+            nama: cleanNama,
+            umur: parsedUmur,
+            email: cleanEmail,
+            password_hash: passwordHash,
+            auth_provider: 'email',
+            avatar_url: null,
+            xp: cleanXp,
+            weekly_xp: cleanXp,
+            streak: cleanStreak,
+            gems: cleanGems,
+            hearts: cleanHearts,
+            current_unit: cleanUnit,
+            completed_lessons: cleanCompleted,
+            unlocked_islands: cleanUnlocked,
+            updated_at: new Date().toISOString(),
+          }, { onConflict: 'id' })
+
+          if (!upsertErr) {
+            remoteSynced = true
+          } else {
+            remoteWarning = upsertErr.message || rpcErr.message
+          }
         }
       } catch (err) {
         remoteWarning = err.message
@@ -1906,38 +2050,66 @@ export const adminService = {
       // ignore
     }
 
-    // 5. Update ke Supabase profiles
+    // 5. Update ke Supabase profiles & auth.users (via RPC Admin agar langsung berpengaruh ke akun)
     let remoteSynced = false
     let remoteWarning = null
     if (isSupabaseConfigured && supabase && userId !== DEMO_USER.id) {
       try {
-        const updatePayload = {
-          nama: cleanNama,
-          umur: parsedUmur,
-          email: cleanEmail,
-          xp: cleanXp,
-          streak: cleanStreak,
-          gems: cleanGems,
-          hearts: cleanHearts,
-          current_unit: cleanUnit,
-          completed_lessons: cleanCompleted,
-          unlocked_islands: cleanUnlocked,
-          updated_at: new Date().toISOString(),
-        }
-        if (newPasswordHash) {
-          updatePayload.password_hash = newPasswordHash
-        }
+        const adminToken = await ADMIN_PASSWORD_HASH_PROMISE
+        const trimmedPass = updates.password && String(updates.password).trim().length >= 6
+          ? String(updates.password).trim()
+          : null
 
-        const { data: updatedRows, error: updateErr } = await supabase
-          .from('profiles')
-          .update(updatePayload)
-          .eq('id', userId)
-          .select('id')
+        const { data: rpcRow, error: rpcErr } = await supabase.rpc('admin_update_profile', {
+          p_admin_email: ADMIN_EMAIL,
+          p_admin_token: adminToken,
+          p_user_id: userId,
+          p_nama: cleanNama,
+          p_umur: parsedUmur,
+          p_email: cleanEmail,
+          p_xp: cleanXp,
+          p_streak: cleanStreak,
+          p_gems: cleanGems,
+          p_hearts: cleanHearts,
+          p_current_unit: cleanUnit,
+          p_completed_lessons: cleanCompleted,
+          p_unlocked_islands: cleanUnlocked,
+          p_password_hash: newPasswordHash,
+          p_new_password: trimmedPass,
+        })
 
-        if (!updateErr && Array.isArray(updatedRows) && updatedRows.length > 0) {
+        if (!rpcErr && rpcRow) {
           remoteSynced = true
         } else {
-          remoteWarning = updateErr?.message || 'Kebijakan RLS Supabase membatasi update profil user lain.'
+          const updatePayload = {
+            nama: cleanNama,
+            umur: parsedUmur,
+            email: cleanEmail,
+            xp: cleanXp,
+            weekly_xp: cleanXp,
+            streak: cleanStreak,
+            gems: cleanGems,
+            hearts: cleanHearts,
+            current_unit: cleanUnit,
+            completed_lessons: cleanCompleted,
+            unlocked_islands: cleanUnlocked,
+            updated_at: new Date().toISOString(),
+          }
+          if (newPasswordHash) {
+            updatePayload.password_hash = newPasswordHash
+          }
+
+          const { data: updatedRows, error: updateErr } = await supabase
+            .from('profiles')
+            .update(updatePayload)
+            .eq('id', userId)
+            .select('id')
+
+          if (!updateErr && Array.isArray(updatedRows) && updatedRows.length > 0) {
+            remoteSynced = true
+          } else {
+            remoteWarning = updateErr?.message || rpcErr?.message || 'Kebijakan RLS Supabase membatasi update profil user lain.'
+          }
         }
       } catch (err) {
         remoteWarning = err.message
@@ -1986,28 +2158,49 @@ export const adminService = {
       // ignore
     }
 
-    // 3. Bersihkan progress, avatar, dan flag user
+    // 3. Bersihkan progress, avatar, sesi aktif jika sama, dan flag user
     localStorage.removeItem(`handoora_progress_${userId}`)
     localStorage.removeItem(`handoora_avatar_${userId}`)
     localStorage.removeItem(`handoora_lvl1_init_${userId}`)
     localStorage.removeItem(`handoora_xp_reset_synced_${userId}`)
+    try {
+      const activeUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+      if (activeUser?.id === userId) {
+        localStorage.removeItem('handoora_user')
+        localStorage.removeItem('handoora_local_active')
+        localStorage.removeItem('handoora_demo_active')
+      }
+    } catch {
+      // ignore
+    }
     addDeletedAdminUserId(userId)
 
-    // 4. Hapus dari Supabase profiles
+    // 4. Hapus dari Supabase profiles & auth.users (via RPC Admin agar akun benar-benar terhapus)
     let remoteDeleted = false
     let remoteWarning = null
     if (isSupabaseConfigured && supabase && userId !== DEMO_USER.id) {
       try {
-        const { data: deletedRows, error: delErr } = await supabase
-          .from('profiles')
-          .delete()
-          .eq('id', userId)
-          .select('id')
+        const adminToken = await ADMIN_PASSWORD_HASH_PROMISE
+        const { error: rpcErr } = await supabase.rpc('admin_delete_user', {
+          p_admin_email: ADMIN_EMAIL,
+          p_admin_token: adminToken,
+          p_user_id: userId,
+        })
 
-        if (!delErr && Array.isArray(deletedRows) && deletedRows.length > 0) {
+        if (!rpcErr) {
           remoteDeleted = true
         } else {
-          remoteWarning = delErr?.message || 'Kebijakan RLS Supabase membatasi penghapusan profil user lain.'
+          const { data: deletedRows, error: delErr } = await supabase
+            .from('profiles')
+            .delete()
+            .eq('id', userId)
+            .select('id')
+
+          if (!delErr && Array.isArray(deletedRows) && deletedRows.length > 0) {
+            remoteDeleted = true
+          } else {
+            remoteWarning = delErr?.message || rpcErr?.message || 'Kebijakan RLS Supabase membatasi penghapusan profil user lain.'
+          }
         }
       } catch (err) {
         remoteWarning = err.message
