@@ -35,10 +35,10 @@
 
 | No. | Peran | Nama Lengkap | NIM |
 | :---: | :--- | :--- | :---: |
-| **Ketua** | **Hustler & Hacker** (Ketua Tim / Penulis Utama) | **Ranzyah Adinata Aldo Ala Alfreda** | `103012430005` |
-| **1** | **Hipster** (Anggota 1) | **Salman Baihaqi** | `103012400008` |
-| **2** | **Hacker** (Anggota 2) | **Wafiq Aditiya Wiyono** | `103012400093` |
-| **3** | **Hacker** (Anggota 3) | **Anisah Pulungan** | `103012400344` |
+| **1** | **Ketua Tim (Hustler & Hacker)** | **Ranzyah Adinata Aldo Ala Alfreda** | `103012430005` |
+| **2** | **Anggota 1 (Hipster)** | **Salman Baihaqi** | `103012400008` |
+| **3** | **Anggota 2 (Hacker)** | **Wafiq Aditiya Wiyono** | `103012400093` |
+| **4** | **Anggota 3 (Hacker)** | **Anisah Pulungan** | `103012400344` |
 
 ---
 
