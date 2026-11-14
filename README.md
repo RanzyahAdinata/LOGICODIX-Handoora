@@ -90,14 +90,18 @@
 - **Modern Animated Shimmer Progress Bar**: Indikator progres dengan transisi pegas (*spring physics*) dan efek kilau cahaya halus.
 - **Celebration Result Page**: Statistik akurasi belajar, perolehan XP, nyala api streak, selebrasi konfeti partikel mewah, dan tombol *Lanjut* 3D tactile.
 
-### 5. Liga Papan Skor Mingguan Real-Time (Weekly Reset)
-- **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*) dan badge Liga Perunggu *Wings of Victory*.
-- **Weekly XP Reset System**: Setiap siklus baru tiba, skor XP liga otomatis di-reset ke 0 XP agar seluruh pengguna dapat bersaing grinding kembali secara adil, sementara total XP profil permanen tetap aman terjaga.
+### 5. Liga Papan Skor Mingguan Real-Time & Sistem Streak Beruntun
+- **Weekly League Leaderboard**: Siklus mingguan aktif (Minggu 00:00:00 hingga Sabtu 23:59:59) dengan hitung mundur waktu nyata (*real-time countdown*) dan badge Liga Perunggu *Wings of Victory*, hanya menampilkan pengguna yang terdaftar di aplikasi Handoora (mengecualikan akun admin).
+- **Sinkronisasi XP & Streak Beruntun Akurat**: Perolehan XP antara Profil, Dashboard, dan Leaderboard tersinkronisasi secara konsisten, serta pelacakan api streak harian (`streak_history`) otomatis bertambah beruntun setiap kali menyelesaikan pelajaran di hari berturut-turut.
 
 ### 6. Kamus Digital BISINDO Lengkap (`/kamus`)
-- **Katalog Isyarat Resolusi Tinggi Ultra-HD**: Aset visual gerakan isyarat tangan Level 1 (A–Z) dan kosakata Level 2 (Halo, Terima Kasih, Sama-sama, Minta Maaf, Selamat Pagi, Selamat Malam, Nama Saya, Sampai Jumpa Lagi) beresolusi hingga 8.000 px, bersih dari teks berulang dan background abu-abu.
+- **Katalog Isyarat Resolusi Tinggi Ultra-HD**: Aset visual gerakan isyarat tangan Level 1 (A–Z) dan kosakata Level 2 (Halo, Terima Kasih, Sama-sama, Minta Maaf, Selamat Pagi, Selamat Malam, Nama Saya, Sampai Jumpa Lagi) dengan posisi kanvas yang bersih dan simetris.
 - **Filter Modul Smooth Scroll & Transisi AnimatePresence**: Filter kategori level yang dapat digulir dengan tombol navigasi halus kiri-kanan serta animasi pergantian kartu yang mulus tanpa kedip (*anti-flicker*).
 - **Pencarian Cepat Cerdas**: Memfilter huruf, kosakata, dan deskripsi gerakan isyarat secara instan.
+
+### 7. Panel Admin CRUD Data Pengguna (`/adminhandoora`)
+- **Akses Terproteksi Khusus Admin**: Rute `/adminhandoora` dilengkapi gerbang autentikasi khusus administrator (`admin@gmail.com`).
+- **Manajemen CRUD Lengkap**: Admin dapat melihat ringkasan statistik pengguna (Total User, Total XP, Streak Aktif, Rata-rata Level), mencari dan memfilter sumber data pengguna, serta melakukan **Tambah**, **Edit** (nama, email, umur, password opsional, XP, streak, gems, hearts, unit, dan progres level), dan **Hapus** data pengguna secara terpusat.
 
 ---
 
@@ -108,7 +112,7 @@
 - **Vite 6**: Alat build dan bundling kilat dengan modul Hot Module Replacement (HMR).
 - **Tailwind CSS v4**: Framework CSS utility-first untuk tata letak modern dan responsif.
 - **Framer Motion 11**: Pustaka animasi deklaratif untuk transisi halaman, efek pegas 3D, dan gerak interaktif.
-- **Lucide React & Custom SVG**: Ikonografi modern yang tajam dan ringan.
+- **React Icons & Custom SVG**: Ikonografi modern yang tajam dan ringan.
 - **React Hot Toast**: Notifikasi pop-up feedback yang interaktif dan ramah pengguna.
 
 ### Backend, Database, & Keamanan
@@ -210,17 +214,23 @@ flowchart TD
    npm run preview
    ```
 
+### C. Panduan Deploy ke Vercel (Produksi Cloud 24/7)
+1. **Konfigurasi SPA Routing**: Berkas [`vercel.json`](./vercel.json) sudah disiapkan agar seluruh rute React Router (`/belajar`, `/login`, `/register`, `/quiz/...`, `/training/...`, `/adminhandoora`) diarahkan ke `/index.html` tanpa error `404`.
+2. **Environment Variables di Vercel**: Pastikan variabel berikut ditambahkan di *Project Settings → Environment Variables*:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+3. **Konfigurasi Supabase Auth**: Tambahkan domain Vercel Anda (misalnya `https://handoora.vercel.app/**`) ke **Authentication → URL Configuration → Redirect URLs** di Supabase Dashboard.
+
 ---
 
-## 🧪 7. Akun Demonstrasi (Demo Credentials untuk Dewan Juri)
+## 🧪 7. Akun Demonstrasi & Akses Admin
 
-Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim Handoora telah menyediakan akun demonstrasi siap pakai:
+Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim Handoora telah menyediakan akun demonstrasi serta akses panel admin siap pakai:
 
-| Kredensial | Data Akun Pengujian |
-| :--- | :--- |
-| **Email** | `demo.handoora@gmail.com` |
-| **Password** | `HandooraPassword123!` |
-| **Akses Rute** | Akses penuh ke seluruh fitur Level 1 (Tahap 1, 2, 3), Kamus BISINDO, Leaderboard Liga Mingguan, dan Profil Pengguna |
+| Peran | Email | Password | Akses Rute |
+| :--- | :--- | :--- | :--- |
+| **Akun Pengujian (Juri)** | `demo.handoora@gmail.com` | `HandooraPassword123!` | Akses penuh ke fitur belajar (`/belajar`), kuis kamera, Kamus BISINDO, Leaderboard, dan Profil |
+| **Administrator** | `admin@gmail.com` | `admin123` | Panel manajemen CRUD data pengguna pada `/adminhandoora` |
 
 *Catatan: Dewan juri juga dipersilakan mendaftarkan akun baru secara langsung di halaman `/register` atau menggunakan tombol Google OAuth.*
 
