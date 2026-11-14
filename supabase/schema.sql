@@ -31,6 +31,25 @@ create table if not exists public.profiles (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Pastikan seluruh kolom tambahan tersedia jika tabel public.profiles sudah dibuat sebelumnya
+alter table public.profiles add column if not exists umur integer;
+alter table public.profiles add column if not exists password_hash text;
+alter table public.profiles add column if not exists auth_provider text default 'email' not null;
+alter table public.profiles add column if not exists avatar_url text;
+alter table public.profiles add column if not exists xp integer default 0 not null;
+alter table public.profiles add column if not exists weekly_xp integer default 0 not null;
+alter table public.profiles add column if not exists weekly_cycle_id text;
+alter table public.profiles add column if not exists streak integer default 0 not null;
+alter table public.profiles add column if not exists gems integer default 500 not null;
+alter table public.profiles add column if not exists hearts integer default 5 not null;
+alter table public.profiles add column if not exists current_unit integer default 1 not null;
+alter table public.profiles add column if not exists completed_lessons jsonb default '[]'::jsonb not null;
+alter table public.profiles add column if not exists unlocked_islands jsonb default '[1]'::jsonb not null;
+alter table public.profiles add column if not exists last_activity_date date;
+alter table public.profiles add column if not exists streak_history jsonb default '[]'::jsonb not null;
+alter table public.profiles add column if not exists created_at timestamp with time zone default timezone('utc'::text, now()) not null;
+alter table public.profiles add column if not exists updated_at timestamp with time zone default timezone('utc'::text, now()) not null;
+
 -- Index untuk performa query email dan papan skor (leaderboard)
 create index if not exists profiles_email_idx on public.profiles (email);
 create index if not exists profiles_xp_idx on public.profiles (xp desc);
