@@ -136,8 +136,6 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
     current_unit: 1,
     completed_lessons: [],
     unlocked_islands: [1],
-    last_activity_date: null,
-    streak_history: [],
   }
 
   const { data: insertedProfile, error: insertErr } = await supabase
@@ -437,10 +435,25 @@ export const authService = {
       },
     }))
 
-    // Jika Supabase terhubung, simpan juga ke tabel profiles Supabase
+    // Jika Supabase terhubung, simpan juga ke tabel profiles Supabase dengan kolom yang valid
     if (isSupabaseConfigured && supabase) {
       try {
-        await supabase.from('profiles').upsert(newProfile, { onConflict: 'id' })
+        await supabase.from('profiles').upsert({
+          id: userId,
+          nama: cleanNama,
+          umur: parsedUmur,
+          email: cleanEmail,
+          password_hash: passwordHash,
+          auth_provider: 'email',
+          avatar_url: null,
+          xp: 0,
+          streak: 0,
+          gems: 500,
+          hearts: 5,
+          current_unit: 1,
+          completed_lessons: [],
+          unlocked_islands: [1],
+        }, { onConflict: 'id' })
       } catch {
         // ignore
       }
@@ -917,7 +930,7 @@ export const progressService = {
 
     const { data, error } = await supabase
       .from('profiles')
-      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands, last_activity_date, streak_history')
+      .select('xp, streak, gems, hearts, current_unit, completed_lessons, unlocked_islands')
       .eq('id', userId)
       .maybeSingle()
 
@@ -1129,8 +1142,6 @@ export const progressService = {
     const profilePayload = {
       xp: updatedProgress.xp,
       streak: updatedProgress.streak,
-      last_activity_date: lastDate,
-      streak_history: history,
       gems: updatedProgress.gems,
       hearts: updatedProgress.hearts,
       current_unit: computedCurrentUnit,
@@ -1244,20 +1255,41 @@ export const progressService = {
 
       // 3. Masukkan data profil aktual dari database Supabase (hanya akun yang terdaftar)
       if (Array.isArray(supabaseData) && supabaseData.length > 0) {
-        supabaseData.forEach((row) => {
-          if (!row?.id) return
-          const rowXp = Number(row.xp) || 0
-          userMap.set(row.id, {
-            id: row.id,
-            nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
-            email: row.email,
-            xp: rowXp,
-            weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
-            current_unit: Number(row.current_unit) || 1,
-            avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
-            status: '🌟',
+        try {
+          const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+          supabaseData.forEach((row) => {
+            if (!row?.id) return
+            const rowXp = Number(row.xp) || 0
+            const entry = {
+              id: row.id,
+              nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
+              email: row.email,
+              xp: rowXp,
+              weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
+              current_unit: Number(row.current_unit) || 1,
+              avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
+              status: '🌟',
+            }
+            userMap.set(row.id, entry)
+            known[row.id] = { ...known[row.id], ...entry }
           })
-        })
+          localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
+        } catch {
+          supabaseData.forEach((row) => {
+            if (!row?.id) return
+            const rowXp = Number(row.xp) || 0
+            userMap.set(row.id, {
+              id: row.id,
+              nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
+              email: row.email,
+              xp: rowXp,
+              weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
+              current_unit: Number(row.current_unit) || 1,
+              avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
+              status: '🌟',
+            })
+          })
+        }
       }
 
       // Urutkan murni berdasarkan XP tertinggi secara akurat
