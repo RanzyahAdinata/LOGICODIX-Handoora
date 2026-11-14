@@ -184,9 +184,45 @@ export async function fetchOrCreateSupabaseProfile(authUser, extraData = {}) {
   }
 
   if (!selectErr && existingProfile) {
+    const norm = normalizeInitialProgress(
+      existingProfile.xp,
+      existingProfile.completed_lessons,
+      existingProfile.unlocked_islands,
+      authUser.id
+    )
+    const normalizedProfile = norm.wasNormalized
+      ? {
+          ...existingProfile,
+          xp: 0,
+          weekly_xp: 0,
+          current_unit: 1,
+          completed_lessons: [],
+          unlocked_islands: [1],
+          updated_at: new Date().toISOString(),
+        }
+      : existingProfile
+
+    if (norm.wasNormalized) {
+      try {
+        await supabase
+          .from('profiles')
+          .update({
+            xp: 0,
+            weekly_xp: 0,
+            current_unit: 1,
+            completed_lessons: [],
+            unlocked_islands: [1],
+            updated_at: normalizedProfile.updated_at,
+          })
+          .eq('id', authUser.id)
+      } catch {
+        // ignore
+      }
+    }
+
     const mergedProfile = {
-      ...existingProfile,
-      avatar_url: existingProfile.avatar_url || localAvatar || defaultAvatar,
+      ...normalizedProfile,
+      avatar_url: normalizedProfile.avatar_url || localAvatar || defaultAvatar,
     }
     syncLocalCacheFromProfile(mergedProfile)
     return mergedProfile
@@ -1564,110 +1600,8 @@ export const adminService = {
       })
     }
 
-    // 2. Akun dari local registry
-    const localUsers = getLocalRegisteredUsers()
-    Object.values(localUsers).forEach((reg) => {
-      if (!reg?.id || deletedIds.has(reg.id)) return
-      if (reg.email?.toLowerCase() === ADMIN_EMAIL) return
-      const prog = progressService.getProgress(reg.id)
-      const p = reg.profile || {}
-      const norm = normalizeInitialProgress(
-        prog.xp ?? p.xp ?? 0,
-        Array.isArray(prog.completedIslands) ? prog.completedIslands : p.completed_lessons,
-        Array.isArray(prog.unlockedIslands) ? prog.unlockedIslands : p.unlocked_islands,
-        reg.id
-      )
-      userMap.set(reg.id, {
-        id: reg.id,
-        nama: reg.nama || p.nama || 'Sobat Handoora',
-        email: reg.email,
-        umur: reg.umur ?? p.umur ?? null,
-        auth_provider: p.auth_provider || 'email',
-        avatar_url: localStorage.getItem(`handoora_avatar_${reg.id}`) || p.avatar_url || null,
-        xp: Number(norm.xp) || 0,
-        streak: Number(prog.streak ?? p.streak ?? 0) || 0,
-        gems: Number(prog.gems ?? p.gems ?? 500) || 0,
-        hearts: Number(prog.hearts ?? p.hearts ?? 5),
-        current_unit: Number(norm.unlockedIslands?.slice(-1)[0] || p.current_unit || 1) || 1,
-        completed_lessons: norm.completedIslands,
-        unlocked_islands: norm.unlockedIslands,
-        updated_at: p.updated_at || reg.created_at || new Date().toISOString(),
-        source: 'Lokal',
-      })
-    })
-
-    // 3. Known profiles lokal (gabungkan umur & data terbaru ke entri yang sudah ada)
-    try {
-      const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
-      Object.values(knownProfiles).forEach((kp) => {
-        if (!kp?.id || deletedIds.has(kp.id)) return
-        if (kp.email?.toLowerCase() === ADMIN_EMAIL) return
-        const prog = progressService.getProgress(kp.id)
-        const existing = userMap.get(kp.id)
-        const norm = normalizeInitialProgress(
-          kp.xp ?? existing?.xp ?? prog.xp ?? 0,
-          existing?.completed_lessons || prog.completedIslands,
-          existing?.unlocked_islands || prog.unlockedIslands,
-          kp.id
-        )
-        userMap.set(kp.id, {
-          id: kp.id,
-          nama: kp.nama || existing?.nama || (kp.email ? kp.email.split('@')[0] : 'Sobat Handoora'),
-          email: kp.email || existing?.email || '-',
-          umur: kp.umur ?? existing?.umur ?? null,
-          auth_provider: kp.auth_provider || existing?.auth_provider || 'email',
-          avatar_url: kp.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${kp.id}`) || null,
-          xp: Number(norm.xp) || 0,
-          streak: Number(kp.streak ?? existing?.streak ?? prog.streak ?? 0) || 0,
-          gems: Number(kp.gems ?? existing?.gems ?? prog.gems ?? 500) || 0,
-          hearts: Number(kp.hearts ?? existing?.hearts ?? prog.hearts ?? 5),
-          current_unit: Number(kp.current_unit ?? existing?.current_unit ?? norm.unlockedIslands?.slice(-1)[0] ?? 1) || 1,
-          completed_lessons: norm.completedIslands,
-          unlocked_islands: norm.unlockedIslands,
-          updated_at: kp.updated_at || existing?.updated_at || new Date().toISOString(),
-          source: existing?.source || 'Lokal',
-        })
-      })
-    } catch {
-      // ignore
-    }
-
-    // 3b. Akun yang sedang aktif di handoora_user (selalu memiliki profil & progres terkini di browser ini)
-    try {
-      const activeUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
-      if (activeUser?.id && !deletedIds.has(activeUser.id) && activeUser.email?.toLowerCase() !== ADMIN_EMAIL) {
-        const prog = progressService.getProgress(activeUser.id)
-        const existing = userMap.get(activeUser.id)
-        const activeXp = prog.xp !== undefined ? prog.xp : (activeUser.xp ?? existing?.xp ?? 0)
-        const norm = normalizeInitialProgress(
-          activeXp,
-          prog.completedIslands || activeUser.completed_lessons || existing?.completed_lessons,
-          prog.unlockedIslands || activeUser.unlocked_islands || existing?.unlocked_islands,
-          activeUser.id
-        )
-        userMap.set(activeUser.id, {
-          id: activeUser.id,
-          nama: activeUser.nama || existing?.nama || 'Sobat Handoora',
-          email: activeUser.email || existing?.email || '-',
-          umur: activeUser.umur ?? existing?.umur ?? null,
-          auth_provider: activeUser.auth_provider || existing?.auth_provider || 'email',
-          avatar_url: activeUser.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${activeUser.id}`) || null,
-          xp: Number(norm.xp) || 0,
-          streak: Number(prog.streak ?? activeUser.streak ?? existing?.streak ?? 0) || 0,
-          gems: Number(prog.gems ?? activeUser.gems ?? existing?.gems ?? 500) || 0,
-          hearts: Number(prog.hearts ?? activeUser.hearts ?? existing?.hearts ?? 5),
-          current_unit: Number(norm.unlockedIslands?.slice(-1)[0] || activeUser.current_unit || existing?.current_unit || 1) || 1,
-          completed_lessons: norm.completedIslands,
-          unlocked_islands: norm.unlockedIslands,
-          updated_at: new Date().toISOString(),
-          source: existing?.source || (activeUser.id === DEMO_USER.id ? 'Demo' : 'Lokal'),
-        })
-      }
-    } catch {
-      // ignore
-    }
-
-    // 4. Data aktual dari tabel profiles Supabase (authoritative remote source)
+    // 2. Ambil data aktual dari tabel profiles Supabase (authoritative remote source)
+    let remoteSuccess = false
     if (isSupabaseConfigured && supabase) {
       try {
         const { data, error } = await supabase
@@ -1676,51 +1610,228 @@ export const adminService = {
           .order('updated_at', { ascending: false })
 
         if (!error && Array.isArray(data)) {
+          remoteSuccess = true
+          const validRemoteIds = new Set()
+          const validRemoteEmails = new Set()
+
+          let activeUser = null
+          try {
+            activeUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+          } catch {
+            activeUser = null
+          }
+
           data.forEach((row) => {
             if (!row?.id) return
             if (row.email?.toLowerCase() === ADMIN_EMAIL) return
             removeDeletedAdminUserId(row.id)
+            validRemoteIds.add(row.id)
+            if (row.email) validRemoteEmails.add(row.email.toLowerCase())
 
-            // Cocokkan berdasarkan ID atau email agar tidak ada duplikat dengan ID lokal lama
-            let existing = userMap.get(row.id)
-            if (!existing && row.email) {
-              for (const [keyId, val] of userMap.entries()) {
-                if (val.email?.toLowerCase() === row.email.toLowerCase()) {
-                  existing = val
-                  userMap.delete(keyId)
-                  break
-                }
+            // Jika user ini sedang aktif di browser ini dan punya progres lokal yang lebih baru, pakai nilai lokal terbaru
+            let localProg = null
+            if (activeUser?.id === row.id) {
+              try {
+                localProg = JSON.parse(localStorage.getItem(`handoora_progress_${row.id}`) || 'null')
+              } catch {
+                localProg = null
               }
             }
+            const remoteTs = row.updated_at ? new Date(row.updated_at).getTime() : 0
+            const localTs = localProg?.updated_at ? new Date(localProg.updated_at).getTime() : 0
+            const useNewerLocal = Boolean(localProg && localTs > remoteTs)
 
             const norm = normalizeInitialProgress(
-              row.xp ?? existing?.xp ?? 0,
-              Array.isArray(row.completed_lessons) ? row.completed_lessons : existing?.completed_lessons,
-              Array.isArray(row.unlocked_islands) ? row.unlocked_islands : existing?.unlocked_islands,
+              useNewerLocal ? (localProg.xp ?? row.xp ?? 0) : (row.xp ?? 0),
+              useNewerLocal
+                ? (Array.isArray(localProg.completedIslands) ? localProg.completedIslands : row.completed_lessons)
+                : row.completed_lessons,
+              useNewerLocal
+                ? (Array.isArray(localProg.unlockedIslands) ? localProg.unlockedIslands : row.unlocked_islands)
+                : row.unlocked_islands,
               row.id
             )
 
             userMap.set(row.id, {
               id: row.id,
-              nama: row.nama || existing?.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
-              email: row.email || existing?.email || '-',
-              umur: row.umur ?? existing?.umur ?? null,
-              auth_provider: row.auth_provider || existing?.auth_provider || 'email',
-              avatar_url: row.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
+              nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
+              email: row.email || '-',
+              umur: row.umur ?? null,
+              auth_provider: row.auth_provider || 'email',
+              avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
               xp: Number(norm.xp) || 0,
-              streak: Number(row.streak ?? existing?.streak ?? 0) || 0,
-              gems: Number(row.gems ?? existing?.gems ?? 500) || 0,
-              hearts: Number(row.hearts ?? existing?.hearts ?? 5),
-              current_unit: Number(row.current_unit ?? norm.unlockedIslands?.slice(-1)[0] ?? existing?.current_unit ?? 1) || 1,
+              streak: Number(useNewerLocal ? (localProg.streak ?? row.streak ?? 0) : (row.streak ?? 0)) || 0,
+              gems: Number(useNewerLocal ? (localProg.gems ?? row.gems ?? 500) : (row.gems ?? 500)) || 0,
+              hearts: Number(useNewerLocal ? (localProg.hearts ?? row.hearts ?? 5) : (row.hearts ?? 5)),
+              current_unit: Number((useNewerLocal ? norm.unlockedIslands?.slice(-1)[0] : row.current_unit) ?? norm.unlockedIslands?.slice(-1)[0] ?? 1) || 1,
               completed_lessons: norm.completedIslands,
               unlocked_islands: norm.unlockedIslands,
-              updated_at: row.updated_at || existing?.updated_at || new Date().toISOString(),
-              source: existing?.source === 'Demo' ? 'Demo' : 'Supabase',
+              updated_at: (useNewerLocal ? localProg.updated_at : row.updated_at) || new Date().toISOString(),
+              source: 'Supabase',
             })
           })
+
+          // Bersihkan cache lokal lama (known_profiles) yang sudah tidak ada di Supabase agar tidak muncul akun hantu/duplikat
+          try {
+            const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+            let changed = false
+            Object.keys(knownProfiles).forEach((k) => {
+              const kp = knownProfiles[k]
+              const kpEmail = kp?.email?.toLowerCase()
+              if (!validRemoteIds.has(k) && (!kpEmail || !validRemoteEmails.has(kpEmail))) {
+                delete knownProfiles[k]
+                changed = true
+              }
+            })
+            if (changed) {
+              localStorage.setItem('handoora_known_profiles', JSON.stringify(knownProfiles))
+            }
+          } catch {
+            // ignore
+          }
+
+          // Hanya tambahkan akun lokal jika memang dibuat dalam mode fallback lokal murni (bukan akun Supabase yang sudah dihapus)
+          const isLocalOnlySession = localStorage.getItem('handoora_local_active') === 'true'
+          if (
+            isLocalOnlySession &&
+            activeUser?.id &&
+            activeUser.id !== DEMO_USER.id &&
+            !deletedIds.has(activeUser.id) &&
+            activeUser.email?.toLowerCase() !== ADMIN_EMAIL &&
+            !validRemoteIds.has(activeUser.id) &&
+            (!activeUser.email || !validRemoteEmails.has(activeUser.email.toLowerCase()))
+          ) {
+            const prog = progressService.getProgress(activeUser.id)
+            const norm = normalizeInitialProgress(
+              prog.xp ?? activeUser.xp ?? 0,
+              prog.completedIslands || activeUser.completed_lessons,
+              prog.unlockedIslands || activeUser.unlocked_islands,
+              activeUser.id
+            )
+            userMap.set(activeUser.id, {
+              id: activeUser.id,
+              nama: activeUser.nama || 'Sobat Handoora',
+              email: activeUser.email || '-',
+              umur: activeUser.umur ?? null,
+              auth_provider: activeUser.auth_provider || 'email',
+              avatar_url: activeUser.avatar_url || localStorage.getItem(`handoora_avatar_${activeUser.id}`) || null,
+              xp: Number(norm.xp) || 0,
+              streak: Number(prog.streak ?? activeUser.streak ?? 0) || 0,
+              gems: Number(prog.gems ?? activeUser.gems ?? 500) || 0,
+              hearts: Number(prog.hearts ?? activeUser.hearts ?? 5),
+              current_unit: Number(norm.unlockedIslands?.slice(-1)[0] || activeUser.current_unit || 1) || 1,
+              completed_lessons: norm.completedIslands,
+              unlocked_islands: norm.unlockedIslands,
+              updated_at: new Date().toISOString(),
+              source: 'Lokal',
+            })
+          }
         }
       } catch (err) {
         console.warn('Gagal mengambil daftar user dari Supabase:', err)
+      }
+    }
+
+    // 3. Fallback offline: hanya dipakai jika Supabase tidak aktif atau gagal dihubungi
+    if (!remoteSuccess) {
+      const localUsers = getLocalRegisteredUsers()
+      Object.values(localUsers).forEach((reg) => {
+        if (!reg?.id || deletedIds.has(reg.id)) return
+        if (reg.email?.toLowerCase() === ADMIN_EMAIL) return
+        const prog = progressService.getProgress(reg.id)
+        const p = reg.profile || {}
+        const norm = normalizeInitialProgress(
+          prog.xp ?? p.xp ?? 0,
+          Array.isArray(prog.completedIslands) ? prog.completedIslands : p.completed_lessons,
+          Array.isArray(prog.unlockedIslands) ? prog.unlockedIslands : p.unlocked_islands,
+          reg.id
+        )
+        userMap.set(reg.id, {
+          id: reg.id,
+          nama: reg.nama || p.nama || 'Sobat Handoora',
+          email: reg.email,
+          umur: reg.umur ?? p.umur ?? null,
+          auth_provider: p.auth_provider || 'email',
+          avatar_url: localStorage.getItem(`handoora_avatar_${reg.id}`) || p.avatar_url || null,
+          xp: Number(norm.xp) || 0,
+          streak: Number(prog.streak ?? p.streak ?? 0) || 0,
+          gems: Number(prog.gems ?? p.gems ?? 500) || 0,
+          hearts: Number(prog.hearts ?? p.hearts ?? 5),
+          current_unit: Number(norm.unlockedIslands?.slice(-1)[0] || p.current_unit || 1) || 1,
+          completed_lessons: norm.completedIslands,
+          unlocked_islands: norm.unlockedIslands,
+          updated_at: p.updated_at || reg.created_at || new Date().toISOString(),
+          source: 'Lokal',
+        })
+      })
+
+      try {
+        const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
+        Object.values(knownProfiles).forEach((kp) => {
+          if (!kp?.id || deletedIds.has(kp.id)) return
+          if (kp.email?.toLowerCase() === ADMIN_EMAIL) return
+          const prog = progressService.getProgress(kp.id)
+          const existing = userMap.get(kp.id)
+          const norm = normalizeInitialProgress(
+            kp.xp ?? existing?.xp ?? prog.xp ?? 0,
+            existing?.completed_lessons || prog.completedIslands,
+            existing?.unlocked_islands || prog.unlockedIslands,
+            kp.id
+          )
+          userMap.set(kp.id, {
+            id: kp.id,
+            nama: kp.nama || existing?.nama || (kp.email ? kp.email.split('@')[0] : 'Sobat Handoora'),
+            email: kp.email || existing?.email || '-',
+            umur: kp.umur ?? existing?.umur ?? null,
+            auth_provider: kp.auth_provider || existing?.auth_provider || 'email',
+            avatar_url: kp.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${kp.id}`) || null,
+            xp: Number(norm.xp) || 0,
+            streak: Number(kp.streak ?? existing?.streak ?? prog.streak ?? 0) || 0,
+            gems: Number(kp.gems ?? existing?.gems ?? prog.gems ?? 500) || 0,
+            hearts: Number(kp.hearts ?? existing?.hearts ?? prog.hearts ?? 5),
+            current_unit: Number(kp.current_unit ?? existing?.current_unit ?? norm.unlockedIslands?.slice(-1)[0] ?? 1) || 1,
+            completed_lessons: norm.completedIslands,
+            unlocked_islands: norm.unlockedIslands,
+            updated_at: kp.updated_at || existing?.updated_at || new Date().toISOString(),
+            source: existing?.source || 'Lokal',
+          })
+        })
+      } catch {
+        // ignore
+      }
+
+      try {
+        const activeUser = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+        if (activeUser?.id && !deletedIds.has(activeUser.id) && activeUser.email?.toLowerCase() !== ADMIN_EMAIL) {
+          const prog = progressService.getProgress(activeUser.id)
+          const existing = userMap.get(activeUser.id)
+          const activeXp = prog.xp !== undefined ? prog.xp : (activeUser.xp ?? existing?.xp ?? 0)
+          const norm = normalizeInitialProgress(
+            activeXp,
+            prog.completedIslands || activeUser.completed_lessons || existing?.completed_lessons,
+            prog.unlockedIslands || activeUser.unlocked_islands || existing?.unlocked_islands,
+            activeUser.id
+          )
+          userMap.set(activeUser.id, {
+            id: activeUser.id,
+            nama: activeUser.nama || existing?.nama || 'Sobat Handoora',
+            email: activeUser.email || existing?.email || '-',
+            umur: activeUser.umur ?? existing?.umur ?? null,
+            auth_provider: activeUser.auth_provider || existing?.auth_provider || 'email',
+            avatar_url: activeUser.avatar_url || existing?.avatar_url || localStorage.getItem(`handoora_avatar_${activeUser.id}`) || null,
+            xp: Number(norm.xp) || 0,
+            streak: Number(prog.streak ?? activeUser.streak ?? existing?.streak ?? 0) || 0,
+            gems: Number(prog.gems ?? activeUser.gems ?? existing?.gems ?? 500) || 0,
+            hearts: Number(prog.hearts ?? activeUser.hearts ?? existing?.hearts ?? 5),
+            current_unit: Number(norm.unlockedIslands?.slice(-1)[0] || activeUser.current_unit || existing?.current_unit || 1) || 1,
+            completed_lessons: norm.completedIslands,
+            unlocked_islands: norm.unlockedIslands,
+            updated_at: new Date().toISOString(),
+            source: existing?.source || (activeUser.id === DEMO_USER.id ? 'Demo' : 'Lokal'),
+          })
+        }
+      } catch {
+        // ignore
       }
     }
 

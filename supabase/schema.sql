@@ -50,6 +50,16 @@ alter table public.profiles add column if not exists streak_history jsonb defaul
 alter table public.profiles add column if not exists created_at timestamp with time zone default timezone('utc'::text, now()) not null;
 alter table public.profiles add column if not exists updated_at timestamp with time zone default timezone('utc'::text, now()) not null;
 
+-- Pastikan nilai default kolom selalu mulai dari Level 1 (0 XP) jika tabel sudah dibuat dengan seed lama
+alter table public.profiles alter column xp set default 0;
+alter table public.profiles alter column weekly_xp set default 0;
+alter table public.profiles alter column streak set default 0;
+alter table public.profiles alter column gems set default 500;
+alter table public.profiles alter column hearts set default 5;
+alter table public.profiles alter column current_unit set default 1;
+alter table public.profiles alter column completed_lessons set default '[]'::jsonb;
+alter table public.profiles alter column unlocked_islands set default '[1]'::jsonb;
+
 -- Index untuk performa query email dan papan skor (leaderboard)
 create index if not exists profiles_email_idx on public.profiles (email);
 create index if not exists profiles_xp_idx on public.profiles (xp desc);
@@ -108,7 +118,15 @@ begin
     email,
     password_hash,
     auth_provider,
-    avatar_url
+    avatar_url,
+    xp,
+    weekly_xp,
+    streak,
+    gems,
+    hearts,
+    current_unit,
+    completed_lessons,
+    unlocked_islands
   )
   values (
     new.id,
@@ -122,7 +140,15 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data->>'password_hash', new.encrypted_password),
     coalesce(new.raw_app_meta_data->>'provider', 'email'),
-    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture')
+    coalesce(new.raw_user_meta_data->>'avatar_url', new.raw_user_meta_data->>'picture'),
+    0,
+    0,
+    0,
+    500,
+    5,
+    1,
+    '[]'::jsonb,
+    '[1]'::jsonb
   )
   on conflict (id) do update set
     nama = coalesce(excluded.nama, public.profiles.nama),
