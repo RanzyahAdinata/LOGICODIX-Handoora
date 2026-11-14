@@ -138,12 +138,44 @@
 - **React Icons & Custom SVG**: Ikonografi modern yang tajam dan ringan.
 - **React Hot Toast**: Notifikasi pop-up feedback yang interaktif dan ramah pengguna.
 
-### Backend, Database, & Keamanan
-- **Supabase**: Backend-as-a-Service berbasis PostgreSQL skala enterprise.
-- **PostgreSQL Database**: Menyimpan profil pengguna, riwayat streak, perolehan XP harian/mingguan, unit pulau terbuka, dan status belajar.
-- **Row Level Security (RLS)**: Kebijakan keamanan tingkat baris PostgreSQL yang memastikan setiap pengguna hanya dapat memodifikasi data miliknya sendiri.
-- **Web Crypto API (SubtleCrypto)**: Hashing kriptografi PBKDF2-HMAC-SHA256 untuk perlindungan data kredensial.
-- **HTML5 Canvas & WebRTC MediaStreams**: Pemrosesan komputasi frame video kamera secara instan untuk deteksi isyarat tangan di browser.
+### Frontend Documentation (Framework, Struktur Komponen UI, & Aset)
+- **Framework & Library**: React 18.3, Vite 6 (HMR), Tailwind CSS v4, Framer Motion 11, React Router DOM, React Icons, dan React Hot Toast.
+- **Struktur Komponen UI & Modul Aplikasi (`src/` & `public/`)**:
+  ```text
+  src/
+  ├── App.jsx                  # Konfigurasi routing & route guarding (ProtectedRoute / PublicOnlyRoute)
+  ├── context/AuthContext.jsx  # Manajemen sesi auth, Google OAuth callback, & auto-logout idle
+  ├── pages/
+  │   ├── LandingPage.jsx      # Halaman beranda & pengenalan platform
+  │   ├── LoginPage.jsx        # Halaman masuk (Email/Password & Google OAuth)
+  │   ├── RegisterPage.jsx     # Halaman pendaftaran akun baru
+  │   ├── DashboardPage.jsx    # Peta kepulauan 3D, Profil, Kamus BISINDO, Leaderboard, & Pengaturan
+  │   ├── QuizPage.jsx         # Kuis interaktif 3 mode soal + AI kamera real-time
+  │   ├── TrainingPage.jsx     # Mode latihan bebas isyarat tangan dengan kamera
+  │   └── AdminPage.jsx        # Panel CRUD manajemen data pengguna (/adminhandoora)
+  ├── components/
+  │   ├── auth/                # Komponen pengaman rute & autentikasi
+  │   ├── common/              # Splash/loading screen animatif & elemen global
+  │   ├── layout/              # Tata letak navigasi desktop & mobile bottom bar
+  │   └── ui/                  # Tombol 3D tactile, modal, & kartu komponen
+  ├── data/                    # Kurikulum soal Level 1–2 & data Kamus BISINDO (A–Z + frasa)
+  ├── services/                # supabaseClient.js & storage.js (sync engine, streak, leaderboard, adminService)
+  └── utils/                   # gestureDetector.js (127 fitur), mediapipeLoader.js, & soundEffects.js
+  public/assets/               # Aset visual pulau, maskot, avatar, audio (.wav), & ilustrasi isyarat (signs/)
+  ```
+
+### Backend Documentation (API Endpoints, Database Schema, & `.env.example`)
+- **Backend & Database**: Supabase (PostgreSQL + GoTrue Auth + PostgREST API) dengan hashing PBKDF2-HMAC-SHA256 (Web Crypto API) & bcrypt.
+- **Database Schema (`supabase/schema.sql`)**:
+  - **Tabel `public.profiles`**: `id` (`uuid`, FK ke `auth.users` `on delete cascade`), `nama`, `umur`, `email` (`unique not null`), `password_hash`, `auth_provider` (`email` / `google`), `avatar_url`, `xp`, `weekly_xp`, `weekly_cycle_id`, `streak`, `gems`, `hearts`, `current_unit`, `completed_lessons` (`jsonb`), `unlocked_islands` (`jsonb`), `last_activity_date`, `streak_history` (`jsonb`), `created_at`, `updated_at`.
+  - **Trigger Otomatis**: `on_auth_user_created` memanggil `public.handle_new_user()` setiap kali user baru mendaftar via Email atau Google OAuth untuk langsung membuat baris profil di `public.profiles` mulai dari Level 1 (`0 XP`).
+  - **Row Level Security (RLS)**: Kebijakan `SELECT` publik untuk Leaderboard, serta `INSERT`/`UPDATE` terbatas pada pemilik akun (`auth.uid() = id`).
+- **Supabase Auth, REST, & RPC Endpoints**:
+  - `POST /auth/v1/signup` & `POST /auth/v1/token?grant_type=password` — Registrasi dan login Email/Password.
+  - `GET /auth/v1/authorize?provider=google` & `GET /auth/v1/settings` — Autentikasi Google OAuth 2.0 & pengecekan status provider.
+  - `GET/POST/PATCH /rest/v1/profiles` — Membaca Leaderboard, mengambil profil user, serta menyimpan progres XP, streak, dan foto profil/avatar.
+  - `POST /rest/v1/rpc/admin_upsert_profile`, `admin_update_profile`, & `admin_delete_user` — Fungsi RPC `SECURITY DEFINER` terverifikasi untuk operasi CRUD Panel Admin langsung ke `public.profiles` dan `auth.users`.
+- **Variabel Lingkungan (`.env.example`)**: `VITE_SUPABASE_URL` dan `VITE_SUPABASE_ANON_KEY`.
 
 ### Infrastruktur & Deployment
 - **Git & GitHub**: Version Control System dengan riwayat commit terstruktur sesuai konvensi standardisasi Git (*Conventional Commits*).
