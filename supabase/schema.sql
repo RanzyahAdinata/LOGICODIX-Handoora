@@ -314,6 +314,9 @@ grant execute on function public.admin_upsert_profile(text, text, uuid, text, in
 grant execute on function public.admin_update_profile(text, text, uuid, text, integer, text, integer, integer, integer, integer, integer, jsonb, jsonb, text, text) to anon, authenticated;
 grant execute on function public.admin_delete_user(text, text, uuid) to anon, authenticated;
 
+-- Segarkan schema cache PostgREST agar fungsi RPC langsung aktif tanpa menunggu
+notify pgrst, 'reload schema';
+
 -- ============================================================
 -- 6. Kredensial Akun Pengujian & Juri (Opsional di Supabase Dashboard)
 -- Jika email demo.handoora@gmail.com didaftarkan dan ingin dikonfirmasi langsung:

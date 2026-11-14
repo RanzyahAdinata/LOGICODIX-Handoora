@@ -150,21 +150,17 @@ export default function AdminPage() {
     try {
       if (editingUser) {
         const res = await adminService.updateUser(editingUser.id, formData)
-        toast.success(`Data ${res.user.nama} berhasil diperbarui!`)
         if (res.remoteWarning) {
-          toast('Perubahan tersimpan di lokal. Jalankan supabase/schema.sql untuk sinkronisasi penuh ke Supabase.', {
-            icon: 'ℹ️',
-            duration: 5000,
-          })
+          toast.error(`Gagal sinkron update ke Supabase: ${res.remoteWarning}. Jalankan supabase/schema.sql di Supabase SQL Editor.`)
+        } else {
+          toast.success(`Data ${res.user.nama} berhasil diperbarui!`)
         }
       } else {
         const res = await adminService.createUser(formData)
-        toast.success(`User ${res.user.nama} berhasil ditambahkan!`)
         if (res.remoteWarning) {
-          toast('User dibuat di lokal. Jalankan supabase/schema.sql jika ingin langsung masuk ke Supabase.', {
-            icon: 'ℹ️',
-            duration: 5000,
-          })
+          toast.error(`Gagal sinkron tambah user ke Supabase: ${res.remoteWarning}. Jalankan supabase/schema.sql di Supabase SQL Editor.`)
+        } else {
+          toast.success(`User ${res.user.nama} berhasil ditambahkan!`)
         }
       }
       setShowFormModal(false)
@@ -181,12 +177,10 @@ export default function AdminPage() {
     setDeletingLoading(true)
     try {
       const res = await adminService.deleteUser(deletingUser.id)
-      toast.success(`User ${deletingUser.nama} berhasil dihapus.`)
       if (res.remoteWarning) {
-        toast('Terhapus dari tampilan lokal. Jalankan supabase/schema.sql untuk izin DELETE admin di Supabase.', {
-          icon: 'ℹ️',
-          duration: 5000,
-        })
+        toast.error(`Gagal menghapus di Supabase: ${res.remoteWarning}. Jalankan supabase/schema.sql di Supabase SQL Editor.`)
+      } else {
+        toast.success(`User ${deletingUser.nama} berhasil dihapus!`)
       }
       setDeletingUser(null)
       await loadUsers()
