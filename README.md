@@ -100,8 +100,20 @@
 - **Pencarian Cepat Cerdas**: Memfilter huruf, kosakata, dan deskripsi gerakan isyarat secara instan.
 
 ### 7. Panel Admin CRUD Data Pengguna (`/adminhandoora`)
-- **Akses Terproteksi Khusus Admin**: Rute `/adminhandoora` dilengkapi gerbang autentikasi khusus administrator (`admin@gmail.com`).
+- **Akses Terproteksi Khusus Admin**: Rute `/adminhandoora` dilengkapi gerbang autentikasi khusus administrator.
 - **Manajemen CRUD Lengkap**: Admin dapat melihat ringkasan statistik pengguna (Total User, Total XP, Streak Aktif, Rata-rata Level), mencari dan memfilter sumber data pengguna, serta melakukan **Tambah**, **Edit** (nama, email, umur, password opsional, XP, streak, unit, dan progres level), dan **Hapus** data pengguna secara terpusat langsung ke `public.profiles` dan `auth.users` melalui fungsi RPC `SECURITY DEFINER`.
+
+---
+
+## 🖼️ Tampilan Antarmuka (UI) Handoora
+
+| Halaman Utama (Landing Page) | Registrasi & Google OAuth |
+| :---: | :---: |
+| <img src="./docs/screenshots/ui-landing.png" alt="Landing Page Handoora" width="420" /> | <img src="./docs/screenshots/ui-register.png" alt="Halaman Register Handoora" width="420" /> |
+
+| Peta Petualangan Kepulauan (`/belajar`) | Kamus Digital BISINDO (`/kamus`) |
+| :---: | :---: |
+| <img src="./docs/screenshots/ui-dashboard.jpg" alt="Dashboard Peta Kepulauan Handoora" width="420" /> | <img src="./docs/screenshots/ui-kamus.jpg" alt="Kamus BISINDO Handoora" width="420" /> |
 
 ---
 
