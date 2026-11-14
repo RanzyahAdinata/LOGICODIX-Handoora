@@ -468,7 +468,8 @@ export default function AdminPage() {
                   <th className="py-3.5 px-3 text-center">Umur</th>
                   <th className="py-3.5 px-3 text-center">XP</th>
                   <th className="py-3.5 px-3 text-center">Streak</th>
-                  <th className="py-3.5 px-3 text-center">Gems / Hearts</th>
+                  <th className="py-3.5 px-3 text-center">Gems</th>
+                  <th className="py-3.5 px-3 text-center">Heart</th>
                   <th className="py-3.5 px-3 text-center">Level</th>
                   <th className="py-3.5 px-3 text-center">Sumber</th>
                   <th className="py-3.5 px-4 text-right">Aksi</th>
@@ -477,13 +478,13 @@ export default function AdminPage() {
               <tbody className="divide-y divide-[#F1F5F9] text-sm">
                 {loadingUsers && users.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-[#64748B] font-semibold">
+                    <td colSpan={9} className="py-12 text-center text-[#64748B] font-semibold">
                       Memuat data pengguna...
                     </td>
                   </tr>
                 ) : filteredUsers.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="py-12 text-center text-[#64748B] font-semibold">
+                    <td colSpan={9} className="py-12 text-center text-[#64748B] font-semibold">
                       Tidak ada pengguna yang sesuai dengan pencarian.
                     </td>
                   </tr>
@@ -528,14 +529,14 @@ export default function AdminPage() {
                           </span>
                         </td>
                         <td className="py-3.5 px-3 text-center">
-                          <div className="inline-flex items-center gap-2 text-xs font-bold">
-                            <span className="inline-flex items-center gap-1 text-[#0284C7]">
-                              <FaGem /> {user.gems}
-                            </span>
-                            <span className="inline-flex items-center gap-1 text-[#E11D48]">
-                              <FaHeart /> {user.hearts}
-                            </span>
-                          </div>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#1CB0F6]/10 text-[#0284C7] font-extrabold text-xs">
+                            <FaGem className="text-[11px]" /> {user.gems}
+                          </span>
+                        </td>
+                        <td className="py-3.5 px-3 text-center">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 text-[#E11D48] font-extrabold text-xs">
+                            <FaHeart className="text-[11px]" /> {user.hearts}
+                          </span>
                         </td>
                         <td className="py-3.5 px-3 text-center">
                           <div className="text-xs font-bold text-[#1E293B]">
