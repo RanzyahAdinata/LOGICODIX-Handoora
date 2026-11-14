@@ -22,11 +22,23 @@
 
 | Atribut | Keterangan |
 | :--- | :--- |
-| **Nama Tim** | **LOGICODIX - Handoora** |
-| **Kategori Lomba** | **Web Application (MVP)** |
+| **Nama Tim** | **4 Pilar Telyu** |
+| **Kategori Kompetisi** | **Web App Development** |
+| **Judul Karya** | **Handoora: Platform Edukasi Gamifikasi Bahasa Isyarat Indonesia** |
+| **Institusi / Universitas** | **Telkom University** |
+| **Fakultas / Departemen** | **Informatika** |
+| **Ketua Tim / Penulis Utama** | **Ranzyah Adinata Aldo Ala Alfreda** |
+| **Informasi Kontak** | `ranzyah9@gmail.com` • [Repository GitHub](https://github.com/RanzyahAdinata/LOGICODIX-Handoora) |
 | **Subtema Utama** | **1. Smart & Fun Education**<br/>Solusi digital yang menjadikan proses belajar-mengajar interaktif, aksesibel, dan menyenangkan melalui gamifikasi serta AI asisten visualisasi isyarat.<br/>**2. Inclusive Health & Well-being**<br/>Membantu penyandang disabilitas Tuli dan masyarakat dengar dalam menjembatani komunikasi inklusif sehari-hari. |
-| **Daftar Anggota** | **Ranzyah Adinata (Aldo)** — Project Lead, Frontend & Backend Architecture, AI Computer Vision & Gesture Integration (`@RanzyahAdinata`) |
-| **Institusi** | Siswa / Mahasiswa Indonesia |
+
+### Susunan Anggota Tim:
+
+| No. | Peran | Nama Lengkap | NIM |
+| :---: | :--- | :--- | :---: |
+| **-** | **Ketua Tim / Penulis Utama** | **Ranzyah Adinata Aldo Ala Alfreda** | - |
+| **1** | **Anggota 1 / Hipster** | **Salman Baihaqi** | `103012400008` |
+| **2** | **Anggota 2 / Hacker** | **Wafiq Aditiya Wiyono** | `103012400093` |
+| **3** | **Anggota 3 / Hacker** | **Anisah Pulungan** | `103012400344` |
 
 ---
 
@@ -241,6 +253,6 @@ Seluruh aset dan pustaka eksternal yang digunakan dalam proyek ini mematuhi lise
 ---
 
 <p align="center">
-  Dibuat dengan ❤️ dan semangat inklusi oleh <b>Tim LOGICODIX - Handoora</b><br/>
+  Dibuat dengan ❤️ dan semangat inklusi oleh <b>Tim 4 Pilar Telyu — Telkom University</b><br/>
   <i>Mewujudkan Indonesia yang Ramah, Terbuka, dan Inklusif bagi Teman Tuli!</i>
 </p>
