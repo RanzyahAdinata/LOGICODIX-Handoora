@@ -278,8 +278,8 @@ Sesuai dengan ketentuan pedoman etika penggunaan AI pada **Guidebook LOGICODIX 2
 
 Seluruh aset dan pustaka eksternal yang digunakan dalam proyek ini mematuhi lisensi penggunaan terbuka:
 
-1. **Aset Visual & Karakter Maskot Handoora**:
-   - Dibuat dan dirancang secara orisinal oleh tim Handoora (`mascot-group.png`, `avatar-tiger.png`, `avatar-orangutan.png`, `avatar-komodo.png`) khusus untuk kompetisi LOGICODIX 2026.
+1. **Aset Visual, Ilustrasi, & Karakter Maskot Handoora**:
+   - Seluruh aset visual (logo, karakter maskot `mascot-group.png`, `avatar-tiger.png`, `avatar-orangutan.png`, `avatar-komodo.png`, peta kepulauan, serta elemen antarmuka) dibuat dan dirancang secara **manual dan kreatif** oleh anggota tim Handoora melalui Figma khusus untuk kompetisi LOGICODIX 2026: [Desain UI & Aset Handoora di Figma](https://www.figma.com/design/CT3iYQrbVVjoZfr9R4IBwq/HACKATON-UNESA-HANDOORA?node-id=50-2&p=f&t=qXOFSLq0xyWtdFsD-0).
 2. **Foto & Ilustrasi Isyarat Jari BISINDO**:
    - Panduan visual gestur jari BISINDO (A–Z) dikurasi dan diselaraskan secara orisinal dari standar resmi Bahasa Isyarat Indonesia (BISINDO) untuk keperluan edukasi non-komersial.
 3. **Tipografi**:
