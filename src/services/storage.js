@@ -588,12 +588,10 @@ export const authService = {
       throw new Error('Layanan autentikasi belum aktif.')
     }
 
-    const isGoogleEnabled = await checkIsGoogleOAuthEnabled()
-    if (!isGoogleEnabled) {
-      const err = new Error('GOOGLE_PROVIDER_NOT_ENABLED')
-      err.code = 'GOOGLE_PROVIDER_NOT_ENABLED'
-      throw err
-    }
+    // Bersihkan flag sesi lokal/demo agar callback OAuth Google tidak tertimpa sesi lokal lama
+    localStorage.removeItem('handoora_local_active')
+    localStorage.removeItem('handoora_demo_active')
+    localStorage.removeItem('handoora_user')
 
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
@@ -607,6 +605,12 @@ export const authService = {
     })
 
     if (error) {
+      const msg = error.message?.toLowerCase() || ''
+      if (msg.includes('provider is not enabled') || msg.includes('unsupported provider')) {
+        const err = new Error('GOOGLE_PROVIDER_NOT_ENABLED')
+        err.code = 'GOOGLE_PROVIDER_NOT_ENABLED'
+        throw err
+      }
       throw new Error(error.message)
     }
 

@@ -45,26 +45,51 @@ export const AuthProvider = ({ children }) => {
       return
     }
 
+    // Tampilkan pesan jika ada error OAuth di URL callback
+    try {
+      const params = new URLSearchParams(window.location.search || window.location.hash.replace(/^#/, '?'))
+      const oauthError = params.get('error_description') || params.get('error')
+      if (oauthError) {
+        toast.error(decodeURIComponent(oauthError.replace(/\+/g, ' ')))
+      }
+    } catch {
+      // ignore
+    }
+
     // 1. Cek sesi aktif dari Supabase Auth bersamaan dengan timer minimal splash
     Promise.all([
       supabase.auth.getSession().then(async ({ data: { session } }) => {
         if (session?.user) {
+          localStorage.removeItem('handoora_local_active')
+          localStorage.removeItem('handoora_demo_active')
           const profile = await fetchOrCreateSupabaseProfile(session.user)
-          setUser(profile)
+          if (profile) {
+            localStorage.setItem('handoora_user', JSON.stringify(profile))
+            setUser(profile)
+          }
         }
       }),
       minSplashPromise,
-    ]).finally(() => {
-      setLoading(false)
-    })
+    ])
+      .catch((err) => {
+        console.warn('Error checking Supabase session:', err)
+      })
+      .finally(() => {
+        setLoading(false)
+      })
 
     // 2. Dengarkan perubahan status login/logout/OAuth callback dari Supabase
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
+        localStorage.removeItem('handoora_local_active')
+        localStorage.removeItem('handoora_demo_active')
         const profile = await fetchOrCreateSupabaseProfile(session.user)
-        setUser(profile)
+        if (profile) {
+          localStorage.setItem('handoora_user', JSON.stringify(profile))
+          setUser(profile)
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null)
       }
