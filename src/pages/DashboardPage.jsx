@@ -2218,6 +2218,9 @@ const DashboardPage = () => {
         umur: parseInt(profileForm.umur, 10) || 20,
         avatar_url: targetAvatar,
       })
+      progressService.getLeaderboard(10).then((rows) => {
+        if (Array.isArray(rows)) setSupabaseLeaderboard(rows)
+      }).catch(() => {})
       toast.success('Informasi profil berhasil disimpan')
     } catch {
       toast.error('Gagal memperbarui profil, silakan coba lagi.')
@@ -3783,6 +3786,10 @@ const DashboardPage = () => {
                                 <img
                                   src={entry.avatar}
                                   alt={entry.name}
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null
+                                    e.currentTarget.src = '/assets/avatar-orangutan.png'
+                                  }}
                                   className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-xs"
                                 />
                                 <span className="absolute bottom-0 right-0 w-3 h-3 bg-emerald-500 border-2 border-white rounded-full" />

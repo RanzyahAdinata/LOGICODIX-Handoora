@@ -825,40 +825,51 @@ export const authService = {
       // ignore
     }
 
-    // Upsert ke tabel profiles agar foto profil tersimpan permanen
+    // Update ke tabel profiles terlebih dahulu (aman terhadap NOT NULL email), lalu upsert jika baris belum ada
+    const nowIso = new Date().toISOString()
     try {
-      const { data: updatedRow, error: profileErr } = await supabase
+      const { data: updatedRow, error: updateErr } = await supabase
+        .from('profiles')
+        .update({
+          ...(updates.nama !== undefined ? { nama: updates.nama } : {}),
+          ...(updates.umur !== undefined ? { umur: updates.umur } : {}),
+          ...(updates.avatar_url !== undefined ? { avatar_url: updates.avatar_url } : {}),
+          updated_at: nowIso,
+        })
+        .eq('id', userId)
+        .select('*')
+        .maybeSingle()
+
+      if (!updateErr && updatedRow) {
+        return updatedRow
+      }
+
+      const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || 'null')
+      const { data: authData } = await supabase.auth.getUser()
+      const resolvedEmail =
+        updates.email ||
+        (currentMeta?.id === userId ? currentMeta.email : null) ||
+        authData?.user?.email ||
+        `${userId}@handoora.local`
+
+      const { data: upsertedRow, error: upsertErr } = await supabase
         .from('profiles')
         .upsert({
           id: userId,
-          nama: updates.nama,
-          umur: updates.umur,
-          avatar_url: updates.avatar_url,
-          updated_at: new Date().toISOString(),
+          email: resolvedEmail,
+          nama: updates.nama || currentMeta?.nama || resolvedEmail.split('@')[0] || 'Sobat Handoora',
+          umur: updates.umur ?? currentMeta?.umur ?? null,
+          avatar_url: updates.avatar_url ?? currentMeta?.avatar_url ?? null,
+          updated_at: nowIso,
         }, { onConflict: 'id' })
         .select('*')
         .maybeSingle()
 
-      if (!profileErr && updatedRow) {
-        return updatedRow
+      if (!upsertErr && upsertedRow) {
+        return upsertedRow
       }
     } catch {
-      // Fallback update jika schema lama
-      try {
-        const { data: updatedRow } = await supabase
-          .from('profiles')
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', userId)
-          .select('*')
-          .maybeSingle()
-
-        if (updatedRow) return updatedRow
-      } catch {
-        // ignore
-      }
+      // ignore
     }
 
     return {
