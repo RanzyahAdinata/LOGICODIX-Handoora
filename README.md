@@ -115,6 +115,12 @@
 | :---: | :---: |
 | <img src="./docs/screenshots/ui-dashboard.jpg" alt="Dashboard Peta Kepulauan Handoora" width="420" /> | <img src="./docs/screenshots/ui-kamus.jpg" alt="Kamus BISINDO Handoora" width="420" /> |
 
+### Tampilan Mobile Web (Responsif)
+
+| Splash Screen | Halaman Utama | Peta Kepulauan (`/belajar`) | Liga Peringkat (`/leaderboard`) |
+| :---: | :---: | :---: | :---: |
+| <img src="./docs/screenshots/mobile-loading.jpg" alt="Splash Screen Mobile Handoora" width="200" /> | <img src="./docs/screenshots/mobile-landing.jpg" alt="Landing Page Mobile Handoora" width="200" /> | <img src="./docs/screenshots/mobile-dashboard.jpg" alt="Dashboard Mobile Handoora" width="200" /> | <img src="./docs/screenshots/mobile-leaderboard.jpg" alt="Leaderboard Mobile Handoora" width="200" /> |
+
 ---
 
 ## 🛠️ 4. Teknologi yang Digunakan
