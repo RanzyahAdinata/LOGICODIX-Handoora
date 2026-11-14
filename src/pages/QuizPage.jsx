@@ -687,7 +687,14 @@ export default function QuizPage() {
 
               {/* Teks Instruksi Soal - Lebih Besar & Jelas Terbaca */}
               <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-gray-900 text-center mb-4 sm:mb-9 tracking-tight max-w-3xl leading-snug px-1">
-                {currentQuestion.prompt}
+                {currentQuestion.prompt === 'Peragakan huruf di samping!' ? (
+                  <>
+                    <span className="md:hidden">Peragakan huruf di bawah!</span>
+                    <span className="hidden md:inline">Peragakan huruf di samping!</span>
+                  </>
+                ) : (
+                  currentQuestion.prompt
+                )}
               </h2>
 
               {/* ----------------------------------------------------- */}
@@ -697,7 +704,7 @@ export default function QuizPage() {
                 <div className="w-full max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8 items-stretch">
                   {/* Kartu Kiri: Kamera Live Viewfinder Clean */}
                   <div
-                    className={`relative min-h-[250px] sm:min-h-[380px] md:min-h-[420px] aspect-4/3 sm:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
+                    className={`relative w-full min-h-[260px] sm:min-h-[380px] md:min-h-[420px] aspect-4/3 md:aspect-square bg-slate-900 rounded-3xl overflow-hidden shadow-[0_16px_40px_rgba(0,0,0,0.12)] flex flex-col items-center justify-center p-4 transition-all duration-300 border-2 ${
                       visionStatus === 'success'
                         ? 'border-emerald-500 shadow-[0_0_28px_rgba(16,185,129,0.45)] ring-4 ring-emerald-400/25'
                         : visionStatus === 'wrong'
