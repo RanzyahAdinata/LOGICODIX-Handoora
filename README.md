@@ -223,14 +223,13 @@ flowchart TD
 
 ---
 
-## 🧪 7. Akun Demonstrasi & Akses Admin
+## 🧪 7. Akun Demonstrasi Pengujian
 
-Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim Handoora telah menyediakan akun demonstrasi serta akses panel admin siap pakai:
+Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim Handoora telah menyediakan akun demonstrasi siap pakai:
 
 | Peran | Email | Password | Akses Rute |
 | :--- | :--- | :--- | :--- |
 | **Akun Pengujian (Juri)** | `demo.handoora@gmail.com` | `HandooraPassword123!` | Akses penuh ke fitur belajar (`/belajar`), kuis kamera, Kamus BISINDO, Leaderboard, dan Profil |
-| **Administrator** | `admin@gmail.com` | `admin123` | Panel manajemen CRUD data pengguna pada `/adminhandoora` |
 
 *Catatan: Dewan juri juga dipersilakan mendaftarkan akun baru secara langsung di halaman `/register` atau menggunakan tombol Google OAuth.*
 
