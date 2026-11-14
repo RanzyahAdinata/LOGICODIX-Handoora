@@ -33,7 +33,7 @@
 | **Institusi / Universitas** | **Telkom University** |
 | **Fakultas / Departemen** | **Informatika** |
 | **Ketua Tim** | **Ranzyah Adinata Aldo Ala Alfreda** (Hustler & Hacker) |
-| **Informasi Kontak** | `ranzyah9@gmail.com` • [Repository GitHub](https://github.com/RanzyahAdinata/LOGICODIX-Handoora) • [Live App (Vercel)](https://handoora.vercel.app) |
+| **Informasi Kontak** | `ranzyah9@gmail.com` • [GitHub Profile (@RanzyahAdinata)](https://github.com/RanzyahAdinata) |
 | **Subtema Utama** | **1. Smart & Fun Education**<br/>Solusi digital yang menjadikan proses belajar-mengajar interaktif, aksesibel, dan menyenangkan melalui gamifikasi serta AI asisten visualisasi isyarat.<br/>**2. Inclusive Health & Well-being**<br/>Membantu penyandang disabilitas Tuli dan masyarakat dengar dalam menjembatani komunikasi inklusif sehari-hari. |
 
 ### Susunan Anggota Tim:
