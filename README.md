@@ -27,7 +27,7 @@
 | **Judul Karya** | **Handoora: Platform Edukasi Gamifikasi Bahasa Isyarat Indonesia** |
 | **Institusi / Universitas** | **Telkom University** |
 | **Fakultas / Departemen** | **Informatika** |
-| **Ketua Tim / Penulis Utama** | **Ranzyah Adinata Aldo Ala Alfreda** |
+| **Ketua Tim / Penulis Utama** | **Ranzyah Adinata Aldo Ala Alfreda** (Hustler & Hacker) |
 | **Informasi Kontak** | `ranzyah9@gmail.com` • [Repository GitHub](https://github.com/RanzyahAdinata/LOGICODIX-Handoora) |
 | **Subtema Utama** | **1. Smart & Fun Education**<br/>Solusi digital yang menjadikan proses belajar-mengajar interaktif, aksesibel, dan menyenangkan melalui gamifikasi serta AI asisten visualisasi isyarat.<br/>**2. Inclusive Health & Well-being**<br/>Membantu penyandang disabilitas Tuli dan masyarakat dengar dalam menjembatani komunikasi inklusif sehari-hari. |
 
@@ -35,10 +35,10 @@
 
 | No. | Peran | Nama Lengkap | NIM |
 | :---: | :--- | :--- | :---: |
-| **-** | **Ketua Tim / Penulis Utama** | **Ranzyah Adinata Aldo Ala Alfreda** | - |
-| **1** | **Anggota 1 / Hipster** | **Salman Baihaqi** | `103012400008` |
-| **2** | **Anggota 2 / Hacker** | **Wafiq Aditiya Wiyono** | `103012400093` |
-| **3** | **Anggota 3 / Hacker** | **Anisah Pulungan** | `103012400344` |
+| **Ketua** | **Hustler & Hacker** (Ketua Tim / Penulis Utama) | **Ranzyah Adinata Aldo Ala Alfreda** | `103012430005` |
+| **1** | **Hipster** (Anggota 1) | **Salman Baihaqi** | `103012400008` |
+| **2** | **Hacker** (Anggota 2) | **Wafiq Aditiya Wiyono** | `103012400093` |
+| **3** | **Hacker** (Anggota 3) | **Anisah Pulungan** | `103012400344` |
 
 ---
 
