@@ -247,13 +247,23 @@ Untuk memudahkan evaluasi dewan juri tanpa perlu melakukan verifikasi email, tim
 
 ---
 
-## 🤖 8. Dokumentasi Penggunaan AI
+## 🤖 8. Dokumentasi Penggunaan AI & Pelatihan Mandiri Gesture Detection
 
+### A. Pelatihan Mandiri Gesture Detection BISINDO (oleh Wafiq Aditiya Wiyono)
+Sistem pengenalan gestur bahasa isyarat pada Handoora dikembangkan dari hasil pelatihan dan riset mandiri oleh anggota tim **Wafiq Aditiya Wiyono**:
+- **Dataset Kaggle BISINDO**: [Indonesian Sign Language (BISINDO) Dataset — Wafiq Aditiya](https://www.kaggle.com/datasets/wafiqaditiya/indonesian-sign-language-bisindo-dataset)
+- **Pipeline & File Pelatihan Mandiri (`Bisindo_Handoora`)**:
+  - **Ekstraksi & Pengumpulan Dataset**: `collect_alphabet.py`, `collect_words.py`, `kata_label.csv`, serta utilitas kurasi data (`clean_dataset.py`, `hapus_label.py`, `reset_kata.py`, `undo_dataset.py`).
+  - **Pelatihan Model**: `train_model.py`, `train_level2.py`, dan `train_words.py` menggunakan representasi **127 fitur koordinat MediaPipe Hands** (*Hand 1 [63] + Hand 2 [63] + Num Hands [1]*).
+  - **Pengujian Real-Time**: `test_realtime.py`, `test_words.py`, dan `app_level2.py` untuk validasi akurasi gestur abjad (A–Z) dan kosakata Level 2 secara *real-time*.
+- **Integrasi ke Aplikasi Web**: Logika ekstraksi 127 fitur dan aturan evaluasi gestur tersebut diadaptasi ke peramban pada [`src/utils/gestureDetector.js`](./src/utils/gestureDetector.js) dan [`src/utils/mediapipeLoader.js`](./src/utils/mediapipeLoader.js) agar berjalan instan tanpa latensi server.
+
+### B. Penggunaan AI Sesuai Pedoman Kompetisi
 Sesuai dengan ketentuan pedoman etika penggunaan AI pada **Guidebook LOGICODIX 2026**:
 - **Alat & Model AI yang Digunakan**: **Google Antigravity (Gemini API & Antigravity Autonomous Agent)**.
 - **Pemanfaatan dalam Proyek**:
   - Digunakan sebagai *AI Pair Programming Assistant* untuk mempercepat perancangan logika komponen React, penataan gaya visual responsif Tailwind CSS, serta perumusan skrip SQL Supabase Row Level Security (RLS).
-  - Pemanfaatan algoritma *Computer Vision Heuristic Analysis* untuk deteksi pose isyarat tangan interaktif berbasis kamera langsung di peramban pengguna.
+  - Pemanfaatan *MediaPipe Hands 21-Landmark 3D Tracking* dan *Computer Vision Heuristic Analysis* untuk deteksi pose isyarat tangan interaktif berbasis kamera langsung di peramban pengguna.
 - **Tanggung Jawab Kode**: Seluruh logika arsitektur, verifikasi fungsionalitas, keamanan data, dan pengujian sistem berada di bawah kendali dan tanggung jawab penuh tim pengembang Handoora.
 
 ---
