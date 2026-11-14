@@ -1303,131 +1303,27 @@ export const progressService = {
     return updatedProgress
   },
 
-  // Mendapatkan daftar leaderboard peringkat aktual HANYA dari user yang terdaftar di Handoora
+  // Mendapatkan daftar leaderboard peringkat aktual yang 100% sinkron dengan data Admin (/adminhandoora)
   async getLeaderboard(limit = 10) {
-    const getRegisteredOnlyLeaderboard = (supabaseData = []) => {
-      const userMap = new Map()
-
-      // 1. Akun Demo Pengujian (Juri) resmi
-      const demoProg = this.getProgress(DEMO_USER.id)
-      userMap.set(DEMO_USER.id, {
-        id: DEMO_USER.id,
-        nama: DEMO_USER.nama,
-        email: DEMO_USER.email,
-        xp: demoProg.xp || DEMO_USER.xp,
-        weekly_xp: demoProg.weekly_xp || DEMO_USER.weekly_xp,
-        current_unit: demoProg.unlockedIslands?.slice(-1)[0] || 2,
-        avatar_url: localStorage.getItem(`handoora_avatar_${DEMO_USER.id}`) || null,
-        status: '🔥',
-      })
-
-      // 2. Akun-akun yang pernah mendaftar di aplikasi (tersimpan di local registry / known profiles)
-      const registeredUsers = getLocalRegisteredUsers()
-      Object.values(registeredUsers).forEach((reg) => {
-        if (!reg?.id) return
-        const regProg = this.getProgress(reg.id)
-        const currentMeta = JSON.parse(localStorage.getItem('handoora_user') || '{}')
-        const currentXp = reg.id === currentMeta.id ? (Number(currentMeta.xp) || Number(regProg.xp) || 0) : (Number(regProg.xp) || 0)
-        userMap.set(reg.id, {
-          id: reg.id,
-          nama: reg.nama || 'Sobat Handoora',
-          email: reg.email,
-          xp: currentXp,
-          weekly_xp: currentXp,
-          current_unit: regProg.unlockedIslands?.slice(-1)[0] || 1,
-          avatar_url: localStorage.getItem(`handoora_avatar_${reg.id}`) || null,
-          status: '🌟',
-        })
-      })
-
-      // Cek juga known profiles lokal jika ada akun yang login/terdaftar sebelumnya
-      try {
-        const knownProfiles = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
-        Object.values(knownProfiles).forEach((p) => {
-          if (!p?.id || userMap.has(p.id)) return
-          // Filter: Hanya sertakan jika akun berformat nama/email riil pengguna
-          const pProg = this.getProgress(p.id)
-          const xpVal = Number(p.xp) || Number(pProg.xp) || 0
-          userMap.set(p.id, {
-            id: p.id,
-            nama: p.nama || (p.email ? p.email.split('@')[0] : 'Sobat Handoora'),
-            email: p.email,
-            xp: xpVal,
-            weekly_xp: xpVal,
-            current_unit: Number(p.current_unit) || 1,
-            avatar_url: p.avatar_url || localStorage.getItem(`handoora_avatar_${p.id}`) || null,
-            status: '🌟',
-          })
-        })
-      } catch {
-        // ignore
-      }
-
-      // 3. Masukkan data profil aktual dari database Supabase (hanya akun yang terdaftar)
-      if (Array.isArray(supabaseData) && supabaseData.length > 0) {
-        try {
-          const known = JSON.parse(localStorage.getItem('handoora_known_profiles') || '{}')
-          supabaseData.forEach((row) => {
-            if (!row?.id) return
-            const rowXp = Number(row.xp) || 0
-            const entry = {
-              id: row.id,
-              nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
-              email: row.email,
-              xp: rowXp,
-              weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
-              current_unit: Number(row.current_unit) || 1,
-              avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
-              status: '🌟',
-            }
-            userMap.set(row.id, entry)
-            known[row.id] = { ...known[row.id], ...entry }
-          })
-          localStorage.setItem('handoora_known_profiles', JSON.stringify(known))
-        } catch {
-          supabaseData.forEach((row) => {
-            if (!row?.id) return
-            const rowXp = Number(row.xp) || 0
-            userMap.set(row.id, {
-              id: row.id,
-              nama: row.nama || (row.email ? row.email.split('@')[0] : 'Sobat Handoora'),
-              email: row.email,
-              xp: rowXp,
-              weekly_xp: Number(row.weekly_xp ?? rowXp) || 0,
-              current_unit: Number(row.current_unit) || 1,
-              avatar_url: row.avatar_url || localStorage.getItem(`handoora_avatar_${row.id}`) || null,
-              status: '🌟',
-            })
-          })
-        }
-      }
-
-      // Urutkan murni berdasarkan XP tertinggi secara akurat (kecualikan akun admin)
-      return Array.from(userMap.values())
+    try {
+      const users = await adminService.listUsers()
+      return users
         .filter((u) => u.email?.toLowerCase() !== ADMIN_EMAIL)
+        .map((u) => ({
+          id: u.id,
+          nama: u.nama || (u.email ? u.email.split('@')[0] : 'Sobat Handoora'),
+          email: u.email,
+          xp: Number(u.xp) || 0,
+          weekly_xp: Number(u.xp) || 0,
+          current_unit: Number(u.current_unit) || 1,
+          avatar_url: u.avatar_url || localStorage.getItem(`handoora_avatar_${u.id}`) || null,
+          status: u.id === DEMO_USER.id ? '🔥' : '🌟',
+        }))
         .sort((a, b) => b.xp - a.xp)
         .slice(0, limit)
-    }
-
-    if (!supabase || !isSupabaseConfigured) {
-      return getRegisteredOnlyLeaderboard([])
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, nama, email, xp, current_unit, avatar_url, updated_at')
-        .order('xp', { ascending: false })
-        .limit(limit)
-
-      if (!error && Array.isArray(data) && data.length > 0) {
-        return getRegisteredOnlyLeaderboard(data)
-      }
-
-      return getRegisteredOnlyLeaderboard([])
     } catch (err) {
       console.warn('Error fetching leaderboard:', err)
-      return getRegisteredOnlyLeaderboard([])
+      return []
     }
   },
 }
